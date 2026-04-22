@@ -13,7 +13,7 @@ class Device_iots extends Model
         'device_token',
         'last_online',
         'is_active',
-        'last_active_at',
+        'last_active_at'
     ];
 
     public function penimbangans()
