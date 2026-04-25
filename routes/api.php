@@ -38,7 +38,10 @@ Route::prefix('iot')->group(function () {
      * Device heartbeat — updates last_online timestamp.
      */
     Route::post('/ping', [IotController::class, 'ping']);
-    Route::get('/ping',  [IotController::class, 'ping']);   // allow GET for easy testing
+    Route::get('/ping',  [IotController::class, 'ping']);
+    
+    // Device Management
+    Route::post('/device/update-product', [IotController::class, 'updateDeviceProduct']);
 });
 
 // Health check

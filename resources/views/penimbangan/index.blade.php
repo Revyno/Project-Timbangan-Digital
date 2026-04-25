@@ -15,7 +15,6 @@
                     <th>Kode Produksi</th>
                     <th>Produk</th>
                     <th>Berat</th>
-                    <th>Selisih</th>
                     <th>Status</th>
                     <th>Aksi</th>
                 </tr>
@@ -24,14 +23,9 @@
                 @forelse($penimbangans as $p)
                 <tr>
                     <td>{{ $p->tanggal->format('d/m/Y') }}</td>
-                    <td style="font-weight: 600;">{{ $p->kode_produksi }}</td>
+                    <td style="font-weight: 600;">{{ $p->kode_produksi_display }}</td>
                     <td>{{ $p->produk->nama_produk ?? '-' }}</td>
                     <td style="font-weight: 600;">{{ $p->berat }} kg</td>
-                    <td>
-                        <span style="color: {{ $p->selisih >= 0 ? 'var(--success)' : 'var(--danger)' }}">
-                            {{ $p->selisih >= 0 ? '+' : '' }}{{ $p->selisih }}
-                        </span>
-                    </td>
                     <td><span class="badge {{ $p->status == 'selesai' ? 'badge-success' : 'badge-warning' }}">{{ ucfirst($p->status) }}</span></td>
                     <td>
                         <a href="{{ route('penimbangan.show', $p) }}" class="btn btn-outline btn-sm">Detail</a>

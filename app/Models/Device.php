@@ -10,6 +10,7 @@ class Device extends Model
         'device_code',
         'device_name',
         'device_token',
+        'current_product_id',
         'last_online',
         'is_active',
     ];

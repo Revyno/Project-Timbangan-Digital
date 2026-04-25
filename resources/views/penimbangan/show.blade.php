@@ -3,13 +3,13 @@
 @section('content')
 <div class="card" style="max-width:600px;">
     <div class="card-header">
-        <div class="card-title">Data Penimbangan {{ $penimbangan->kode_produksi }}</div>
+        <div class="card-title">Data Penimbangan {{ $penimbangan->kode_produksi_display }}</div>
         <span class="badge {{ $penimbangan->status == 'selesai' ? 'badge-success' : 'badge-warning' }}">{{ ucfirst($penimbangan->status) }}</span>
     </div>
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
         <div>
             <div class="form-label">Kode Produksi</div>
-            <div style="font-weight:600;">{{ $penimbangan->kode_produksi }}</div>
+            <div style="font-weight:600;">{{ $penimbangan->kode_produksi_display }}</div>
         </div>
         <div>
             <div class="form-label">Tanggal</div>
@@ -28,19 +28,6 @@
     <div style="margin-top:2rem; padding-top:2rem; border-top:1px solid var(--border); text-align:center;">
         <div style="font-size:3rem; font-weight:800; color:var(--primary);">{{ $penimbangan->berat }} <span style="font-size:1rem; color:var(--text2);">kg</span></div>
         <div style="font-size:.8rem; color:var(--text2);">Berat Aktual</div>
-        
-        <div style="display:flex; justify-content:center; gap:2rem; margin-top:1.5rem;">
-            <div>
-                <div style="font-size:.75rem; color:var(--text2);">Target</div>
-                <div style="font-weight:600;">{{ $penimbangan->produk->target_berat ?? 0 }} kg</div>
-            </div>
-            <div>
-                <div style="font-size:.75rem; color:var(--text2);">Selisih</div>
-                <div style="font-weight:600; color: {{ $penimbangan->selisih >= 0 ? 'var(--success)' : 'var(--danger)' }}">
-                    {{ $penimbangan->selisih >= 0 ? '+' : '' }}{{ $penimbangan->selisih }} kg
-                </div>
-            </div>
-        </div>
     </div>
     
     <div style="margin-top:2rem;">

@@ -22,7 +22,6 @@ class ProdukController extends Controller
     {
         $validated = $request->validate([
             'nama_produk'  => 'required|string|max:100',
-            'target_berat' => 'required|numeric|min:0',
         ]);
 
         Produk::create($validated);
@@ -40,7 +39,6 @@ class ProdukController extends Controller
     {
         $validated = $request->validate([
             'nama_produk'  => 'required|string|max:100',
-            'target_berat' => 'required|numeric|min:0',
         ]);
         $produk->update($validated);
 

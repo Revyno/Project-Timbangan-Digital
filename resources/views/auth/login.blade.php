@@ -105,11 +105,11 @@
     </style>
 </head>
 <body>
-<div class="login-box">
+<div class="login-box ">
     <div class="logo-area">
         {{-- <div class="logo-circle"></div> --}}
         <h1>Pt Ladang Lima Surabaya</h1>
-        <p>WiFi Scale System V7.0 — Silahkan login</p>
+        <p>Dashboard Timbangan Digital V7.0 — Silahkan Login</p>
     </div>
 
     @if($errors->any())
@@ -118,16 +118,25 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="alert-error">
+            {{ session('error') }}
+        </div>
+    @endif
+
+
     <form method="POST" action="{{ route('login') }}">
         @csrf
         <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus>
+            <span class="inline-flex items-center px-3 text-sm text-body bg-neutral-tertiary border rounded-e-0 border-default-medium border-e-0 rounded-s-base">
+                <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus>
         </div>
         <div class="form-group">
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
         </div>
+        <!--  -->
         <button type="submit" class="btn-login">Masuk ke Dashboard →</button>
       {{-- forget password --}}
       {{-- <p style="text-align: center; margin-top: 1rem;">

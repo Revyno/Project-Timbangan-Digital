@@ -15,6 +15,11 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
+        // Sanitize 'page' query parameter to prevent numeric error on empty string (?page)
+        if ($request->has('page') && (!is_numeric($request->page) || $request->page < 1)) {
+            return redirect()->to($request->url());
+        }
+
         if ($user->isAdmin()) {
             return $this->adminDashboard($request);
         }
@@ -59,46 +64,109 @@ class DashboardController extends Controller
     private function operatorDashboard()
     {
         $user = Auth::user();
-        $penimbangans = Penimbangan::with(['produk', 'user'])
-            ->where('user_id', $user->id)
-            ->orderByDesc('created_at')
-            ->paginate(5);
+        
+        // Menghitung total penimbangan yang selesai oleh operator ini pada hari ini
+        $totalShift = Penimbangan::where('user_id', $user->id)
+            ->whereDate('created_at', today())
+            ->where('status', 'selesai')
+            ->count();
+
+        // Ambil sesi aktif dari Cache
+        $activePenimbangan = cache()->get("session_operator_{$user->id}");
+        
+        // Jika ada di cache, kita ambil model produknya agar bisa tampil nama produknya
+        if ($activePenimbangan) {
+            $activePenimbangan = (object) $activePenimbangan;
+            $activePenimbangan->produk = Produk::find($activePenimbangan->produk_id);
+            $activePenimbangan->tanggal_expired = \Carbon\Carbon::parse($activePenimbangan->tanggal_expired);
+        }
 
         $produks = Produk::orderBy('nama_produk')->get();
+        $lastSession = cache()->get("last_session_operator_{$user->id}");
 
-        return view('dashboard.operator', compact('penimbangans', 'produks'));
+        return view('dashboard.operator', compact('produks', 'totalShift', 'activePenimbangan', 'lastSession'));
     }
 
     public function storePenimbangan(Request $request)
     {
         $validated = $request->validate([
             'produk_id' => 'required|exists:produks,id',
-            'tanggal_expired' => 'nullable|date',
+            'kode_produksi' => 'required|string',
+            'tanggal_expired' => 'required|date',
         ]);
 
-        // Auto-generate Kode Produksi
-        // Format: LOT-YYYYMMDD-COUNT
-        $date = now()->format('Ymd');
-        $count = Penimbangan::whereDate('created_at', today())->count() + 1;
-        $kode_produksi = 'LOT-' . $date . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        $user = Auth::user();
 
-        // Ensure uniqueness just in case
-        while (Penimbangan::where('kode_produksi', $kode_produksi)->exists()) {
-            $count++;
-            $kode_produksi = 'LOT-' . $date . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        // Simpan ke Cache (Sesi Aktif)
+        $sessionData = [
+            'produk_id' => $validated['produk_id'],
+            'kode_produksi' => $validated['kode_produksi'],
+            'tanggal_expired' => $validated['tanggal_expired'],
+        ];
+
+        cache()->put("session_operator_{$user->id}", $sessionData, now()->addHours(8));
+        
+        // Simpan juga sebagai "Sesi Terakhir" (Untuk pre-fill otomatis nanti)
+        cache()->put("last_session_operator_{$user->id}", $sessionData, now()->addDays(7));
+
+        return redirect()->route('dashboard')->with('success', "Sesi penimbangan [{$validated['kode_produksi']}] dimulai. Silahkan lakukan penimbangan.");
+    }
+
+    public function stopPenimbangan()
+    {
+        cache()->forget("session_operator_" . Auth::id());
+        return redirect()->route('dashboard')->with('success', 'Sesi penimbangan telah dihentikan.');
+    }
+
+    public function export(Request $request)
+    {
+        $query = Penimbangan::with(['produk', 'user', 'device'])
+            ->orderByDesc('created_at');
+
+        // Apply same filters as dashboard
+        if ($request->filled('tanggal')) {
+            $query->whereDate('tanggal_penimbangan', $request->tanggal);
+        }
+        if ($request->filled('shift')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('shift', $request->shift);
+            });
+        }
+        if ($request->filled('produk')) {
+            $query->where('produk_id', $request->produk);
         }
 
-        Penimbangan::create([
-            'tanggal_penimbangan' => now()->format('Y-m-d'),
-            'produk_id' => $validated['produk_id'],
-            'user_id' => Auth::id(),
-            'kode_produksi' => $kode_produksi,
-            'tanggal_expired' => $validated['tanggal_expired'] ?? null,
-            'status' => 'menunggu',
-            'berat' => 0,
-            'selisih' => 0,
-        ]);
+        $records = $query->get();
+        $filename = "rekap_penimbangan_" . now()->format('Ymd_His') . ".csv";
 
-        return back()->with('success', "Data [{$kode_produksi}] berhasil ditambahkan. Menunggu data dari Arduino.");
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['Produk', 'Operator', 'Shift', 'Kode Produksi', 'Tanggal Expired', 'Berat (kg)', 'Status'];
+
+        $callback = function() use($records, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($records as $r) {
+                fputcsv($file, [
+                    $r->produk->nama_produk,
+                    $r->user->name,
+                    'Shift ' . ($r->user->shift ?? '-'),
+                    $r->kode_produksi_display,
+                    $r->tanggal_expired ? $r->tanggal_expired->format('d/m/Y') : '-',
+                    number_format($r->berat, 3),
+                    $r->status,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

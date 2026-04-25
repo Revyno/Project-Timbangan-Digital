@@ -11,6 +11,15 @@ class HistoryTable extends Component
 {
     use WithPagination;
 
+    public function mount()
+    {
+        // Sanitize page parameter to prevent "string + int" error on PHP 8.4
+        $page = request()->query('page');
+        if (request()->has('page') && (!is_numeric($page) || $page < 1)) {
+            $this->setPage(1);
+        }
+    }
+
     public function render()
     {
         $penimbangans = Penimbangan::with(['produk'])

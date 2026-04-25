@@ -39,7 +39,8 @@ class DeviceController extends Controller
 
     public function edit(Device $device)
     {
-        return view('devices.edit', compact('device'));
+        $produks = \App\Models\Produk::orderBy('nama_produk')->get();
+        return view('devices.edit', compact('device', 'produks'));
     }
 
     public function update(Request $request, Device $device)
@@ -47,11 +48,13 @@ class DeviceController extends Controller
         $validated = $request->validate([
             'device_name' => 'required|string|max:100',
             'is_active'   => 'boolean',
+            'current_product_id' => 'nullable|exists:produks,id',
         ]);
 
         $device->update([
             'device_name' => $validated['device_name'],
             'is_active'   => $request->boolean('is_active'),
+            'current_product_id' => $validated['current_product_id'],
         ]);
 
         return redirect()->route('devices.index')

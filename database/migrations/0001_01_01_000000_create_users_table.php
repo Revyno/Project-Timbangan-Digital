@@ -18,7 +18,9 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['admin', 'operator'])->default('operator');
-            $table->enum('shift', ['1', '2', '3'])->nullable();
+            $table->string('shift')->nullable(); // e.g. "Shift 1", "Pagi", etc
+            $table->time('shift_start')->nullable(); // e.g. "08:00"
+            $table->time('shift_end')->nullable(); // e.g. "12:00"
             $table->rememberToken();
             $table->timestamps();
         });

@@ -13,7 +13,6 @@ class Penimbangan extends Model
         'kode_produksi',
         'tanggal_expired',
         'berat',
-        'selisih',
         'device_id',
         'status',
     ];
@@ -22,7 +21,6 @@ class Penimbangan extends Model
         'tanggal_penimbangan' => 'date',
         'tanggal_expired' => 'date',
         'berat' => 'decimal:3',
-        'selisih' => 'decimal:3',
     ];
 
     public function produk()
@@ -38,5 +36,11 @@ class Penimbangan extends Model
     public function device()
     {
         return $this->belongsTo(Device::class);
+    }
+
+    // Accessor untuk menampilkan Kode Produksi tanpa suffix unik (#timestamp)
+    public function getKodeProduksiDisplayAttribute()
+    {
+        return explode('#', $this->kode_produksi)[0];
     }
 }

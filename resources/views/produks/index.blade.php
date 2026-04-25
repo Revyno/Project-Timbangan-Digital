@@ -14,7 +14,6 @@
             <thead>
                 <tr>
                     <th>Nama Produk</th>
-                    <th>Target Berat (kg)</th>
                     <th>Total Penimbangan</th>
                     <th>Aksi</th>
                 </tr>
@@ -23,7 +22,6 @@
                 @forelse($produks as $p)
                 <tr>
                     <td style="font-weight:600;">{{ $p->nama_produk }}</td>
-                    <td>{{ $p->target_berat }} kg</td>
                     <td><span class="badge badge-info">{{ $p->penimbangans_count }} Data</span></td>
                     <td>
                         <a href="{{ route('produks.edit', $p) }}" class="btn btn-outline btn-sm">Edit</a>
