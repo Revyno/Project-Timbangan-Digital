@@ -15,7 +15,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Sanitize 'page' query parameter to prevent numeric error on empty string (?page)
+        // Sanitize 'page' query parameter
         if ($request->has('page') && (!is_numeric($request->page) || $request->page < 1)) {
             return redirect()->to($request->url());
         }
@@ -24,52 +24,149 @@ class DashboardController extends Controller
             return $this->adminDashboard($request);
         }
 
-        return $this->operatorDashboard();
+        // Check session lock for operators
+        if ($user->session_locked) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Sesi Anda telah berakhir. Silahkan hubungi admin untuk mengaktifkan kembali.',
+            ]);
+        }
+
+        // --- Operator Personal Overview ---
+        $stats = [
+            'total' => Penimbangan::where('user_id', $user->id)->count(),
+            'selesai' => Penimbangan::where('user_id', $user->id)->where('status', 'selesai')->count(),
+            'total_berat' => Penimbangan::where('user_id', $user->id)->where('status', 'selesai')->sum('berat'),
+            'invalid' => Penimbangan::where('user_id', $user->id)->where('status', 'invalid')->count(),
+        ];
+
+        $moduleStats = Penimbangan::join('users', 'penimbangans.user_id', '=', 'users.id')
+            ->where('penimbangans.user_id', $user->id)
+            ->select('users.tipe', \DB::raw('count(*) as total'), \DB::raw('sum(berat) as total_berat'))
+            ->groupBy('users.tipe')
+            ->get()
+            ->keyBy('tipe');
+
+        $moduleNames = [
+            'fg' => 'Pasuruan FG',
+            'fg_psn' => 'Pasuruan PSN',
+            'fg_surabaya' => 'Surabaya Formulasi',
+            'cs_noodle_sby' => 'CS Noodle Surabaya',
+            'cs_fg_sby' => 'CS FG Surabaya',
+            'incoming_singkong' => 'Incoming Singkong',
+            'incoming_rmpm' => 'Incoming RMPM',
+        ];
+
+        $recentPenimbangans = Penimbangan::with(['produk'])
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get();
+
+        return view('dashboard.operator_overview', compact('stats', 'moduleStats', 'moduleNames', 'recentPenimbangans'));
     }
 
     private function adminDashboard(Request $request)
     {
-        $query = Penimbangan::with(['produk', 'user', 'device'])
-            ->orderByDesc('created_at');
+        $baseQuery = Penimbangan::query();
 
-        // Filters
-        if ($request->filled('tanggal')) {
-            $query->whereDate('tanggal_penimbangan', $request->tanggal);
+        if ($request->filled('tanggal_mulai')) {
+            $baseQuery->whereDate('tanggal_penimbangan', '>=', $request->tanggal_mulai);
+        }
+        if ($request->filled('tanggal_selesai')) {
+            $baseQuery->whereDate('tanggal_penimbangan', '<=', $request->tanggal_selesai);
         }
         if ($request->filled('shift')) {
-            $query->whereHas('user', function($q) use ($request) {
+            $baseQuery->whereHas('user', function($q) use ($request) {
                 $q->where('shift', $request->shift);
             });
         }
         if ($request->filled('produk')) {
-            $query->where('produk_id', $request->produk);
+            $baseQuery->where('produk_id', $request->produk);
         }
 
-        $penimbangans = $query->paginate(5)->withQueryString();
-
-        // Stats
+        // Global Stats
         $stats = [
-            'total' => Penimbangan::count(),
-            'menunggu' => Penimbangan::where('status', 'menunggu')->count(),
-            'selesai' => Penimbangan::where('status', 'selesai')->count(),
-            'invalid' => Penimbangan::where('status', 'invalid')->count(),
+            'total' => (clone $baseQuery)->count(),
+            'selesai' => (clone $baseQuery)->where('status', 'selesai')->count(),
+            'total_berat' => (clone $baseQuery)->where('status', 'selesai')->sum('berat'),
+            'invalid' => (clone $baseQuery)->where('status', 'invalid')->count(),
         ];
 
-        $produks = Produk::orderBy('nama_produk')->get();
-        $devices = Device::all();
+        // Module Breakdown Stats
+        $moduleStats = Penimbangan::join('users', 'penimbangans.user_id', '=', 'users.id')
+            ->select('users.tipe', \DB::raw('count(*) as total'), \DB::raw('sum(berat) as total_berat'))
+            ->groupBy('users.tipe')
+            ->get()
+            ->keyBy('tipe');
 
-        return view('dashboard.admin', compact('penimbangans', 'stats', 'produks', 'devices'));
+        // Map internal types to human readable names
+        $moduleNames = [
+            'fg' => 'Pasuruan FG',
+            'fg_psn' => 'Pasuruan PSN',
+            'fg_surabaya' => 'Surabaya Formulasi',
+            'cs_noodle_sby' => 'CS Noodle Surabaya',
+            'cs_fg_sby' => 'CS FG Surabaya',
+            'incoming_singkong' => 'Incoming Singkong',
+            'incoming_rmpm' => 'Incoming RMPM',
+        ];
+
+        // Recent Activity (All modules)
+        $recentPenimbangans = Penimbangan::with(['produk', 'user'])
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get();
+
+        $produks = Produk::orderBy('nama_produk')->get();
+
+        return view('dashboard.admin', compact('recentPenimbangans', 'stats', 'moduleStats', 'moduleNames', 'produks'));
     }
 
-    private function operatorDashboard()
+    public function operatorDashboard(Request $request)
     {
         $user = Auth::user();
+
+        if ($user->isAdmin()) {
+            // Admin sees the re-styled filter/data view for Pasuruan FG
+            $query = Penimbangan::whereHas('user', fn($q) => $q->where('tipe', 'fg'));
+
+            if ($request->filled('tanggal_mulai')) {
+                $query->whereDate('tanggal_penimbangan', '>=', $request->tanggal_mulai);
+            }
+            if ($request->filled('tanggal_selesai')) {
+                $query->whereDate('tanggal_penimbangan', '<=', $request->tanggal_selesai);
+            }
+            if ($request->filled('produk')) {
+                $query->where('produk_id', $request->produk);
+            }
+
+            $penimbangans = (clone $query)->with(['produk', 'user'])
+                ->orderByDesc('created_at')
+                ->paginate(15)
+                ->withQueryString();
+
+            $stats = [
+                'total' => (clone $query)->count(),
+                'total_berat' => (clone $query)->where('status', 'selesai')->sum('berat'),
+            ];
+
+            $produks = Produk::orderBy('nama_produk')->get();
+
+            return view('dashboard.admin_fg', compact('penimbangans', 'stats', 'produks'));
+        }
         
         // Menghitung total penimbangan yang selesai oleh operator ini pada hari ini
         $totalShift = Penimbangan::where('user_id', $user->id)
             ->whereDate('created_at', today())
             ->where('status', 'selesai')
             ->count();
+
+        $totalBerat = Penimbangan::where('user_id', $user->id)
+            ->whereDate('created_at', today())
+            ->where('status', 'selesai')
+            ->sum('berat');
 
         // Ambil sesi aktif dari Cache
         $activePenimbangan = cache()->get("session_operator_{$user->id}");
@@ -84,7 +181,7 @@ class DashboardController extends Controller
         $produks = Produk::orderBy('nama_produk')->get();
         $lastSession = cache()->get("last_session_operator_{$user->id}");
 
-        return view('dashboard.operator', compact('produks', 'totalShift', 'activePenimbangan', 'lastSession'));
+        return view('dashboard.operator', compact('produks', 'totalShift', 'totalBerat', 'activePenimbangan', 'lastSession'));
     }
 
     public function storePenimbangan(Request $request)
@@ -109,13 +206,29 @@ class DashboardController extends Controller
         // Simpan juga sebagai "Sesi Terakhir" (Untuk pre-fill otomatis nanti)
         cache()->put("last_session_operator_{$user->id}", $sessionData, now()->addDays(7));
 
-        return redirect()->route('dashboard')->with('success', "Sesi penimbangan [{$validated['kode_produksi']}] dimulai. Silahkan lakukan penimbangan.");
+        return redirect()->route('fg.dashboard')->with('success', "Sesi penimbangan [{$validated['kode_produksi']}] dimulai. Silahkan lakukan penimbangan.");
     }
 
-    public function stopPenimbangan()
+    public function nextSession()
     {
-        cache()->forget("session_operator_" . Auth::id());
-        return redirect()->route('dashboard')->with('success', 'Sesi penimbangan telah dihentikan.');
+        $user = Auth::user();
+        cache()->forget("session_operator_" . $user->id);
+        
+        return redirect()->route('fg.dashboard')->with('success', 'Sesi produk selesai. Silahkan mulai sesi produk baru.');
+    }
+
+    public function stopPenimbangan(Request $request)
+    {
+        $user = Auth::user();
+        cache()->forget("session_operator_" . $user->id);
+        
+        $user->update(['session_locked' => true]);
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('status', 'Sesi penimbangan telah dihentikan. Silahkan login kembali besok.');
     }
 
     public function export(Request $request)
@@ -124,8 +237,11 @@ class DashboardController extends Controller
             ->orderByDesc('created_at');
 
         // Apply same filters as dashboard
-        if ($request->filled('tanggal')) {
-            $query->whereDate('tanggal_penimbangan', $request->tanggal);
+        if ($request->filled('tanggal_mulai')) {
+            $query->whereDate('tanggal_penimbangan', '>=', $request->tanggal_mulai);
+        }
+        if ($request->filled('tanggal_selesai')) {
+            $query->whereDate('tanggal_penimbangan', '<=', $request->tanggal_selesai);
         }
         if ($request->filled('shift')) {
             $query->whereHas('user', function($q) use ($request) {

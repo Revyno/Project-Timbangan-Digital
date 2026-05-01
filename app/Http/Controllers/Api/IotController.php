@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Device;
 use App\Models\Penimbangan;
-use App\Models\Produk;
 use App\Models\User;
 use App\Services\ShiftService;
+use App\Events\WeightReceived;
 use Illuminate\Http\Request;
 
 class IotController extends Controller
@@ -119,6 +119,15 @@ class IotController extends Controller
                         'status' => 'selesai',
                     ]);
 
+                    // Broadcast WebSocket Event
+                    broadcast(new WeightReceived('fg', [
+                        'weight' => $berat,
+                        'operator' => $activeOperator->name,
+                        'product' => $produk->nama_produk,
+                        'kode_produksi' => $kodeDb,
+                        'status' => 'selesai'
+                    ]));
+
                     return response()->json([
                         'status' => 'success',
                         'message' => 'Berat Produksi berhasil disimpan: ',
@@ -177,6 +186,15 @@ class IotController extends Controller
                 'status' => 'selesai',
             ]);
 
+            // Broadcast WebSocket Event
+            broadcast(new WeightReceived('fg', [
+                'weight' => $berat,
+                'operator' => $activeOperator->name,
+                'product' => $produk->nama_produk,
+                'kode_produksi' => $kode_produksi,
+                'status' => 'selesai'
+            ]));
+
             return response()->json([
                 'status' => 'success',
                 // 'message'=> 'Berat-Berhasil Di Tambahkan: {$berat} kg',
@@ -195,6 +213,15 @@ class IotController extends Controller
             'device_id' => $device->id,
             'status'    => 'selesai',
         ]);
+
+        // Broadcast WebSocket Event
+        broadcast(new WeightReceived('fg', [
+            'weight' => $berat,
+            'operator' => $activeOperator ? $activeOperator->name : 'Unknown',
+            'product' => $produk->nama_produk,
+            'kode_produksi' => $penimbangan->kode_produksi,
+            'status' => 'selesai'
+        ]));
 
         return response()->json([
             'status'  => 'success',

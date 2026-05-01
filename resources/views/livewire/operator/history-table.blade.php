@@ -1,8 +1,8 @@
 <div wire:poll.5s>
-    <h5 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Riwayat Penimbangan</h5>
+    <h5 class="text-xl font-bold mb-4 text-gray-900">Riwayat Penimbangan</h5>
     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
                     <th scope="col" class="px-6 py-3">Tanggal Penimbangan</th>
                     <th scope="col" class="px-6 py-3">Produk</th>
@@ -14,13 +14,13 @@
             </thead>
             <tbody>
                 @foreach($penimbangans as $p)
-                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ $p->created_at->format('d M Y H:i:s') }}</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ $p->produk->nama_produk }}</td>
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-gray-900">{{ $p->created_at->format('d M Y H:i:s') }}</td>
+                    <td class="px-6 py-4 font-medium text-gray-900">{{ $p->produk->nama_produk }}</td>
                     <td class="px-6 py-4">
                         <span class="font-mono text-xs">{{ $p->kode_produksi_display }}</span>
                     </td>
-                    <td class="px-6 py-4 font-bold text-gray-900 dark:text-white">
+                    <td class="px-6 py-4 font-bold text-gray-900">
                         @if($p->berat > 0)
                             {{ number_format($p->berat, 3) }} <span class="text-xs font-normal text-gray-400">kg</span>
                         @else
@@ -37,11 +37,11 @@
                     </td>
                     <td class="px-6 py-4">
                         @if($p->status == 'menunggu')
-                            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">Menunggu</span>
+                            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">Menunggu</span>
                         @elseif($p->status == 'selesai')
-                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">Selesai</span>
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Selesai</span>
                         @else
-                            <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">Invalid</span>
+                            <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Invalid</span>
                         @endif
                     </td>
                 </tr>

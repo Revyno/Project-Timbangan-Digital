@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class PenimbanganController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user  = Auth::user();
         $query = Penimbangan::with(['produk', 'user', 'device'])->orderByDesc('created_at');
@@ -18,7 +18,14 @@ class PenimbanganController extends Controller
             $query->where('user_id', $user->id);
         }
 
-        $penimbangans = $query->paginate(5);
+        if ($request->filled('tanggal_mulai')) {
+            $query->whereDate('tanggal_penimbangan', '>=', $request->tanggal_mulai);
+        }
+        if ($request->filled('tanggal_selesai')) {
+            $query->whereDate('tanggal_penimbangan', '<=', $request->tanggal_selesai);
+        }
+
+        $penimbangans = $query->paginate(5)->withQueryString();
         return view('penimbangan.index', compact('penimbangans'));
     }
 
@@ -37,7 +44,7 @@ class PenimbanganController extends Controller
         ]);
 
         Penimbangan::create([
-            'tanggal'         => today(),
+            'tanggal_penimbangan' => today(),
             'produk_id'       => $validated['produk_id'],
             'user_id'         => Auth::id(),
             'kode_produksi'   => $validated['kode_produksi'],

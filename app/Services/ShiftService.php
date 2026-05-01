@@ -26,6 +26,11 @@ class ShiftService
             return false;
         }
 
+        // Lock check
+        if ($user->isSessionLocked()) {
+            return false;
+        }
+
         $now = now()->format('H:i:s');
         $start = $user->shift_start;
         $end = $user->shift_end;
@@ -49,8 +54,9 @@ class ShiftService
     {
         $now = now()->format('H:i:s');
 
-        // Operators whose shift covers 'now'
+        // Operators whose shift covers 'now' and is not locked
         return User::where('role', 'operator')
+            ->where('session_locked', false)
             ->where(function($query) use ($now) {
                 $query->where(function($q) use ($now) {
                     $q->whereColumn('shift_start', '<=', 'shift_end')
