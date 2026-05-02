@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('qrcodes', function (Blueprint $table) {
             $table->id();
-            $table->string('qr_code');
-            $table->foreignId('penimbangan_id')->constrained('penimbangans')->onDelete('cascade');
+            $table->string('qr_code')->unique();
+            $table->foreignId('penimbangan_id')->nullable()->constrained('penimbangans')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('nama_sopir')->constrained('sopirs')->onDelete('cascade');
-            $table->foreignId('nama_supplier')->constrained('suppliers')->onDelete('cascade');
+            $table->string('nama_sopir')->nullable();
+            $table->string('nama_supplier')->nullable();
             $table->foreignId('device_id')->nullable()->constrained('devices')->onDelete('set null');
             $table->decimal('berat', 10, 3)->default(0);
             $table->decimal('selisih', 10, 3)->default(0);

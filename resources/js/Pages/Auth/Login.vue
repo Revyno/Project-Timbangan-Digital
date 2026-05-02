@@ -54,23 +54,13 @@ const submit = () => {
                         required
                         autofocus
                         autocomplete="username"
-                        placeholder="name@company.com"
+                        placeholder="name@gmail.com"
                     />
                 </div>
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
             <div class="space-y-2">
-                <div class="flex items-center justify-between ml-1">
-                    <Label for="password" class="text-xs font-bold text-gray-500 uppercase">Password</Label>
-                    <Link
-                        v-if="canResetPassword"
-                        :href="route('password.request')"
-                        class="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
-                    >
-                        Forgot?
-                    </Link>
-                </div>
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-600 transition-colors">
                         <Lock class="w-5 h-5" />
