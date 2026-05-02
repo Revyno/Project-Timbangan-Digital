@@ -44,9 +44,12 @@ class IncomingSingkongController extends Controller
             ->orderByDesc('created_at')
             ->paginate(10);
 
-        return view('incoming.singkong.dashboard', compact(
-            'activeSession', 'totalShift', 'totalBerat', 'history'
-        ));
+        return \Inertia\Inertia::render('Incoming/Singkong', [
+            'activeSession' => $activeSession ? (object)$activeSession : null,
+            'totalShift' => $totalShift,
+            'totalBerat' => $totalBerat,
+            'history' => $history,
+        ]);
     }
 
     private function adminView(Request $request)
@@ -76,7 +79,15 @@ class IncomingSingkongController extends Controller
             'total_berat' => (clone $query)->where('status', 'selesai')->sum('berat'),
         ];
 
-        return view('incoming.singkong.admin', compact('history', 'stats'));
+        return \Inertia\Inertia::render('Dashboard/DataView', [
+            'title' => 'Incoming Singkong',
+            'subtitle' => 'Data penimbangan singkong masuk (Read Only)',
+            'penimbangans' => $history,
+            'stats' => $stats,
+            'produks' => [], // Singkong doesn't use product table in the same way
+            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'supplier', 'jenis']),
+            'exportRoute' => 'incoming.singkong.export',
+        ]);
     }
 
     public function start(Request $request)

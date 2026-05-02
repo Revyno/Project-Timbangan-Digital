@@ -45,7 +45,17 @@ class CsNoodleSbyController extends Controller
         $history = Penimbangan::with('produk')->where('user_id', $user->id)
             ->whereDate('created_at', today())->orderByDesc('created_at')->paginate(10);
 
-        return view('cs-noodle-sby.dashboard', compact('activeSession', 'totalShift', 'totalBerat', 'produks', 'lastSession', 'history'));
+        return \Inertia\Inertia::render('Dashboard/Operator', [
+            'activePenimbangan' => $activeSession,
+            'totalShift' => $totalShift,
+            'totalBerat' => $totalBerat,
+            'produks' => $produks,
+            'lastSession' => $lastSession,
+            'penimbangans' => $history,
+            'storeRoute' => 'cs-noodle-sby.store',
+            'nextRoute' => 'cs-noodle-sby.next',
+            'stopRoute' => 'cs-noodle-sby.stop',
+        ]);
     }
 
     private function adminView(Request $request)
@@ -62,7 +72,15 @@ class CsNoodleSbyController extends Controller
         ];
         $produks = Produk::orderBy('nama_produk')->get();
 
-        return view('cs-noodle-sby.admin', compact('penimbangans', 'stats', 'produks'));
+        return \Inertia\Inertia::render('Dashboard/DataView', [
+            'title' => 'CS Noodle Surabaya',
+            'subtitle' => 'Data penimbangan CS Noodle Surabaya (Read Only)',
+            'penimbangans' => $penimbangans,
+            'stats' => $stats,
+            'produks' => $produks,
+            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk']),
+            'exportRoute' => 'cs-noodle-sby.export',
+        ]);
     }
 
     public function store(Request $request)

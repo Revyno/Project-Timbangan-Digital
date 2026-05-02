@@ -53,9 +53,17 @@ class FgSurabayaController extends Controller
             ->orderByDesc('created_at')
             ->paginate(10);
 
-        return view('fg-surabaya.dashboard', compact(
-            'activeSession', 'totalShift', 'totalBerat', 'produks', 'lastSession', 'history'
-        ));
+        return \Inertia\Inertia::render('Dashboard/Operator', [
+            'activePenimbangan' => $activeSession,
+            'totalShift' => $totalShift,
+            'totalBerat' => $totalBerat,
+            'produks' => $produks,
+            'lastSession' => $lastSession,
+            'penimbangans' => $history,
+            'storeRoute' => 'fg-surabaya.store',
+            'nextRoute' => 'fg-surabaya.next',
+            'stopRoute' => 'fg-surabaya.stop',
+        ]);
     }
 
     private function adminView(Request $request)
@@ -84,7 +92,15 @@ class FgSurabayaController extends Controller
 
         $produks = Produk::orderBy('nama_produk')->get();
 
-        return view('fg-surabaya.admin', compact('penimbangans', 'stats', 'produks'));
+        return \Inertia\Inertia::render('Dashboard/DataView', [
+            'title' => 'Surabaya Formulasi',
+            'subtitle' => 'Data penimbangan Surabaya Formulasi (Read Only)',
+            'penimbangans' => $penimbangans,
+            'stats' => $stats,
+            'produks' => $produks,
+            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk']),
+            'exportRoute' => 'fg-surabaya.export',
+        ]);
     }
 
     public function store(Request $request)

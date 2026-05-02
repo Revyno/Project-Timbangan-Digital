@@ -10,11 +10,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "inertiajs/inertia-laravel": "^2.0",
+        "ladumor/laravel-pwa": "^1.0",
         "laravel/framework": "^12.0",
         "laravel/reverb": "*",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
-        "livewire/livewire": "*",
-        "pusher/pusher-php-server": "*"
+        "pusher/pusher-php-server": "*",
+        "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

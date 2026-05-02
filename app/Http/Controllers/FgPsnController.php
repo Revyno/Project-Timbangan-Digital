@@ -55,9 +55,17 @@ class FgPsnController extends Controller
             ->orderByDesc('created_at')
             ->paginate(10);
 
-        return view('fg-psn.dashboard', compact(
-            'activeSession', 'totalShift', 'totalBerat', 'produks', 'lastSession', 'history'
-        ));
+        return \Inertia\Inertia::render('Dashboard/Operator', [
+            'activePenimbangan' => $activeSession,
+            'totalShift' => $totalShift,
+            'totalBerat' => $totalBerat,
+            'produks' => $produks,
+            'lastSession' => $lastSession,
+            'penimbangans' => $history,
+            'storeRoute' => 'fg-psn.store',
+            'nextRoute' => 'fg-psn.next',
+            'stopRoute' => 'fg-psn.stop',
+        ]);
     }
 
     private function adminView(Request $request)
@@ -89,7 +97,15 @@ class FgPsnController extends Controller
 
         $produks = Produk::orderBy('nama_produk')->get();
 
-        return view('fg-psn.admin', compact('penimbangans', 'stats', 'produks'));
+        return \Inertia\Inertia::render('Dashboard/DataView', [
+            'title' => 'Pasuruan PSN',
+            'subtitle' => 'Data penimbangan Pasuruan PSN (Read Only)',
+            'penimbangans' => $penimbangans,
+            'stats' => $stats,
+            'produks' => $produks,
+            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk']),
+            'exportRoute' => 'fg-psn.export',
+        ]);
     }
 
     public function store(Request $request)

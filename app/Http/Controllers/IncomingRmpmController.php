@@ -43,9 +43,12 @@ class IncomingRmpmController extends Controller
             ->orderByDesc('created_at')
             ->paginate(10);
 
-        return view('incoming.rmpm.dashboard', compact(
-            'activeSession', 'totalShift', 'totalBerat', 'history'
-        ));
+        return \Inertia\Inertia::render('Incoming/Rmpm', [
+            'activeSession' => $activeSession ? (object)$activeSession : null,
+            'totalShift' => $totalShift,
+            'totalBerat' => $totalBerat,
+            'history' => $history,
+        ]);
     }
 
     private function adminView(Request $request)
@@ -72,7 +75,15 @@ class IncomingRmpmController extends Controller
             'total_berat' => (clone $query)->where('status', 'selesai')->sum('berat'),
         ];
 
-        return view('incoming.rmpm.admin', compact('history', 'stats'));
+        return \Inertia\Inertia::render('Dashboard/DataView', [
+            'title' => 'Incoming RMPM',
+            'subtitle' => 'Data penimbangan RMPM masuk (Read Only)',
+            'penimbangans' => $history,
+            'stats' => $stats,
+            'produks' => [],
+            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'jenis_barang']),
+            'exportRoute' => 'incoming.rmpm.export',
+        ]);
     }
 
     public function start(Request $request)

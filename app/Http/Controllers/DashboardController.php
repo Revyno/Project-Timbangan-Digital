@@ -65,7 +65,7 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('dashboard.operator_overview', compact('stats', 'moduleStats', 'moduleNames', 'recentPenimbangans'));
+        return \Inertia\Inertia::render('Dashboard/OperatorOverview', compact('stats', 'moduleStats', 'moduleNames', 'recentPenimbangans'));
     }
 
     private function adminDashboard(Request $request)
@@ -121,7 +121,7 @@ class DashboardController extends Controller
 
         $produks = Produk::orderBy('nama_produk')->get();
 
-        return view('dashboard.admin', compact('recentPenimbangans', 'stats', 'moduleStats', 'moduleNames', 'produks'));
+        return \Inertia\Inertia::render('Dashboard/Admin', compact('recentPenimbangans', 'stats', 'moduleStats', 'moduleNames', 'produks'));
     }
 
     public function operatorDashboard(Request $request)
@@ -154,7 +154,15 @@ class DashboardController extends Controller
 
             $produks = Produk::orderBy('nama_produk')->get();
 
-            return view('dashboard.admin_fg', compact('penimbangans', 'stats', 'produks'));
+            return \Inertia\Inertia::render('Dashboard/DataView', [
+                'title' => 'Pasuruan FG',
+                'subtitle' => 'Data penimbangan Pasuruan FG (Read Only)',
+                'penimbangans' => $penimbangans,
+                'stats' => $stats,
+                'produks' => $produks,
+                'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk']),
+                'exportRoute' => 'penimbangan.export',
+            ]);
         }
         
         // Menghitung total penimbangan yang selesai oleh operator ini pada hari ini
@@ -181,7 +189,13 @@ class DashboardController extends Controller
         $produks = Produk::orderBy('nama_produk')->get();
         $lastSession = cache()->get("last_session_operator_{$user->id}");
 
-        return view('dashboard.operator', compact('produks', 'totalShift', 'totalBerat', 'activePenimbangan', 'lastSession'));
+        $penimbangans = Penimbangan::with('produk')
+            ->where('user_id', $user->id)
+            ->whereDate('created_at', today())
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return \Inertia\Inertia::render('Dashboard/Operator', compact('produks', 'totalShift', 'totalBerat', 'activePenimbangan', 'lastSession', 'penimbangans'));
     }
 
     public function storePenimbangan(Request $request)
