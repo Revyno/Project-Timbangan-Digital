@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('device_code')->unique();
             $table->string('device_name');
             $table->string('device_token')->unique();
+            $table->foreignId('current_product_id')->nullable()->constrained('produks')->nullOnDelete();
             $table->timestamp('last_online')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

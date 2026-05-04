@@ -28,26 +28,89 @@ import {
     Play, 
     CheckCircle2, 
     Clock, 
-    Truck 
+    Truck,
+    QrCode
 } from 'lucide-vue-next';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { onMounted, onUnmounted } from 'vue';
+import QrScanner from '@/Components/QrScanner.vue';
 
 const props = defineProps({
-    activeSession: Object,
-    totalShift: Number,
-    totalBerat: Number,
-    history: Object,
+    activeSession:   Object,
+    totalShift:      Number,
+    totalBerat:      Number,
+    history:         Object,
+    jenisOptions:    Array,
+    asalOptions:     Array,
+    supplierOptions: Array,
 });
 
 const { auth } = usePage().props;
 
 const form = useForm({
-    no_surat: props.activeSession?.no_surat || '',
-    nama_supplier: props.activeSession?.nama_supplier || '',
-    asal: props.activeSession?.asal || '',
-    nama_sopir: props.activeSession?.nama_sopir || '',
-    nomor_plat: props.activeSession?.nomor_plat || '',
+    no_surat:       props.activeSession?.no_surat       || '',
+    nama_supplier:  props.activeSession?.nama_supplier  || '',
+    asal:           props.activeSession?.asal           || '',
+    nama_sopir:     props.activeSession?.nama_sopir     || '',
+    nomor_plat:     props.activeSession?.nomor_plat     || '',
     jenis_singkong: props.activeSession?.jenis_singkong || '',
-    kode_produksi: props.activeSession?.kode_produksi || '',
+    kode_produksi:  props.activeSession?.kode_produksi  || '',
+});
+
+const scanning = ref(false);
+const showScanner = ref(false);
+
+const handleScanResult = async (qrCode) => {
+    showScanner.value = false;
+    try {
+        scanning.value = true;
+        const response = await axios.post('/api/driver/identify', { qr_code: qrCode });
+        
+        if (response.data.success) {
+            const driver = response.data.driver;
+            form.nama_sopir = driver.name;
+            form.nama_supplier = driver.supplier;
+            form.nomor_plat = driver.nomor_plat;
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Driver Teridentifikasi',
+                text: `${driver.name} (Supplier: ${driver.supplier})`,
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: error.response?.data?.message || 'Kode QR tidak valid atau driver tidak ditemukan.',
+        });
+    } finally {
+        scanning.value = false;
+    }
+};
+
+const identifyDriver = () => {
+    showScanner.value = true;
+};
+
+onMounted(() => {
+    if (window.Echo) {
+        window.Echo.channel('iot-weights.incoming_singkong')
+            .listen('.WeightReceived', (e) => {
+                console.log('Weight received:', e);
+                // Auto reload only weight related data
+                router.reload({ only: ['history', 'totalShift', 'totalBerat'] });
+            });
+    }
+});
+
+onUnmounted(() => {
+    if (window.Echo) {
+        window.Echo.leave('iot-weights.incoming_singkong');
+    }
 });
 
 const startSession = () => {
@@ -99,6 +162,7 @@ const formatDateTime = (date) => {
                 </Card>
 
                 <Card class="md:col-span-2 p-6 bg-white border-none rounded-3xl shadow-xl">
+                    <!-- Active Session Info -->
                     <div v-if="activeSession" class="space-y-4">
                         <div class="flex items-center justify-between border-b border-gray-100 pb-4">
                             <div>
@@ -141,41 +205,120 @@ const formatDateTime = (date) => {
                         </div>
                     </div>
 
-                    <form v-else @submit.prevent="startSession" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="space-y-1">
-                            <Label>No. Surat</Label>
-                            <Input v-model="form.no_surat" required placeholder="No. Surat Jalan" />
+                    <!-- Start Session Form -->
+                    <div v-else>
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-bold text-gray-900">Mulai Sesi Baru</h3>
+                            <Button @click="identifyDriver" type="button" class="bg-blue-600 hover:bg-blue-700 font-bold">
+                                <QrCode class="w-4 h-4 mr-2" /> Scan QR Driver
+                            </Button>
                         </div>
+
+                        <form @submit.prevent="startSession" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- No. Surat — plain text -->
                         <div class="space-y-1">
-                            <Label>Supplier</Label>
-                            <Input v-model="form.nama_supplier" required placeholder="Nama Supplier" />
+                            <Label for="no_surat">No. Surat</Label>
+                            <Input
+                                id="no_surat"
+                                v-model="form.no_surat"
+                                required
+                                placeholder="No. Surat Jalan"
+                            />
+                            <p v-if="form.errors.no_surat" class="text-red-500 text-xs">{{ form.errors.no_surat }}</p>
                         </div>
+
+                        <!-- Supplier — DROPDOWN -->
                         <div class="space-y-1">
-                            <Label>Asal</Label>
-                            <Input v-model="form.asal" required placeholder="Asal Singkong" />
+                            <Label for="nama_supplier">Supplier</Label>
+                            <select
+                                id="nama_supplier"
+                                v-model="form.nama_supplier"
+                                required
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            >
+                                <option value="" disabled>-- Pilih Supplier --</option>
+                                <option v-for="s in supplierOptions" :key="s" :value="s">{{ s }}</option>
+                            </select>
+                            <p v-if="form.errors.nama_supplier" class="text-red-500 text-xs">{{ form.errors.nama_supplier }}</p>
                         </div>
+
+                        <!-- Asal — DROPDOWN -->
                         <div class="space-y-1">
-                            <Label>Nama Sopir</Label>
-                            <Input v-model="form.nama_sopir" required placeholder="Nama Sopir" />
+                            <Label for="asal">Asal</Label>
+                            <select
+                                id="asal"
+                                v-model="form.asal"
+                                required
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            >
+                                <option value="" disabled>-- Pilih Asal --</option>
+                                <option v-for="a in asalOptions" :key="a" :value="a">{{ a }}</option>
+                            </select>
+                            <p v-if="form.errors.asal" class="text-red-500 text-xs">{{ form.errors.asal }}</p>
                         </div>
+
+                        <!-- Nama Sopir — plain text -->
                         <div class="space-y-1">
-                            <Label>No. Plat</Label>
-                            <Input v-model="form.nomor_plat" required placeholder="Nopol Kendaraan" />
+                            <Label for="nama_sopir">Nama Sopir</Label>
+                            <Input
+                                id="nama_sopir"
+                                v-model="form.nama_sopir"
+                                required
+                                placeholder="Nama Sopir"
+                            />
+                            <p v-if="form.errors.nama_sopir" class="text-red-500 text-xs">{{ form.errors.nama_sopir }}</p>
                         </div>
+
+                        <!-- No. Plat — plain text -->
                         <div class="space-y-1">
-                            <Label>Jenis Singkong</Label>
-                            <Input v-model="form.jenis_singkong" required placeholder="Contoh: Singkong Putih" />
+                            <Label for="nomor_plat">No. Plat</Label>
+                            <Input
+                                id="nomor_plat"
+                                v-model="form.nomor_plat"
+                                required
+                                placeholder="Nopol Kendaraan"
+                            />
+                            <p v-if="form.errors.nomor_plat" class="text-red-500 text-xs">{{ form.errors.nomor_plat }}</p>
                         </div>
+
+                        <!-- Jenis Singkong — DROPDOWN -->
                         <div class="space-y-1">
-                            <Label>Kode Produksi</Label>
-                            <Input v-model="form.kode_produksi" required placeholder="LOT / KP" />
+                            <Label for="jenis_singkong">Jenis Singkong</Label>
+                            <select
+                                id="jenis_singkong"
+                                v-model="form.jenis_singkong"
+                                required
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            >
+                                <option value="" disabled>-- Pilih Jenis --</option>
+                                <option v-for="j in jenisOptions" :key="j" :value="j">{{ j }}</option>
+                            </select>
+                            <p v-if="form.errors.jenis_singkong" class="text-red-500 text-xs">{{ form.errors.jenis_singkong }}</p>
                         </div>
+
+                        <!-- Kode Produksi — plain text -->
+                        <div class="space-y-1">
+                            <Label for="kode_produksi">Kode Produksi</Label>
+                            <Input
+                                id="kode_produksi"
+                                v-model="form.kode_produksi"
+                                required
+                                placeholder="LOT / KP"
+                            />
+                            <p v-if="form.errors.kode_produksi" class="text-red-500 text-xs">{{ form.errors.kode_produksi }}</p>
+                        </div>
+
                         <div class="lg:col-span-3 pt-2">
-                            <Button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 py-6 font-bold text-lg">
+                            <Button
+                                type="submit"
+                                :disabled="form.processing"
+                                class="w-full bg-emerald-600 hover:bg-emerald-700 py-6 font-bold text-lg"
+                            >
                                 <Play class="w-5 h-5 mr-2" /> Mulai Penimbangan
                             </Button>
                         </div>
                     </form>
+                </div>
                 </Card>
             </div>
 
@@ -191,6 +334,8 @@ const formatDateTime = (date) => {
                                 <TableHead class="px-6 py-4">Waktu</TableHead>
                                 <TableHead class="px-6 py-4">No Surat</TableHead>
                                 <TableHead class="px-6 py-4">Supplier</TableHead>
+                                <TableHead class="px-6 py-4">Asal</TableHead>
+                                <TableHead class="px-6 py-4">Jenis</TableHead>
                                 <TableHead class="px-6 py-4">Berat</TableHead>
                                 <TableHead class="px-6 py-4">Status</TableHead>
                             </TableRow>
@@ -200,6 +345,8 @@ const formatDateTime = (date) => {
                                 <TableCell class="px-6 py-4">{{ formatDateTime(h.created_at) }}</TableCell>
                                 <TableCell class="px-6 py-4 font-mono">{{ h.no_surat }}</TableCell>
                                 <TableCell class="px-6 py-4 font-bold">{{ h.nama_supplier }}</TableCell>
+                                <TableCell class="px-6 py-4">{{ h.asal }}</TableCell>
+                                <TableCell class="px-6 py-4">{{ h.jenis_singkong }}</TableCell>
                                 <TableCell class="px-6 py-4 font-black">{{ formatWeight(h.berat) }}</TableCell>
                                 <TableCell class="px-6 py-4">
                                     <Badge :variant="h.status === 'selesai' ? 'default' : 'secondary'">{{ h.status }}</Badge>
@@ -213,5 +360,12 @@ const formatDateTime = (date) => {
                 </div>
             </Card>
         </div>
+        
+        <!-- Scanner Modal -->
+        <QrScanner 
+            :isOpen="showScanner" 
+            @scan="handleScanResult" 
+            @close="showScanner = false" 
+        />
     </AuthenticatedLayout>
 </template>

@@ -11,18 +11,26 @@ import {
     ChevronDown, 
     Bell,
     Menu,
-    X
+    X,
+    Building2,
+    UserCheck
 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import Swal from 'sweetalert2';
 
 const { auth } = usePage().props;
 const showingNavigationDropdown = ref(false);
-const sidebarOpen = ref(true);
+const sidebarOpen = ref(false); // Default to closed on mobile
+const desktopSidebarOpen = ref(true); // Desktop separate state
 const notificationDot = ref(false);
 
 const isPasuruanOpen = ref(true);
 const isSurabayaOpen = ref(true);
+
+const masterDataLinks = [
+    { name: 'Suppliers', href: route('admin.master.suppliers'), icon: Building2, active: route().current('admin.master.suppliers') },
+    { name: 'Drivers', href: route('admin.master.drivers'), icon: UserCheck, active: route().current('admin.master.drivers') },
+];
 
 onMounted(() => {
     if (window.Echo) {
@@ -70,11 +78,17 @@ const logout = () => {
             <div class="px-3 py-3 lg:px-5 lg:pl-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center justify-start">
-                        <button @click="sidebarOpen = !sidebarOpen" type="button" class="inline-flex items-center p-2 text-sm text-blue-100 rounded-lg sm:hidden hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        <!-- Sidebar Toggle for Mobile -->
+                        <button @click="sidebarOpen = true" type="button" class="inline-flex items-center p-2 text-sm text-blue-100 rounded-lg sm:hidden hover:bg-blue-600 focus:outline-none">
                             <span class="sr-only">Open sidebar</span>
-                            <Menu v-if="!sidebarOpen" class="w-6 h-6" />
-                            <X v-else class="w-6 h-6" />
+                            <Menu class="w-6 h-6" />
                         </button>
+                        
+                        <!-- Sidebar Toggle for Desktop -->
+                        <button @click="desktopSidebarOpen = !desktopSidebarOpen" type="button" class="hidden sm:inline-flex items-center p-2 text-sm text-blue-100 rounded-lg hover:bg-blue-600 focus:outline-none mr-2">
+                            <Menu class="w-6 h-6" />
+                        </button>
+
                         <Link :href="route('dashboard')" class="flex items-center ms-2 md:me-24 gap-2">
                             <img src="/images/logo.webp" alt="Ladang Lima" class="h-8 w-auto brightness-0 invert">
                         </Link>
@@ -105,94 +119,174 @@ const logout = () => {
             </div>
         </nav>
 
+        <!-- Mobile Sidebar Overlay -->
+        <div 
+            v-if="sidebarOpen" 
+            @click="sidebarOpen = false" 
+            class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm sm:hidden transition-opacity"
+        ></div>
+
         <!-- Sidebar -->
-        <aside :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}" class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 transition-transform bg-white border-r border-gray-200 sm:translate-x-0 shadow-sm" aria-label="Sidebar">
-            <div class="h-full px-3 pb-4 overflow-y-auto bg-white">
-                <ul class="space-y-2 font-medium">
+        <aside 
+            :class="[
+                sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+                desktopSidebarOpen ? 'sm:translate-x-0' : 'sm:-translate-x-full'
+            ]" 
+            class="fixed top-0 left-0 z-50 w-64 h-screen pt-20 transition-transform bg-white border-r border-gray-200 shadow-xl sm:shadow-none" 
+            aria-label="Sidebar"
+        >
+            <div class="h-full px-4 pb-4 overflow-y-auto bg-white">
+                <div class="flex items-center justify-between mb-6 sm:hidden">
+                    <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Menu Navigasi</span>
+                    <button @click="sidebarOpen = false" class="p-2 hover:bg-gray-100 rounded-full">
+                        <X class="w-5 h-5 text-gray-500" />
+                    </button>
+                </div>
+
+                <ul class="space-y-1.5 font-medium">
                     <li>
-                        <Link :href="route('dashboard')" :class="route().current('dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-gray-600 hover:bg-gray-50'" class="flex items-center p-2 rounded-lg group transition-colors">
-                            <LayoutDashboard class="w-5 h-5" :class="route().current('dashboard') ? 'text-white' : 'text-gray-400 group-hover:text-blue-600'" />
-                            <span class="ms-3">Overview</span>
+                        <Link :href="route('dashboard')">
+                            <Button 
+                                variant="ghost" 
+                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
+                                :class="route().current('dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                            >
+                                <LayoutDashboard class="w-5 h-5" :class="route().current('dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <span>Overview</span>
+                            </Button>
                         </Link>
                     </li>
 
                     <!-- Pasuruan Section -->
+                    <li class="pt-4 pb-1 px-3">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Pasuruan</span>
+                    </li>
                     <li>
-                        <button @click="isPasuruanOpen = !isPasuruanOpen" type="button" class="flex items-center w-full p-2 text-base text-gray-600 transition duration-75 rounded-lg group hover:bg-gray-50">
-                            <Package class="flex-shrink-0 w-5 h-5 text-gray-400 transition duration-75 group-hover:text-blue-600" />
-                            <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap font-bold">Pasuruan</span>
-                            <ChevronDown class="w-4 h-4 transition-transform" :class="{'rotate-180': isPasuruanOpen}" />
-                        </button>
-                        <ul v-show="isPasuruanOpen" class="py-2 space-y-2">
-                            <li>
-                                <Link :href="route('fg.dashboard')" :class="route().current('fg.dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-gray-600 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm transition-colors duration-75 rounded-lg pl-11 group">
-                                    <ClipboardList class="w-4 h-4 mr-2" />
-                                    <span>Formulasi</span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link :href="route('fg-psn.dashboard')" :class="route().current('fg-psn.dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-gray-600 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm transition-colors duration-75 rounded-lg pl-11 group">
-                                    <Box class="w-4 h-4 mr-2" />
-                                    <span>Finished Goods</span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link :href="route('incoming.singkong.dashboard')" :class="route().current('incoming.singkong.dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-gray-600 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm transition-colors duration-75 rounded-lg pl-11 group">
-                                    <Truck class="w-4 h-4 mr-2" />
-                                    <span>Incoming Singkong</span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link :href="route('incoming.rmpm.dashboard')" :class="route().current('incoming.rmpm.dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-gray-600 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm transition-colors duration-75 rounded-lg pl-11 group">
-                                    <Package class="w-4 h-4 mr-2" />
-                                    <span>Incoming RMPM</span>
-                                </Link>
-                            </li>
-                        </ul>
+                        <Link :href="route('fg.dashboard')">
+                            <Button 
+                                variant="ghost" 
+                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
+                                :class="route().current('fg.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                            >
+                                <ClipboardList class="w-5 h-5" :class="route().current('fg.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <span>Formulasi</span>
+                            </Button>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link :href="route('fg-psn.dashboard')">
+                            <Button 
+                                variant="ghost" 
+                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
+                                :class="route().current('fg-psn.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                            >
+                                <Box class="w-5 h-5" :class="route().current('fg-psn.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <span>Finished Goods</span>
+                            </Button>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link :href="route('incoming.singkong.dashboard')">
+                            <Button 
+                                variant="ghost" 
+                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
+                                :class="route().current('incoming.singkong.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                            >
+                                <Truck class="w-5 h-5" :class="route().current('incoming.singkong.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <span>Incoming Singkong</span>
+                            </Button>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link :href="route('incoming.rmpm.dashboard')">
+                            <Button 
+                                variant="ghost" 
+                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
+                                :class="route().current('incoming.rmpm.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                            >
+                                <Package class="w-5 h-5" :class="route().current('incoming.rmpm.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <span>Incoming RMPM</span>
+                            </Button>
+                        </Link>
                     </li>
 
                     <!-- Surabaya Section -->
+                    <li class="pt-4 pb-1 px-3">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Surabaya</span>
+                    </li>
                     <li>
-                        <button @click="isSurabayaOpen = !isSurabayaOpen" type="button" class="flex items-center w-full p-2 text-base text-gray-600 transition duration-75 rounded-lg group hover:bg-gray-50">
-                            <Package class="flex-shrink-0 w-5 h-5 text-gray-400 transition duration-75 group-hover:text-blue-600" />
-                            <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap font-bold">Surabaya</span>
-                            <ChevronDown class="w-4 h-4 transition-transform" :class="{'rotate-180': isSurabayaOpen}" />
-                        </button>
-                        <ul v-show="isSurabayaOpen" class="py-2 space-y-2">
-                            <li>
-                                <Link :href="route('fg-surabaya.dashboard')" :class="route().current('fg-surabaya.dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-gray-600 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm transition-colors duration-75 rounded-lg pl-11 group">
-                                    <ClipboardList class="w-4 h-4 mr-2" />
-                                    <span>Formulasi</span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link :href="route('cs-noodle-sby.dashboard')" :class="route().current('cs-noodle-sby.dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-gray-600 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm transition-colors duration-75 rounded-lg pl-11 group">
-                                    <Box class="w-4 h-4 mr-2" />
-                                    <span>CS Noodle</span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link :href="route('cs-fg-sby.dashboard')" :class="route().current('cs-fg-sby.dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-gray-600 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm transition-colors duration-75 rounded-lg pl-11 group">
-                                    <Box class="w-4 h-4 mr-2" />
-                                    <span>CS FG-Sby</span>
-                                </Link>
-                            </li>
-                        </ul>
+                        <Link :href="route('fg-surabaya.dashboard')">
+                            <Button 
+                                variant="ghost" 
+                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
+                                :class="route().current('fg-surabaya.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                            >
+                                <ClipboardList class="w-5 h-5" :class="route().current('fg-surabaya.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <span>Formulasi</span>
+                            </Button>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link :href="route('cs-noodle-sby.dashboard')">
+                            <Button 
+                                variant="ghost" 
+                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
+                                :class="route().current('cs-noodle-sby.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                            >
+                                <Box class="w-5 h-5" :class="route().current('cs-noodle-sby.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <span>CS Noodle</span>
+                            </Button>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link :href="route('cs-fg-sby.dashboard')">
+                            <Button 
+                                variant="ghost" 
+                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
+                                :class="route().current('cs-fg-sby.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                            >
+                                <Box class="w-5 h-5" :class="route().current('cs-fg-sby.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <span>CS FG-Sby</span>
+                            </Button>
+                        </Link>
                     </li>
 
+                    <!-- Master Data Section (Admin Only) -->
+                    <template v-if="auth.user.role === 'admin'">
+                        <li class="pt-6 pb-1 px-3">
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Master Data</span>
+                        </li>
+                        <li v-for="link in masterDataLinks" :key="link.name">
+                            <Link :href="link.href">
+                                <Button 
+                                    variant="ghost" 
+                                    class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
+                                    :class="link.active ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                >
+                                    <component :is="link.icon" class="w-5 h-5" :class="link.active ? 'text-blue-600' : 'text-gray-400'" />
+                                    <span>{{ link.name }}</span>
+                                </Button>
+                            </Link>
+                        </li>
+                    </template>
+
                     <!-- Logout -->
-                    <li class="pt-4 mt-4 border-t border-gray-200">
-                        <button @click="logout" class="flex items-center w-full p-2 text-base font-medium text-red-600 transition duration-75 rounded-lg group hover:bg-red-50">
-                            <LogOut class="flex-shrink-0 w-5 h-5 text-red-500 transition duration-75 group-hover:text-red-700" />
-                            <span class="flex-1 ms-3 text-left">Logout</span>
-                        </button>
+                    <li class="pt-8">
+                        <Button 
+                            @click="logout" 
+                            variant="ghost" 
+                            class="w-full justify-start gap-3 h-11 px-3 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700 transition-all font-bold"
+                        >
+                            <LogOut class="w-5 h-5 text-red-500" />
+                            <span>Logout</span>
+                        </Button>
                     </li>
                 </ul>
             </div>
         </aside>
 
         <!-- Content Area -->
-        <main :class="{'sm:ml-64': sidebarOpen}" class="p-4 mt-14 transition-all">
+        <main :class="[desktopSidebarOpen ? 'sm:ml-64' : 'sm:ml-0']" class="p-4 mt-14 transition-all">
             <slot />
         </main>
     </div>

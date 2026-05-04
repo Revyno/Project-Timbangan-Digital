@@ -45,10 +45,13 @@ class IncomingSingkongController extends Controller
             ->paginate(10);
 
         return \Inertia\Inertia::render('Incoming/Singkong', [
-            'activeSession' => $activeSession ? (object)$activeSession : null,
-            'totalShift' => $totalShift,
-            'totalBerat' => $totalBerat,
-            'history' => $history,
+            'activeSession'   => $activeSession ? (object)$activeSession : null,
+            'totalShift'      => $totalShift,
+            'totalBerat'      => $totalBerat,
+            'history'         => $history,
+            'jenisOptions'    => IncomingSingkong::jenisOptions(),
+            'asalOptions'     => IncomingSingkong::asalOptions(),
+            'supplierOptions' => IncomingSingkong::supplierOptions(),
         ]);
     }
 
@@ -80,13 +83,15 @@ class IncomingSingkongController extends Controller
         ];
 
         return \Inertia\Inertia::render('Dashboard/DataView', [
-            'title' => 'Incoming Singkong',
-            'subtitle' => 'Data penimbangan singkong masuk (Read Only)',
-            'penimbangans' => $history,
-            'stats' => $stats,
-            'produks' => [], // Singkong doesn't use product table in the same way
-            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'supplier', 'jenis']),
-            'exportRoute' => 'incoming.singkong.export',
+            'title'           => 'Incoming Singkong',
+            'subtitle'        => 'Data penimbangan singkong masuk (Read Only)',
+            'penimbangans'    => $history,
+            'stats'           => $stats,
+            'produks'         => [],
+            'filters'         => $request->only(['tanggal_mulai', 'tanggal_selesai', 'supplier', 'jenis']),
+            'exportRoute'     => 'incoming.singkong.export',
+            'jenisOptions'    => IncomingSingkong::jenisOptions(),
+            'supplierOptions' => IncomingSingkong::supplierOptions(),
         ]);
     }
 

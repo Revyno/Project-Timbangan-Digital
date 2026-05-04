@@ -30,19 +30,24 @@ import {
 } from 'lucide-vue-next';
 
 const props = defineProps({
-    title: String,
-    subtitle: String,
-    penimbangans: Object,
-    stats: Object,
-    produks: Array,
-    filters: Object,
-    exportRoute: String,
+    title:           String,
+    subtitle:        String,
+    penimbangans:    Object,
+    stats:           Object,
+    produks:         Array,
+    filters:         Object,
+    exportRoute:     String,
+    // Incoming Singkong-specific
+    jenisOptions:    { type: Array, default: () => [] },
+    supplierOptions: { type: Array, default: () => [] },
 });
 
 const filterForm = ref({
-    tanggal_mulai: props.filters.tanggal_mulai || new Date().toISOString().split('T')[0],
+    tanggal_mulai:   props.filters.tanggal_mulai   || new Date().toISOString().split('T')[0],
     tanggal_selesai: props.filters.tanggal_selesai || new Date().toISOString().split('T')[0],
-    produk: props.filters.produk || '',
+    produk:          props.filters.produk          || '',
+    supplier:        props.filters.supplier        || '',
+    jenis:           props.filters.jenis           || '',
 });
 
 const applyFilter = () => {
@@ -51,9 +56,11 @@ const applyFilter = () => {
 
 const resetFilter = () => {
     filterForm.value = {
-        tanggal_mulai: new Date().toISOString().split('T')[0],
+        tanggal_mulai:   new Date().toISOString().split('T')[0],
         tanggal_selesai: new Date().toISOString().split('T')[0],
-        produk: '',
+        produk:          '',
+        supplier:        '',
+        jenis:           '',
     };
     applyFilter();
 };
@@ -117,11 +124,30 @@ const formatDateTime = (date) => {
                         <label class="block mb-1.5 text-sm font-semibold text-gray-600">Tanggal Selesai</label>
                         <input v-model="filterForm.tanggal_selesai" type="date" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 shadow-sm transition-all">
                     </div>
-                    <div>
+                    <!-- Filter Produk (FG modules) -->
+                    <div v-if="produks && produks.length > 0">
                         <label class="block mb-1.5 text-sm font-semibold text-gray-600">Produk</label>
                         <select v-model="filterForm.produk" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 shadow-sm transition-all">
                             <option value="">Semua</option>
                             <option v-for="p in produks" :key="p.id" :value="p.id">{{ p.nama_produk }}</option>
+                        </select>
+                    </div>
+
+                    <!-- Filter Supplier (Singkong) -->
+                    <div v-if="supplierOptions && supplierOptions.length > 0">
+                        <label class="block mb-1.5 text-sm font-semibold text-gray-600">Supplier</label>
+                        <select v-model="filterForm.supplier" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 shadow-sm transition-all">
+                            <option value="">Semua Supplier</option>
+                            <option v-for="s in supplierOptions" :key="s" :value="s">{{ s }}</option>
+                        </select>
+                    </div>
+
+                    <!-- Filter Jenis Singkong -->
+                    <div v-if="jenisOptions && jenisOptions.length > 0">
+                        <label class="block mb-1.5 text-sm font-semibold text-gray-600">Jenis Singkong</label>
+                        <select v-model="filterForm.jenis" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 shadow-sm transition-all">
+                            <option value="">Semua Jenis</option>
+                            <option v-for="j in jenisOptions" :key="j" :value="j">{{ j }}</option>
                         </select>
                     </div>
                 </div>
@@ -149,10 +175,22 @@ const formatDateTime = (date) => {
                         <TableRow>
                             <TableHead class="px-4 py-3">No.</TableHead>
                             <TableHead class="px-4 py-3">Tanggal</TableHead>
-                            <TableHead class="px-4 py-3">Produk</TableHead>
+                            <!-- Singkong specific columns -->
+                            <template v-if="jenisOptions && jenisOptions.length > 0">
+                                <TableHead class="px-4 py-3">No Surat</TableHead>
+                                <TableHead class="px-4 py-3">Supplier</TableHead>
+                                <TableHead class="px-4 py-3">Asal</TableHead>
+                                <TableHead class="px-4 py-3">Jenis</TableHead>
+                                <TableHead class="px-4 py-3">Sopir</TableHead>
+                                <TableHead class="px-4 py-3">No. Plat</TableHead>
+                            </template>
+                            <!-- Generic FG columns -->
+                            <template v-else>
+                                <TableHead class="px-4 py-3">Produk</TableHead>
+                                <TableHead class="px-4 py-3">Kode Produksi</TableHead>
+                                <TableHead class="px-4 py-3">Expired</TableHead>
+                            </template>
                             <TableHead class="px-4 py-3">Operator</TableHead>
-                            <TableHead class="px-4 py-3">Kode Produksi</TableHead>
-                            <TableHead class="px-4 py-3">Expired</TableHead>
                             <TableHead class="px-4 py-3">Berat</TableHead>
                             <TableHead class="px-4 py-3">Status</TableHead>
                         </TableRow>
@@ -163,14 +201,28 @@ const formatDateTime = (date) => {
                                 {{ (penimbangans.current_page - 1) * penimbangans.per_page + index + 1 }}
                             </TableCell>
                             <TableCell class="px-4 py-3 text-gray-800 font-medium whitespace-nowrap">{{ formatDateTime(p.created_at) }}</TableCell>
-                            <TableCell class="px-4 py-3 font-medium text-gray-800">{{ p.produk.nama_produk }}</TableCell>
+
+                            <!-- Singkong specific cells -->
+                            <template v-if="jenisOptions && jenisOptions.length > 0">
+                                <TableCell class="px-4 py-3 font-mono text-xs">{{ p.no_surat }}</TableCell>
+                                <TableCell class="px-4 py-3 font-bold text-gray-800">{{ p.nama_supplier }}</TableCell>
+                                <TableCell class="px-4 py-3">{{ p.asal }}</TableCell>
+                                <TableCell class="px-4 py-3">{{ p.jenis_singkong }}</TableCell>
+                                <TableCell class="px-4 py-3">{{ p.nama_sopir }}</TableCell>
+                                <TableCell class="px-4 py-3 font-mono text-xs">{{ p.nomor_plat }}</TableCell>
+                            </template>
+                            <!-- Generic FG cells -->
+                            <template v-else>
+                                <TableCell class="px-4 py-3 font-medium text-gray-800">{{ p.produk?.nama_produk }}</TableCell>
+                                <TableCell class="px-4 py-3">
+                                    <span class="font-mono text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded">
+                                        {{ p.kode_produksi_display || p.kode_produksi }}
+                                    </span>
+                                </TableCell>
+                                <TableCell class="px-4 py-3 whitespace-nowrap">{{ formatDate(p.tanggal_expired) }}</TableCell>
+                            </template>
+
                             <TableCell class="px-4 py-3">{{ p.user?.name }}</TableCell>
-                            <TableCell class="px-4 py-3">
-                                <span class="font-mono text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded">
-                                    {{ p.kode_produksi_display || p.kode_produksi }}
-                                </span>
-                            </TableCell>
-                            <TableCell class="px-4 py-3 whitespace-nowrap">{{ formatDate(p.tanggal_expired) }}</TableCell>
                             <TableCell class="px-4 py-3 font-bold text-gray-800 whitespace-nowrap">{{ formatWeight(p.berat) }}</TableCell>
                             <TableCell class="px-4 py-3">
                                 <Badge v-if="p.status == 'selesai'" class="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">Selesai</Badge>

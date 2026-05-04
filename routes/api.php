@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CsNoodleSbyIotController;
 use App\Http\Controllers\Api\CsFgSbyIotController;
 use App\Http\Controllers\Api\IncomingSingkongIotController;
 use App\Http\Controllers\Api\IncomingRmpmIotController;
+use App\Http\Controllers\Api\DriverController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,9 @@ Route::prefix('iot')->group(function () {
     Route::get('/ping',  [IotController::class, 'ping']);
     Route::post('/device/update-product', [IotController::class, 'updateDeviceProduct']);
 });
+
+// Driver identification
+Route::post('/driver/identify', [DriverController::class, 'identify']);
 
 // FG PSN IoT
 Route::prefix('iot/fg-psn')->group(function () {

@@ -231,7 +231,7 @@ class DashboardController extends Controller
         return redirect()->route('fg.dashboard')->with('success', 'Sesi produk selesai. Silahkan mulai sesi produk baru.');
     }
 
-    public function stopPenimbangan(Request $request)
+    public function stopShift(Request $request)
     {
         $user = Auth::user();
         cache()->forget("session_operator_" . $user->id);
