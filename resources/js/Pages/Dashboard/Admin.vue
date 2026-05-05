@@ -35,6 +35,8 @@ const props = defineProps({
     moduleNames: Object,
     recentPenimbangans: Array,
     produks: Array,
+    chartData: Array,
+    chartFilter: String,
 });
 
 const successRate = props.stats.total > 0 ? (props.stats.selesai / props.stats.total) * 100 : 0;
@@ -165,6 +167,59 @@ const getRoute = (type) => {
                             </div>
                         </div>
                     </CardContent>
+                </Card>
+            </div>
+
+            <!-- Bar Chart Overview Section -->
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="h-8 w-1.5 bg-indigo-600 rounded-full"></div>
+                        <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">Overview Penimbangan</h2>
+                    </div>
+                    <div class="flex bg-gray-100 p-1 rounded-lg">
+                        <Link :href="route('dashboard', { chart_filter: 'week' })" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all" :class="chartFilter === 'week' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-900'">Mingguan</Link>
+                        <Link :href="route('dashboard', { chart_filter: 'month' })" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all" :class="chartFilter === 'month' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-900'">Bulanan</Link>
+                    </div>
+                </div>
+                
+                <Card class="p-6 bg-white border-none shadow-sm rounded-3xl">
+                    <div class="h-64 flex items-end gap-2 md:gap-4 w-full justify-between pt-8 relative">
+                        <!-- Y-Axis Lines -->
+                        <div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6">
+                            <div class="w-full h-px bg-gray-100 border-b border-dashed border-gray-200"></div>
+                            <div class="w-full h-px bg-gray-100 border-b border-dashed border-gray-200"></div>
+                            <div class="w-full h-px bg-gray-100 border-b border-dashed border-gray-200"></div>
+                            <div class="w-full h-px bg-gray-100 border-b border-solid border-gray-200"></div>
+                        </div>
+
+                        <!-- Bars -->
+                        <div v-for="data in chartData" :key="data.name" class="relative flex flex-col items-center flex-1 h-full justify-end group z-10">
+                            <div class="w-full max-w-[48px] bg-indigo-100 rounded-t-sm relative transition-all duration-500 group-hover:bg-indigo-200"
+                                 :style="{ height: Math.max((data.total / Math.max(...chartData.map(d => d.total), 1)) * 100, 5) + '%' }">
+                                <div class="absolute inset-x-0 bottom-0 bg-indigo-600 rounded-t-sm transition-all duration-500 group-hover:bg-indigo-700"
+                                     :style="{ height: Math.max((data.berat / Math.max(...chartData.map(d => d.berat), 1)) * 100, 5) + '%' }"></div>
+                                
+                                <!-- Tooltip -->
+                                <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-50">
+                                    <p class="font-bold mb-0.5">{{ data.total }} items</p>
+                                    <p class="text-indigo-200">{{ formatWeight(data.berat) }} kg</p>
+                                    <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 border-[4px] border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] sm:text-xs font-bold text-gray-500 mt-3 truncate max-w-full px-1">{{ data.name }}</span>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex items-center justify-center gap-6">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-indigo-100 rounded"></div>
+                            <span class="text-xs text-gray-500 font-bold uppercase tracking-widest">Total Item</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-indigo-600 rounded"></div>
+                            <span class="text-xs text-gray-500 font-bold uppercase tracking-widest">Total Berat (kg)</span>
+                        </div>
+                    </div>
                 </Card>
             </div>
 

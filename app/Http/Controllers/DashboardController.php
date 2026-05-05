@@ -121,7 +121,36 @@ class DashboardController extends Controller
 
         $produks = Produk::orderBy('nama_produk')->get();
 
-        return \Inertia\Inertia::render('Dashboard/Admin', compact('recentPenimbangans', 'stats', 'moduleStats', 'moduleNames', 'produks'));
+        // Chart Data Generation (Bar Chart - Filter: Week/Month)
+        $chartFilter = $request->input('chart_filter', 'week'); // 'week' or 'month'
+        $chartData = [];
+        
+        if ($chartFilter === 'week') {
+            // Data for the last 7 days
+            for ($i = 6; $i >= 0; $i--) {
+                $date = now()->subDays($i)->format('Y-m-d');
+                $displayDate = now()->subDays($i)->format('d M');
+                $total = Penimbangan::whereDate('created_at', $date)->where('status', 'selesai')->count();
+                $berat = Penimbangan::whereDate('created_at', $date)->where('status', 'selesai')->sum('berat');
+                $chartData[] = ['name' => $displayDate, 'total' => $total, 'berat' => $berat];
+            }
+        } else if ($chartFilter === 'month') {
+            // Data for the 4 weeks of the current month
+            $startOfMonth = now()->startOfMonth();
+            for ($i = 0; $i < 4; $i++) {
+                $startOfWeek = $startOfMonth->copy()->addWeeks($i);
+                $endOfWeek = $startOfWeek->copy()->endOfWeek();
+                if ($endOfWeek->greaterThan(now()->endOfMonth())) {
+                    $endOfWeek = now()->endOfMonth();
+                }
+                $displayDate = 'Week ' . ($i + 1);
+                $total = Penimbangan::whereBetween('created_at', [$startOfWeek, $endOfWeek])->where('status', 'selesai')->count();
+                $berat = Penimbangan::whereBetween('created_at', [$startOfWeek, $endOfWeek])->where('status', 'selesai')->sum('berat');
+                $chartData[] = ['name' => $displayDate, 'total' => $total, 'berat' => $berat];
+            }
+        }
+
+        return \Inertia\Inertia::render('Dashboard/Admin', compact('recentPenimbangans', 'stats', 'moduleStats', 'moduleNames', 'produks', 'chartData', 'chartFilter'));
     }
 
     public function operatorDashboard(Request $request)

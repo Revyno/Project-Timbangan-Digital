@@ -16,6 +16,7 @@ import {
     UserCheck
 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Swal from 'sweetalert2';
 
 const { auth } = usePage().props;
@@ -23,6 +24,19 @@ const showingNavigationDropdown = ref(false);
 const sidebarOpen = ref(false); // Default to closed on mobile
 const desktopSidebarOpen = ref(true); // Desktop separate state
 const notificationDot = ref(false);
+const showNotifications = ref(false);
+const notifications = ref([]);
+
+const toggleNotifications = () => {
+    showNotifications.value = !showNotifications.value;
+    if (showNotifications.value) {
+        notificationDot.value = false;
+    }
+};
+
+const clearNotifications = () => {
+    notifications.value = [];
+};
 
 const isPasuruanOpen = ref(true);
 const isSurabayaOpen = ref(true);
@@ -49,14 +63,10 @@ onMounted(() => {
                     
                     notificationDot.value = true;
 
-                    Swal.fire({
-                        icon: 'success',
+                    notifications.value.unshift({
+                        id: Date.now(),
                         title: 'Data Masuk!',
-                        text: `Berat: ${e.weight} kg (${e.product})`,
-                        timer: 3000,
-                        showConfirmButton: false,
-                        toast: true,
-                        position: 'top-end'
+                        message: `Berat: ${e.weight} kg (${e.product})`,
                     });
 
                     // In Inertia, we can reload the page or just data
@@ -101,10 +111,29 @@ const logout = () => {
                             <div class="flex items-center gap-4">
                                 <!-- Notification Bell -->
                                 <div class="relative">
-                                    <button @click="notificationDot = false" type="button" class="p-2 text-blue-100 rounded-lg hover:bg-blue-600 transition-all">
+                                    <button @click="toggleNotifications" type="button" class="p-2 text-blue-100 rounded-lg hover:bg-blue-600 transition-all">
                                         <Bell class="w-6 h-6" />
                                         <div v-if="notificationDot" class="absolute top-2 right-2 w-3 h-3 bg-red-500 border-2 border-blue-700 rounded-full"></div>
                                     </button>
+                                    
+                                    <!-- Notifications Dropdown -->
+                                    <div v-if="showNotifications" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+                                        <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                                            <h6 class="font-bold text-gray-900">Notifications</h6>
+                                            <button @click="clearNotifications" class="text-xs font-bold text-blue-600 hover:text-blue-800">Clear</button>
+                                        </div>
+                                        <div class="max-h-96 overflow-y-auto p-2 space-y-2">
+                                            <Alert v-for="notif in notifications" :key="notif.id" class="border-blue-100 bg-blue-50/50">
+                                                <AlertTitle class="text-blue-800 text-sm font-bold">{{ notif.title }}</AlertTitle>
+                                                <AlertDescription class="text-xs text-blue-600 mt-1">
+                                                    {{ notif.message }}
+                                                </AlertDescription>
+                                            </Alert>
+                                            <div v-if="notifications.length === 0" class="p-4 text-center text-sm text-gray-500">
+                                                No new notifications
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="text-right hidden md:block">
