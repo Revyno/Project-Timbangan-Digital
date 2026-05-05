@@ -25,8 +25,8 @@ import {
     LogOut, 
     Play, 
     CheckCircle2, 
-    Clock, 
-    AlertCircle 
+    AlertCircle,
+    Loader2
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -170,9 +170,10 @@ const formatDateTime = (date) => {
                             <input v-model="form.tanggal_expired" type="date" required class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block p-3">
                         </div>
                         <div class="md:col-span-3">
-                            <Button type="submit" class="w-full md:w-auto px-10 py-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200">
-                                <Play class="w-5 h-5 mr-2" />
-                                Mulai Menimbang
+                            <Button type="submit" :disabled="form.processing" class="w-full md:w-auto px-10 py-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200">
+                                <Loader2 v-if="form.processing" class="w-5 h-5 mr-2 animate-spin" />
+                                <Play v-else class="w-5 h-5 mr-2" />
+                                {{ form.processing ? 'Memulai...' : 'Mulai Menimbang' }}
                             </Button>
                         </div>
                     </form>

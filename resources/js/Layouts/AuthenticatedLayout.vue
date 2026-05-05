@@ -74,7 +74,7 @@ const logout = () => {
 <template>
     <div class="min-h-screen bg-gray-100">
         <!-- Top Navbar -->
-        <nav class="fixed top-0 z-50 w-full bg-blue-700 border-b border-blue-800 shadow-sm">
+        <nav :class="[desktopSidebarOpen ? 'sm:ml-64 sm:w-[calc(100%-16rem)]' : 'sm:ml-0 sm:w-full']" class="fixed top-0 z-40 w-full bg-blue-700 border-b border-blue-800 shadow-sm transition-all duration-300">
             <div class="px-3 py-3 lg:px-5 lg:pl-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center justify-start">
@@ -89,7 +89,10 @@ const logout = () => {
                             <Menu class="w-6 h-6" />
                         </button>
 
-                        <Link :href="route('dashboard')" class="flex items-center ms-2 md:me-24 gap-2">
+                        <Link v-if="!desktopSidebarOpen" :href="route('dashboard')" class="hidden sm:flex items-center ms-2 md:me-24 gap-2">
+                            <img src="/images/logo.webp" alt="Ladang Lima" class="h-8 w-auto brightness-0 invert">
+                        </Link>
+                        <Link :href="route('dashboard')" class="flex items-center ms-2 md:me-24 gap-2 sm:hidden">
                             <img src="/images/logo.webp" alt="Ladang Lima" class="h-8 w-auto brightness-0 invert">
                         </Link>
                     </div>
@@ -132,10 +135,15 @@ const logout = () => {
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full',
                 desktopSidebarOpen ? 'sm:translate-x-0' : 'sm:-translate-x-full'
             ]" 
-            class="fixed top-0 left-0 z-50 w-64 h-screen pt-20 transition-transform bg-white border-r border-gray-200 shadow-xl sm:shadow-none" 
+            class="fixed top-0 left-0 z-50 w-64 h-screen pt-20 sm:pt-0 transition-transform duration-300 bg-white border-r border-gray-200 shadow-xl sm:shadow-none" 
             aria-label="Sidebar"
         >
             <div class="h-full px-4 pb-4 overflow-y-auto bg-white">
+                <!-- Logo Sidebar -->
+                <div class="flex items-center justify-center h-[65px] border-b border-gray-100 mb-6">
+                    <img src="/images/logo.webp" alt="Ladang Lima" class="h-10 sm:h-8 w-auto">
+                </div>
+
                 <div class="flex items-center justify-between mb-6 sm:hidden">
                     <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Menu Navigasi</span>
                     <button @click="sidebarOpen = false" class="p-2 hover:bg-gray-100 rounded-full">

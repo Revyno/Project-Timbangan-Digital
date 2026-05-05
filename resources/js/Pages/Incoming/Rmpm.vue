@@ -28,8 +28,13 @@ import {
     Play, 
     CheckCircle2, 
     Clock, 
-    Package 
+    Package,
+    QrCode,
+    Loader2
 } from 'lucide-vue-next';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import QrScanner from '@/Components/QrScanner.vue';
 
 const props = defineProps({
     activeSession: Object,
@@ -53,6 +58,44 @@ const form = useForm({
     kode_batch: props.activeSession?.kode_batch || '',
     expired_date: props.activeSession?.expired_date || '',
 });
+
+const scanning = ref(false);
+const showScanner = ref(false);
+
+const handleScanResult = async (qrCode) => {
+    showScanner.value = false;
+    try {
+        scanning.value = true;
+        const response = await axios.post('/api/driver/identify', { qr_code: qrCode });
+        
+        if (response.data.success) {
+            const driver = response.data.driver;
+            form.nama_sopir = driver.name;
+            form.nama_supplier = driver.supplier;
+            form.nomor_plat = driver.nomor_plat;
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Driver Teridentifikasi',
+                text: `${driver.name} (Supplier: ${driver.supplier})`,
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: error.response?.data?.message || 'Kode QR tidak valid atau driver tidak ditemukan.',
+        });
+    } finally {
+        scanning.value = false;
+    }
+};
+
+const identifyDriver = () => {
+    showScanner.value = true;
+};
 
 const startSession = () => {
     form.post(route('incoming.rmpm.store'));
@@ -139,7 +182,15 @@ const formatDateTime = (date) => {
                         </div>
                     </div>
 
-                    <form v-else @submit.prevent="startSession" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-else>
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-bold text-gray-900">Mulai Sesi Baru</h3>
+                            <Button @click="identifyDriver" type="button" class="bg-indigo-600 hover:bg-indigo-700 font-bold">
+                                <QrCode class="w-4 h-4 mr-2" /> Scan QR Driver
+                            </Button>
+                        </div>
+
+                        <form @submit.prevent="startSession" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div class="space-y-1">
                             <Label>Tanggal Kedatangan</Label>
                             <Input v-model="form.tanggal_kedatangan" type="date" required />
@@ -189,11 +240,14 @@ const formatDateTime = (date) => {
                             <Input v-model="form.expired_date" type="date" />
                         </div>
                         <div class="lg:col-span-3 pt-2">
-                            <Button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 py-6 font-bold text-lg">
-                                <Play class="w-5 h-5 mr-2" /> Mulai Penimbangan
+                            <Button type="submit" :disabled="form.processing" class="w-full bg-indigo-600 hover:bg-indigo-700 py-6 font-bold text-lg">
+                                <Loader2 v-if="form.processing" class="w-5 h-5 mr-2 animate-spin" />
+                                <Play v-else class="w-5 h-5 mr-2" /> 
+                                {{ form.processing ? 'Memulai Sesi...' : 'Mulai Penimbangan' }}
                             </Button>
                         </div>
                     </form>
+                    </div>
                 </Card>
             </div>
 
@@ -228,5 +282,12 @@ const formatDateTime = (date) => {
                 </div>
             </Card>
         </div>
+
+        <!-- Scanner Modal -->
+        <QrScanner 
+            :isOpen="showScanner" 
+            @scan="handleScanResult" 
+            @close="showScanner = false" 
+        />
     </AuthenticatedLayout>
 </template>

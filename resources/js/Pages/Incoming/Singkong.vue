@@ -29,7 +29,8 @@ import {
     CheckCircle2, 
     Clock, 
     Truck,
-    QrCode
+    QrCode,
+    Loader2
 } from 'lucide-vue-next';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -314,7 +315,9 @@ const formatDateTime = (date) => {
                                 :disabled="form.processing"
                                 class="w-full bg-emerald-600 hover:bg-emerald-700 py-6 font-bold text-lg"
                             >
-                                <Play class="w-5 h-5 mr-2" /> Mulai Penimbangan
+                                <Loader2 v-if="form.processing" class="w-5 h-5 mr-2 animate-spin" />
+                                <Play v-else class="w-5 h-5 mr-2" /> 
+                                {{ form.processing ? 'Memulai Sesi...' : 'Mulai Penimbangan' }}
                             </Button>
                         </div>
                     </form>

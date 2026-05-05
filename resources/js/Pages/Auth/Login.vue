@@ -7,7 +7,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogIn, Mail, Lock } from 'lucide-vue-next';
+import { LogIn, Mail, Lock, Loader2 } from 'lucide-vue-next';
 
 defineProps({
     canResetPassword: {
@@ -85,11 +85,12 @@ const submit = () => {
 
             <Button
                 class="w-full text-lg font-black text-white transition-all bg-blue-600 shadow-xl hover:bg-blue-700 py-7 rounded-2xl shadow-blue-100 group"
-                :class="{ 'opacity-25': form.processing }"
+                :class="{ 'opacity-70 cursor-not-allowed': form.processing }"
                 :disabled="form.processing"
             >
-                <LogIn class="w-5 h-5 mr-2 transition-transform group-hover:translate-x-1" />
-                Sign In
+                <Loader2 v-if="form.processing" class="w-5 h-5 mr-2 animate-spin" />
+                <LogIn v-else class="w-5 h-5 mr-2 transition-transform group-hover:translate-x-1" />
+                {{ form.processing ? 'Signing In...' : 'Sign In' }}
             </Button>
 
             <div class="text-center space-y-4">
