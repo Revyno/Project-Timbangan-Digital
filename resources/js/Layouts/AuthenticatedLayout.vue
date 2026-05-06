@@ -115,14 +115,27 @@ const logout = () => {
                                         <Bell class="w-6 h-6" />
                                         <div v-if="notificationDot" class="absolute top-2 right-2 w-3 h-3 bg-red-500 border-2 border-blue-700 rounded-full"></div>
                                     </button>
-                                    
-                                    <!-- Notifications Dropdown -->
-                                    <div v-if="showNotifications" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+                                    <!-- Notifications Dropdown - Mobile: fixed full-width, Desktop: absolute -->
+                                    <!-- Mobile overlay backdrop -->
+                                    <div 
+                                        v-if="showNotifications" 
+                                        @click="showNotifications = false" 
+                                        class="fixed inset-0 z-40 sm:hidden"
+                                    ></div>
+                                    <div 
+                                        v-if="showNotifications" 
+                                        class="fixed left-2 right-2 top-16 z-50 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+                                    >
                                         <div class="p-4 border-b border-gray-100 flex justify-between items-center">
                                             <h6 class="font-bold text-gray-900">Notifications</h6>
-                                            <button @click="clearNotifications" class="text-xs font-bold text-blue-600 hover:text-blue-800">Clear</button>
+                                            <div class="flex items-center gap-3">
+                                                <button @click="clearNotifications" class="text-xs font-bold text-blue-600 hover:text-blue-800">Clear</button>
+                                                <button @click="showNotifications = false" class="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 sm:hidden">
+                                                    <X class="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="max-h-96 overflow-y-auto p-2 space-y-2">
+                                        <div class="max-h-[60vh] sm:max-h-96 overflow-y-auto p-2 space-y-2">
                                             <Alert v-for="notif in notifications" :key="notif.id" class="border-blue-100 bg-blue-50/50">
                                                 <AlertTitle class="text-blue-800 text-sm font-bold">{{ notif.title }}</AlertTitle>
                                                 <AlertDescription class="text-xs text-blue-600 mt-1">

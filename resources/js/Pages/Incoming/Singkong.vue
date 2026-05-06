@@ -165,17 +165,17 @@ const formatDateTime = (date) => {
                 <Card class="md:col-span-2 p-6 bg-white border-none rounded-3xl shadow-xl">
                     <!-- Active Session Info -->
                     <div v-if="activeSession" class="space-y-4">
-                        <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
                             <div>
                                 <Badge class="bg-emerald-100 text-emerald-700 mb-2">SESI AKTIF</Badge>
-                                <h3 class="text-2xl font-black text-gray-900">{{ activeSession.nama_supplier }}</h3>
+                                <h3 class="text-xl sm:text-2xl font-black text-gray-900">{{ activeSession.nama_supplier }}</h3>
                                 <p class="text-sm text-gray-500">KP: {{ activeSession.kode_produksi }} | No Surat: {{ activeSession.no_surat }}</p>
                             </div>
-                            <div class="flex gap-2">
-                                <Button @click="nextSession" variant="outline" class="border-emerald-200 text-emerald-700 hover:bg-emerald-50 py-6 px-6">
+                            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                                <Button @click="nextSession" variant="outline" class="border-emerald-200 text-emerald-700 hover:bg-emerald-50 py-5 px-5 w-full sm:w-auto justify-center">
                                     <RotateCcw class="w-4 h-4 mr-2" /> Ganti Sesi
                                 </Button>
-                                <Button @click="stopSession" variant="destructive" class="bg-red-600 py-6 px-6">
+                                <Button @click="stopSession" variant="destructive" class="bg-red-600 py-5 px-5 w-full sm:w-auto justify-center">
                                     <LogOut class="w-4 h-4 mr-2" /> Stop Shift
                                 </Button>
                             </div>

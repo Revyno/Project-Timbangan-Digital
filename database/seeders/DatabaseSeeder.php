@@ -9,6 +9,7 @@ use App\Models\Penimbangan;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -25,6 +26,9 @@ class DatabaseSeeder extends Seeder
         Penimbangan::truncate();
         DB::table('incoming_singkongs')->truncate();
         DB::table('incoming_rmpms')->truncate();
+        if (Schema::hasTable('rmpm_items')) {
+            DB::table('rmpm_items')->truncate();
+        }
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // ============================================================

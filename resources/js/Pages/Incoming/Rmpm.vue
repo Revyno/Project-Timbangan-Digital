@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, usePage, router } from '@inertiajs/vue3';
 import { 
@@ -41,15 +41,38 @@ const props = defineProps({
     totalShift: Number,
     totalBerat: Number,
     history: Object,
+    namaBarangOptions: { type: Array, default: () => [] },
+    asalOptions: { type: Array, default: () => [] },
 });
 
 const { auth } = usePage().props;
 
+// Determine initial dropdown vs custom state
+const initNamaBarang = props.activeSession?.nama_barang || '';
+const initAsal = props.activeSession?.asal || '';
+
+const selectedNamaBarang = ref(
+    props.namaBarangOptions.includes(initNamaBarang) ? initNamaBarang : (initNamaBarang ? '__lainnya__' : '')
+);
+const customNamaBarang = ref(
+    props.namaBarangOptions.includes(initNamaBarang) ? '' : initNamaBarang
+);
+
+const selectedAsal = ref(
+    props.asalOptions.filter(a => a !== 'Lainnya').includes(initAsal) ? initAsal : (initAsal ? '__lainnya__' : '')
+);
+const customAsal = ref(
+    props.asalOptions.filter(a => a !== 'Lainnya').includes(initAsal) ? '' : initAsal
+);
+
+const selectedJenisBarang = ref(props.activeSession?.jenis_barang || 'raw_material');
+const customJenisBarang = ref('');
+
 const form = useForm({
     tanggal_kedatangan: props.activeSession?.tanggal_kedatangan || new Date().toISOString().split('T')[0],
-    nama_barang: props.activeSession?.nama_barang || '',
+    nama_barang: initNamaBarang,
     jenis_barang: props.activeSession?.jenis_barang || 'raw_material',
-    asal: props.activeSession?.asal || '',
+    asal: initAsal,
     nama_supplier: props.activeSession?.nama_supplier || '',
     no_surat: props.activeSession?.no_surat || '',
     nama_sopir: props.activeSession?.nama_sopir || '',
@@ -57,6 +80,43 @@ const form = useForm({
     total_qty: props.activeSession?.total_qty || 1,
     kode_batch: props.activeSession?.kode_batch || '',
     expired_date: props.activeSession?.expired_date || '',
+});
+
+// Watchers to sync dropdown + custom input to form fields
+watch(selectedNamaBarang, (val) => {
+    if (val === '__lainnya__') {
+        form.nama_barang = customNamaBarang.value;
+    } else {
+        form.nama_barang = val;
+        customNamaBarang.value = '';
+    }
+});
+watch(customNamaBarang, (val) => {
+    if (selectedNamaBarang.value === '__lainnya__') form.nama_barang = val;
+});
+
+watch(selectedAsal, (val) => {
+    if (val === '__lainnya__') {
+        form.asal = customAsal.value;
+    } else {
+        form.asal = val;
+        customAsal.value = '';
+    }
+});
+watch(customAsal, (val) => {
+    if (selectedAsal.value === '__lainnya__') form.asal = val;
+});
+
+watch(selectedJenisBarang, (val) => {
+    if (val === '__lainnya__') {
+        form.jenis_barang = customJenisBarang.value;
+    } else {
+        form.jenis_barang = val;
+        customJenisBarang.value = '';
+    }
+});
+watch(customJenisBarang, (val) => {
+    if (selectedJenisBarang.value === '__lainnya__') form.jenis_barang = val;
 });
 
 const scanning = ref(false);
@@ -147,17 +207,17 @@ const formatDateTime = (date) => {
 
                 <Card class="md:col-span-2 p-6 bg-white border-none rounded-3xl shadow-xl">
                     <div v-if="activeSession" class="space-y-4">
-                        <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
                             <div>
                                 <Badge class="bg-indigo-100 text-indigo-700 mb-2">SESI AKTIF</Badge>
-                                <h3 class="text-2xl font-black text-gray-900">{{ activeSession.nama_barang }}</h3>
+                                <h3 class="text-xl sm:text-2xl font-black text-gray-900">{{ activeSession.nama_barang }}</h3>
                                 <p class="text-sm text-gray-500">{{ activeSession.nama_supplier }} | No Surat: {{ activeSession.no_surat }}</p>
                             </div>
-                            <div class="flex gap-2">
-                                <Button @click="nextSession" variant="outline" class="border-indigo-200 text-indigo-700 hover:bg-indigo-50 py-6 px-6">
+                            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                                <Button @click="nextSession" variant="outline" class="border-indigo-200 text-indigo-700 hover:bg-indigo-50 py-5 px-5 w-full sm:w-auto justify-center">
                                     <RotateCcw class="w-4 h-4 mr-2" /> Ganti Sesi
                                 </Button>
-                                <Button @click="stopSession" variant="destructive" class="bg-red-600 py-6 px-6">
+                                <Button @click="stopSession" variant="destructive" class="bg-red-600 py-5 px-5 w-full sm:w-auto justify-center">
                                     <LogOut class="w-4 h-4 mr-2" /> Stop Shift
                                 </Button>
                             </div>
@@ -193,57 +253,107 @@ const formatDateTime = (date) => {
                         <form @submit.prevent="startSession" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div class="space-y-1">
                             <Label>Tanggal Kedatangan</Label>
-                            <Input v-model="form.tanggal_kedatangan" type="date" required />
+                            <Input v-model="form.tanggal_kedatangan" type="date" required class="text-base sm:text-sm" />
                         </div>
+
+                        <!-- Nama Barang — DROPDOWN with Lainnya -->
                         <div class="space-y-1">
                             <Label>Nama Barang</Label>
-                            <Input v-model="form.nama_barang" required placeholder="Nama Item RMPM" />
+                            <select
+                                v-model="selectedNamaBarang"
+                                required
+                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            >
+                                <option value="" disabled>-- Pilih Nama Barang --</option>
+                                <option v-for="item in namaBarangOptions" :key="item" :value="item">{{ item }}</option>
+                                <option value="__lainnya__">Lainnya</option>
+                            </select>
+                            <Input
+                                v-if="selectedNamaBarang === '__lainnya__'"
+                                v-model="customNamaBarang"
+                                required
+                                placeholder="Ketik nama barang..."
+                                class="mt-1 text-base sm:text-sm"
+                            />
                         </div>
+
+                        <!-- Jenis Barang — DROPDOWN with Lainnya -->
                         <div class="space-y-1">
                             <Label>Jenis Barang</Label>
-                            <select v-model="form.jenis_barang" class="w-full bg-white border border-gray-200 rounded-md p-2">
+                            <select
+                                v-model="selectedJenisBarang"
+                                required
+                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            >
+                                <option value="" disabled>-- Pilih Jenis --</option>
                                 <option value="raw_material">Raw Material</option>
                                 <option value="packaging_material">Packaging Material</option>
-                                <option value="lainnya">Lainnya</option>
+                                <option value="__lainnya__">Lainnya</option>
                             </select>
+                            <Input
+                                v-if="selectedJenisBarang === '__lainnya__'"
+                                v-model="customJenisBarang"
+                                required
+                                placeholder="Ketik jenis barang..."
+                                class="mt-1 text-base sm:text-sm"
+                            />
                         </div>
+
                         <div class="space-y-1">
                             <Label>Supplier</Label>
-                            <Input v-model="form.nama_supplier" required placeholder="Nama Supplier" />
+                            <Input v-model="form.nama_supplier" required placeholder="Nama Supplier" class="text-base sm:text-sm" />
                         </div>
+
+                        <!-- Asal — DROPDOWN with Lainnya -->
                         <div class="space-y-1">
                             <Label>Asal</Label>
-                            <Input v-model="form.asal" required placeholder="Asal Barang" />
+                            <select
+                                v-model="selectedAsal"
+                                required
+                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            >
+                                <option value="" disabled>-- Pilih Asal --</option>
+                                <option v-for="a in asalOptions.filter(o => o !== 'Lainnya')" :key="a" :value="a">{{ a }}</option>
+                                <option value="__lainnya__">Lainnya</option>
+                            </select>
+                            <Input
+                                v-if="selectedAsal === '__lainnya__'"
+                                v-model="customAsal"
+                                required
+                                placeholder="Ketik asal barang..."
+                                class="mt-1 text-base sm:text-sm"
+                            />
                         </div>
+
                         <div class="space-y-1">
                             <Label>No. Surat Jalan</Label>
-                            <Input v-model="form.no_surat" required placeholder="No. Surat" />
+                            <Input v-model="form.no_surat" required placeholder="No. Surat" class="text-base sm:text-sm" />
                         </div>
                         <div class="space-y-1">
                             <Label>Sopir</Label>
-                            <Input v-model="form.nama_sopir" required placeholder="Nama Sopir" />
+                            <Input v-model="form.nama_sopir" required placeholder="Nama Sopir" class="text-base sm:text-sm" />
                         </div>
                         <div class="space-y-1">
                             <Label>No. Plat</Label>
-                            <Input v-model="form.nomor_plat" required placeholder="Nopol" />
+                            <Input v-model="form.nomor_plat" required placeholder="Nopol" class="text-base sm:text-sm" />
                         </div>
                         <div class="space-y-1">
                             <Label>Total Qty</Label>
-                            <Input v-model="form.total_qty" type="number" required min="1" />
+                            <Input v-model="form.total_qty" type="number" required min="1" class="text-base sm:text-sm" />
                         </div>
                         <div class="space-y-1">
                             <Label>Kode Batch (Opt)</Label>
-                            <Input v-model="form.kode_batch" placeholder="Batch Number" />
+                            <Input v-model="form.kode_batch" placeholder="Batch Number" class="text-base sm:text-sm" />
                         </div>
                         <div class="space-y-1">
                             <Label>Exp Date (Opt)</Label>
-                            <Input v-model="form.expired_date" type="date" />
+                            <Input v-model="form.expired_date" type="date" class="text-base sm:text-sm" />
                         </div>
                         <div class="lg:col-span-3 pt-2">
                             <Button type="submit" :disabled="form.processing" class="w-full bg-indigo-600 hover:bg-indigo-700 py-6 font-bold text-lg">
                                 <Loader2 v-if="form.processing" class="w-5 h-5 mr-2 animate-spin" />
                                 <Play v-else class="w-5 h-5 mr-2" /> 
-                                {{ form.processing ? 'Memulai Sesi...' : 'Mulai Penimbangan' }}
+                                {{ form.processing ? 'Memulai Sesi ...' : 'Mulai Penimbangan' }}
                             </Button>
                         </div>
                     </form>

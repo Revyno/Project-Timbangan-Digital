@@ -48,6 +48,8 @@ class IncomingRmpmController extends Controller
             'totalShift' => $totalShift,
             'totalBerat' => $totalBerat,
             'history' => $history,
+            'namaBarangOptions' => IncomingRmpm::namaBarangOptions(),
+            'asalOptions' => IncomingRmpm::asalOptions(),
         ]);
     }
 
@@ -91,7 +93,7 @@ class IncomingRmpmController extends Controller
         $validated = $request->validate([
             'tanggal_kedatangan' => 'required|date',
             'nama_barang' => 'required|string',
-            'jenis_barang' => 'required|in:raw_material,packaging_material,lainnya',
+            'jenis_barang' => 'required|string',
             'asal' => 'required|string',
             'nama_supplier' => 'required|string',
             'no_surat' => 'required|string',

@@ -34,9 +34,14 @@ class IncomingRmpm extends Model
         'berat' => 'decimal:3',
     ];
 
-    // Dropdown options from Google Form
+    // Dropdown options — pulled from DB (rmpm_items table), with static fallback
     public static function namaBarangOptions(): array
     {
+        try {
+            $items = RmpmItem::optionsByType('nama_barang');
+            if (!empty($items)) return $items;
+        } catch (\Exception $e) {}
+
         return [
             'BAKING POWDER', 'BAKING SODA', 'BASIL', 'BAWANG PUTIH',
             'CHOCO FLAVOR', 'COKLAT POWDER', 'DAUN BAWANG', 'DMG / GMS',
@@ -50,6 +55,11 @@ class IncomingRmpm extends Model
 
     public static function asalOptions(): array
     {
+        try {
+            $items = RmpmItem::optionsByType('asal');
+            if (!empty($items)) return array_merge($items, ['Lainnya']);
+        } catch (\Exception $e) {}
+
         return ['Surabaya', 'Vendor/Supplier', 'Lainnya'];
     }
 

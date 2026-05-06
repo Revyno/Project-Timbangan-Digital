@@ -2,7 +2,6 @@
 .DS_Store
 .phpactor.json
 .phpunit.result.cache
-/.Timbangan
 /.fleet
 /.idea
 /.nova
