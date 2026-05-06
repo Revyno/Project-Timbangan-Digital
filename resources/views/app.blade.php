@@ -14,7 +14,6 @@
         <link rel="manifest" href="/manifest.json">
         <meta name="theme-color" content="#1d4ed8">
         <link rel="apple-touch-icon" href="/images/logo.webp">
-
         <!-- Scripts -->
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])

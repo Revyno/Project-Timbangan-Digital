@@ -12,9 +12,7 @@ use App\Http\Controllers\MasterDataController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+
 
 // ============================================================
 // SHARED ROUTES (Admin + Operator can both access)
