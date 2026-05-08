@@ -64,6 +64,12 @@ class CsFgSbyController extends Controller
         if ($request->filled('tanggal_mulai')) $query->whereDate('tanggal_penimbangan', '>=', $request->tanggal_mulai);
         if ($request->filled('tanggal_selesai')) $query->whereDate('tanggal_penimbangan', '<=', $request->tanggal_selesai);
         if ($request->filled('produk')) $query->where('produk_id', $request->produk);
+        if ($request->filled('shift')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('shift', $request->shift);
+            });
+        }
+        if ($request->filled('operator')) $query->where('user_id', $request->operator);
 
         $penimbangans = (clone $query)->with(['produk', 'user'])->orderByDesc('created_at')->paginate(15)->withQueryString();
         $stats = [
@@ -71,15 +77,18 @@ class CsFgSbyController extends Controller
             'total_berat' => (clone $query)->where('status', 'selesai')->sum('berat'),
         ];
         $produks = Produk::orderBy('nama_produk')->get();
+        $operators = \App\Models\User::where('tipe', 'cs_fg_sby')->select('id', 'name')->get();
 
         return \Inertia\Inertia::render('Dashboard/DataView', [
-            'title' => 'CS FG-Sby Surabaya',
-            'subtitle' => 'Data penimbangan CS FG-Sby Surabaya (Read Only)',
+            'title'       => 'CS FG-Sby Surabaya',
+            'subtitle'    => 'Data penimbangan CS FG-Sby Surabaya (Read Only)',
             'penimbangans' => $penimbangans,
-            'stats' => $stats,
-            'produks' => $produks,
-            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk']),
-            'exportRoute' => 'cs-fg-sby.export',
+            'stats'       => $stats,
+            'produks'     => $produks,
+            'shifts'      => \App\Models\User::where('tipe', 'cs_fg_sby')->whereNotNull('shift')->distinct()->orderBy('shift')->pluck('shift'),
+            'operators'   => $operators,
+            'filters'     => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk', 'shift', 'operator']),
+            'exportRoute' => 'admin.cs-fg-sby.export',
         ]);
     }
 

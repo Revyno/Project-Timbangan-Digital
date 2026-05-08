@@ -33,6 +33,15 @@ class DashboardController extends Controller
                 'email' => 'Sesi Anda telah berakhir. Silahkan hubungi admin untuk mengaktifkan kembali.',
             ]);
         }
+        //validasi untuk  login  besok hari
+        // if (!$user->isShiftActive()) {
+        //     Auth::logout();
+        //     $request->session()->invalidate();
+        //     $request->session()->regenerateToken();
+        //     return redirect()->route('login')->withErrors([
+        //         'email' => 'Saat ini bukan jam shift Anda. Silahkan login kembali saat jam shift Anda aktif.',
+        //     ]);
+        // }
 
         // --- Operator Personal Overview ---
         $stats = [
@@ -86,6 +95,14 @@ class DashboardController extends Controller
         if ($request->filled('produk')) {
             $baseQuery->where('produk_id', $request->produk);
         }
+        if ($request->filled('operator')) {
+            $baseQuery->where('user_id', $request->operator);
+        }
+        if ($request->filled('module')) {
+            $baseQuery->whereHas('user', function($q) use ($request) {
+                $q->where('tipe', $request->module);
+            });
+        }
 
         // Global Stats
         $stats = [
@@ -114,8 +131,8 @@ class DashboardController extends Controller
         ];
 
         // Recent Activity (All modules)
-        $recentPenimbangans = Penimbangan::with(['produk', 'user'])
-            ->orderByDesc('created_at')
+        $recentPenimbangans = (clone $baseQuery)->with(['produk', 'user'])
+            ->orderByDesc('penimbangans.created_at')
             ->limit(10)
             ->get();
 
@@ -124,7 +141,7 @@ class DashboardController extends Controller
         // Chart Data Generation (Bar Chart - Filter: Week/Month)
         $chartFilter = $request->input('chart_filter', 'week'); // 'week' or 'month'
         $chartData = [];
-        
+
         if ($chartFilter === 'week') {
             // Data for the last 7 days
             for ($i = 6; $i >= 0; $i--) {
@@ -150,7 +167,36 @@ class DashboardController extends Controller
             }
         }
 
-        return \Inertia\Inertia::render('Dashboard/Admin', compact('recentPenimbangans', 'stats', 'moduleStats', 'moduleNames', 'produks', 'chartData', 'chartFilter'));
+        $filters = $request->only(['tanggal_mulai', 'tanggal_selesai', 'shift', 'operator', 'module', 'produk']);
+
+        // Build operators list (for dropdown), scoped per module if selected
+        $operatorQuery = \App\Models\User::whereIn('tipe', array_keys($moduleNames))->orderBy('name');
+        $operators = $operatorQuery->get(['id', 'name', 'tipe', 'shift']);
+
+        // Build shifts-per-module map so the frontend can filter shifts by selected module
+        $allModuleTypes = array_keys($moduleNames);
+        $shiftsPerModule = [];
+        foreach ($allModuleTypes as $tipe) {
+            $shiftsPerModule[$tipe] = \App\Models\User::where('tipe', $tipe)
+                ->whereNotNull('shift')
+                ->distinct()
+                ->orderBy('shift')
+                ->pluck('shift')
+                ->values()
+                ->all();
+        }
+        // Global shifts (union of all modules)
+        $shifts = \App\Models\User::whereIn('tipe', $allModuleTypes)
+            ->whereNotNull('shift')
+            ->distinct()
+            ->orderBy('shift')
+            ->pluck('shift');
+
+        return \Inertia\Inertia::render('Dashboard/Admin', compact(
+            'recentPenimbangans', 'stats', 'moduleStats', 'moduleNames',
+            'produks', 'chartData', 'chartFilter', 'filters',
+            'operators', 'shifts', 'shiftsPerModule'
+        ));
     }
 
     public function operatorDashboard(Request $request)
@@ -170,6 +216,14 @@ class DashboardController extends Controller
             if ($request->filled('produk')) {
                 $query->where('produk_id', $request->produk);
             }
+            if ($request->filled('shift')) {
+                $query->whereHas('user', function($q) use ($request) {
+                    $q->where('shift', $request->shift);
+                });
+            }
+            if ($request->filled('operator')) {
+                $query->where('user_id', $request->operator);
+            }
 
             $penimbangans = (clone $query)->with(['produk', 'user'])
                 ->orderByDesc('created_at')
@@ -182,18 +236,21 @@ class DashboardController extends Controller
             ];
 
             $produks = Produk::orderBy('nama_produk')->get();
+            $operators = \App\Models\User::where('tipe', 'fg')->select('id', 'name')->get();
 
             return \Inertia\Inertia::render('Dashboard/DataView', [
-                'title' => 'Pasuruan FG',
-                'subtitle' => 'Data penimbangan Pasuruan FG (Read Only)',
+                'title'       => 'Pasuruan Formulasi',
+                'subtitle'    => 'Data penimbangan Formulasi Pasuruan (Read Only)',
                 'penimbangans' => $penimbangans,
-                'stats' => $stats,
-                'produks' => $produks,
-                'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk']),
+                'stats'       => $stats,
+                'produks'     => $produks,
+                'shifts'      => \App\Models\User::where('tipe', 'fg')->whereNotNull('shift')->distinct()->orderBy('shift')->pluck('shift'),
+                'operators'   => $operators,
+                'filters'     => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk', 'shift', 'operator']),
                 'exportRoute' => 'penimbangan.export',
             ]);
         }
-        
+
         // Menghitung total penimbangan yang selesai oleh operator ini pada hari ini
         $totalShift = Penimbangan::where('user_id', $user->id)
             ->whereDate('created_at', today())
@@ -207,7 +264,7 @@ class DashboardController extends Controller
 
         // Ambil sesi aktif dari Cache
         $activePenimbangan = cache()->get("session_operator_{$user->id}");
-        
+
         // Jika ada di cache, kita ambil model produknya agar bisa tampil nama produknya
         if ($activePenimbangan) {
             $activePenimbangan = (object) $activePenimbangan;
@@ -245,7 +302,7 @@ class DashboardController extends Controller
         ];
 
         cache()->put("session_operator_{$user->id}", $sessionData, now()->addHours(8));
-        
+
         // Simpan juga sebagai "Sesi Terakhir" (Untuk pre-fill otomatis nanti)
         cache()->put("last_session_operator_{$user->id}", $sessionData, now()->addDays(7));
 
@@ -256,7 +313,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         cache()->forget("session_operator_" . $user->id);
-        
+
         return redirect()->route('fg.dashboard')->with('success', 'Sesi produk selesai. Silahkan mulai sesi produk baru.');
     }
 
@@ -264,7 +321,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         cache()->forget("session_operator_" . $user->id);
-        
+
         $user->update(['session_locked' => true]);
 
         Auth::logout();

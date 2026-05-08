@@ -12,9 +12,6 @@ use App\Http\Controllers\MasterDataController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return redirect()->route('login');
-});
 
 // ============================================================
 // SHARED ROUTES (Admin + Operator can both access)
@@ -46,7 +43,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::get('/incoming/rmpm', [IncomingRmpmController::class, 'dashboard'])->name('admin.incoming.rmpm');
     Route::get('/incoming/rmpm/export', [IncomingRmpmController::class, 'export'])->name('admin.incoming.rmpm.export');
 
-    Route::get('/fg-surabaya', [FgSurabayaController::class, 'dashboard'])->name('admin.fg-surabaya');
+    Route::get('/fm-surabaya', [FgSurabayaController::class, 'dashboard'])->name('admin.fg-surabaya');
     Route::get('/fg-surabaya/export', [FgSurabayaController::class, 'export'])->name('admin.fg-surabaya.export');
 
     Route::get('/cs-noodle-sby', [CsNoodleSbyController::class, 'dashboard'])->name('admin.cs-noodle-sby');

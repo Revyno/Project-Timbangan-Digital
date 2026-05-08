@@ -121,6 +121,6 @@ class CsNoodleSbyIotController extends Controller
             return response()->json(['status' => 'ok', 'server_time' => now()->toDateTimeString()]);
         }
 
-        return response()->json(['status' => 'error', 'message' => 'Unknown device'], 401);
+        return response()->json(['status' => 'error', 'message' => 'Tidak Ada Koneksi'], 401);
     }
 }

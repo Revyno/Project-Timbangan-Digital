@@ -90,13 +90,10 @@ const submit = () => {
             >
                 <Loader2 v-if="form.processing" class="w-5 h-5 mr-2 animate-spin" />
                 <LogIn v-else class="w-5 h-5 mr-2 transition-transform group-hover:translate-x-1" />
-                {{ form.processing ? 'Signing In...' : 'Sign In' }}
+                {{ form.processing ? 'Memuat...' : 'Sign In' }}
             </Button>
 
-            <div class="text-center space-y-4">
-                <Link :href="route('register')" class="block text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
-                    Belum punya akun? <span class="font-bold text-blue-600">Register Operator</span>
-                </Link>
+            <div class="text-center">
                 <Link :href="route('driver.register')" class="block text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
                     Daftar sebagai <span class="font-bold text-blue-600">Sopir (QR Code)</span>
                 </Link>

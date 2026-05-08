@@ -24,6 +24,11 @@ class DriverController extends Controller
                 'message' => 'Driver tidak ditemukan.',
             ], 404);
         }
+        // else (!$driver->supplier) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Driver tidak memiliki supplier terkait.',
+        //     ], 404);
 
         return response()->json([
             'success' => true,

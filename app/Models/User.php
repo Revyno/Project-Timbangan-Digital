@@ -78,8 +78,8 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the session is locked for today.
-     * If it was locked on a previous day, it will be automatically unlocked.
+     * Check if the session is locked for the current shift.
+     * If it was locked in a previous shift, it will be automatically unlocked.
      */
     public function isSessionLocked(): bool
     {
@@ -92,12 +92,35 @@ class User extends Authenticatable
             return false;
         }
 
-        // Check if the lock was set today
-        if ($this->updated_at->isToday()) {
+        if (!$this->shift_start) {
+            // Fallback if no shift_start is set
+            if ($this->updated_at->isToday()) {
+                return true;
+            }
+            $this->update(['session_locked' => false]);
+            return false;
+        }
+
+        $now = now();
+        $parts = explode(':', $this->shift_start);
+        $hour = (int)$parts[0];
+        $minute = (int)($parts[1] ?? 0);
+        $second = (int)($parts[2] ?? 0);
+
+        // Determine the most recent shift start time relative to now
+        $lastShiftStart = $now->copy()->setTime($hour, $minute, $second);
+
+        // If the calculated time is in the future, it means the shift started yesterday
+        if ($lastShiftStart > $now) {
+            $lastShiftStart->subDay();
+        }
+
+        // If locked after or exactly at the start of the current shift, remain locked
+        if ($this->updated_at >= $lastShiftStart) {
             return true;
         }
 
-        // Locked on a previous day, auto-unlock
+        // Locked in a previous shift, auto-unlock
         $this->update(['session_locked' => false]);
         return false;
     }

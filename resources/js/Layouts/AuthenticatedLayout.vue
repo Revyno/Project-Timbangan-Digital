@@ -212,49 +212,49 @@ const logout = () => {
                         <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Pasuruan</span>
                     </li>
                     <li>
-                        <Link :href="route('fg.dashboard')">
+                        <Link :href="auth.user.role === 'admin' ? route('admin.fg') : route('fg.dashboard')">
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('fg.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                :class="route().current('admin.fg') || route().current('fg.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
                             >
-                                <ClipboardList class="w-5 h-5" :class="route().current('fg.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <ClipboardList class="w-5 h-5" :class="route().current('admin.fg') || route().current('fg.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
                                 <span>Formulasi</span>
                             </Button>
                         </Link>
                     </li>
                     <li>
-                        <Link :href="route('fg-psn.dashboard')">
+                        <Link :href="auth.user.role === 'admin' ? route('admin.fg-psn') : route('fg-psn.dashboard')">
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('fg-psn.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                :class="route().current('admin.fg-psn') || route().current('fg-psn.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
                             >
-                                <Box class="w-5 h-5" :class="route().current('fg-psn.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <Box class="w-5 h-5" :class="route().current('admin.fg-psn') || route().current('fg-psn.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
                                 <span>Finished Goods</span>
                             </Button>
                         </Link>
                     </li>
                     <li>
-                        <Link :href="route('incoming.singkong.dashboard')">
+                        <Link :href="auth.user.role === 'admin' ? route('admin.incoming.singkong') : route('incoming.singkong.dashboard')">
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('incoming.singkong.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                :class="route().current('admin.incoming.singkong') || route().current('incoming.singkong.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
                             >
-                                <Truck class="w-5 h-5" :class="route().current('incoming.singkong.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <Truck class="w-5 h-5" :class="route().current('admin.incoming.singkong') || route().current('incoming.singkong.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
                                 <span>Incoming Singkong</span>
                             </Button>
                         </Link>
                     </li>
                     <li>
-                        <Link :href="route('incoming.rmpm.dashboard')">
+                        <Link :href="auth.user.role === 'admin' ? route('admin.incoming.rmpm') : route('incoming.rmpm.dashboard')">
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('incoming.rmpm.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                :class="route().current('admin.incoming.rmpm') || route().current('incoming.rmpm.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
                             >
-                                <Package class="w-5 h-5" :class="route().current('incoming.rmpm.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <Package class="w-5 h-5" :class="route().current('admin.incoming.rmpm') || route().current('incoming.rmpm.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
                                 <span>Incoming RMPM</span>
                             </Button>
                         </Link>
@@ -265,37 +265,37 @@ const logout = () => {
                         <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Surabaya</span>
                     </li>
                     <li>
-                        <Link :href="route('fg-surabaya.dashboard')">
+                        <Link :href="auth.user.role === 'admin' ? route('admin.fg-surabaya') : route('fg-surabaya.dashboard')">
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('fg-surabaya.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                :class="route().current('admin.fg-surabaya') || route().current('fg-surabaya.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
                             >
-                                <ClipboardList class="w-5 h-5" :class="route().current('fg-surabaya.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <ClipboardList class="w-5 h-5" :class="route().current('admin.fg-surabaya') || route().current('fg-surabaya.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
                                 <span>Formulasi</span>
                             </Button>
                         </Link>
                     </li>
                     <li>
-                        <Link :href="route('cs-noodle-sby.dashboard')">
+                        <Link :href="auth.user.role === 'admin' ? route('admin.cs-noodle-sby') : route('cs-noodle-sby.dashboard')">
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('cs-noodle-sby.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                :class="route().current('admin.cs-noodle-sby') || route().current('cs-noodle-sby.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
                             >
-                                <Box class="w-5 h-5" :class="route().current('cs-noodle-sby.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <Box class="w-5 h-5" :class="route().current('admin.cs-noodle-sby') || route().current('cs-noodle-sby.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
                                 <span>CS Noodle</span>
                             </Button>
                         </Link>
                     </li>
                     <li>
-                        <Link :href="route('cs-fg-sby.dashboard')">
+                        <Link :href="auth.user.role === 'admin' ? route('admin.cs-fg-sby') : route('cs-fg-sby.dashboard')">
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('cs-fg-sby.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                :class="route().current('admin.cs-fg-sby') || route().current('cs-fg-sby.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
                             >
-                                <Box class="w-5 h-5" :class="route().current('cs-fg-sby.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <Box class="w-5 h-5" :class="route().current('admin.cs-fg-sby') || route().current('cs-fg-sby.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
                                 <span>CS FG-Sby</span>
                             </Button>
                         </Link>

@@ -66,6 +66,14 @@ class IncomingRmpmController extends Controller
         if ($request->filled('jenis_barang')) {
             $query->where('jenis_barang', $request->jenis_barang);
         }
+        if ($request->filled('shift')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('shift', $request->shift);
+            });
+        }
+        if ($request->filled('operator')) {
+            $query->where('user_id', $request->operator);
+        }
 
         $history = $query->with('user')
             ->orderByDesc('created_at')
@@ -77,14 +85,18 @@ class IncomingRmpmController extends Controller
             'total_berat' => (clone $query)->where('status', 'selesai')->sum('berat'),
         ];
 
+        $operators = \App\Models\User::where('tipe', 'incoming_rmpm')->select('id', 'name')->get();
+
         return \Inertia\Inertia::render('Dashboard/DataView', [
             'title' => 'Incoming RMPM',
             'subtitle' => 'Data penimbangan RMPM masuk (Read Only)',
             'penimbangans' => $history,
             'stats' => $stats,
             'produks' => [],
-            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'jenis_barang']),
-            'exportRoute' => 'incoming.rmpm.export',
+            'shifts' => \App\Models\User::where('tipe', 'incoming_rmpm')->whereNotNull('shift')->distinct()->orderBy('shift')->pluck('shift'),
+            'operators' => $operators,
+            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'jenis_barang', 'shift', 'operator']),
+            'exportRoute' => 'admin.incoming.rmpm.export',
         ]);
     }
 
@@ -144,6 +156,14 @@ class IncomingRmpmController extends Controller
         }
         if ($request->filled('tanggal_selesai')) {
             $query->whereDate('tanggal_kedatangan', '<=', $request->tanggal_selesai);
+        }
+        if ($request->filled('shift')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('shift', $request->shift);
+            });
+        }
+        if ($request->filled('operator')) {
+            $query->where('user_id', $request->operator);
         }
 
         $records = $query->get();

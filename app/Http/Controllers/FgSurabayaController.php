@@ -79,6 +79,14 @@ class FgSurabayaController extends Controller
         if ($request->filled('produk')) {
             $query->where('produk_id', $request->produk);
         }
+        if ($request->filled('shift')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('shift', $request->shift);
+            });
+        }
+        if ($request->filled('operator')) {
+            $query->where('user_id', $request->operator);
+        }
 
         $penimbangans = (clone $query)->with(['produk', 'user'])
             ->orderByDesc('created_at')
@@ -91,15 +99,18 @@ class FgSurabayaController extends Controller
         ];
 
         $produks = Produk::orderBy('nama_produk')->get();
+        $operators = \App\Models\User::where('tipe', 'fg_surabaya')->select('id', 'name')->get();
 
         return \Inertia\Inertia::render('Dashboard/DataView', [
-            'title' => 'Surabaya Formulasi',
-            'subtitle' => 'Data penimbangan Surabaya Formulasi (Read Only)',
+            'title'       => 'Surabaya Formulasi',
+            'subtitle'    => 'Data penimbangan Surabaya Formulasi (Read Only)',
             'penimbangans' => $penimbangans,
-            'stats' => $stats,
-            'produks' => $produks,
-            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk']),
-            'exportRoute' => 'fg-surabaya.export',
+            'stats'       => $stats,
+            'produks'     => $produks,
+            'shifts'      => \App\Models\User::where('tipe', 'fg_surabaya')->whereNotNull('shift')->distinct()->orderBy('shift')->pluck('shift'),
+            'operators'   => $operators,
+            'filters'     => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk', 'shift', 'operator']),
+            'exportRoute' => 'admin.fg-surabaya.export',
         ]);
     }
 

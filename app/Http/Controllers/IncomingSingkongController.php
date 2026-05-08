@@ -71,6 +71,14 @@ class IncomingSingkongController extends Controller
         if ($request->filled('jenis')) {
             $query->where('jenis_singkong', $request->jenis);
         }
+        if ($request->filled('shift')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('shift', $request->shift);
+            });
+        }
+        if ($request->filled('operator')) {
+            $query->where('user_id', $request->operator);
+        }
 
         $history = $query->with('user')
             ->orderByDesc('created_at')
@@ -82,14 +90,18 @@ class IncomingSingkongController extends Controller
             'total_berat' => (clone $query)->where('status', 'selesai')->sum('berat'),
         ];
 
+        $operators = \App\Models\User::where('tipe', 'incoming_singkong')->select('id', 'name')->get();
+
         return \Inertia\Inertia::render('Dashboard/DataView', [
             'title'           => 'Incoming Singkong',
             'subtitle'        => 'Data penimbangan singkong masuk (Read Only)',
             'penimbangans'    => $history,
             'stats'           => $stats,
             'produks'         => [],
-            'filters'         => $request->only(['tanggal_mulai', 'tanggal_selesai', 'supplier', 'jenis']),
-            'exportRoute'     => 'incoming.singkong.export',
+            'shifts'          => \App\Models\User::where('tipe', 'incoming_singkong')->whereNotNull('shift')->distinct()->orderBy('shift')->pluck('shift'),
+            'operators'       => $operators,
+            'filters'         => $request->only(['tanggal_mulai', 'tanggal_selesai', 'supplier', 'jenis', 'shift', 'operator']),
+            'exportRoute'     => 'admin.incoming.singkong.export',
             'jenisOptions'    => IncomingSingkong::jenisOptions(),
             'supplierOptions' => IncomingSingkong::supplierOptions(),
         ]);
@@ -147,6 +159,14 @@ class IncomingSingkongController extends Controller
         }
         if ($request->filled('tanggal_selesai')) {
             $query->whereDate('tanggal_penimbangan', '<=', $request->tanggal_selesai);
+        }
+        if ($request->filled('shift')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('shift', $request->shift);
+            });
+        }
+        if ($request->filled('operator')) {
+            $query->where('user_id', $request->operator);
         }
 
         $records = $query->get();

@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { 
     Card, 
     CardContent, 
@@ -26,7 +27,12 @@ import {
     AlertCircle, 
     Clock, 
     ChevronRight,
-    Search
+    Search,
+    ClipboardList,
+    Filter,
+    Users,
+    MapPin,
+    RotateCcw
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -37,7 +43,49 @@ const props = defineProps({
     produks: Array,
     chartData: Array,
     chartFilter: String,
+    filters: { type: Object, default: () => ({}) },
+    operators: { type: Array, default: () => [] },
+    shifts: { type: Array, default: () => [] },
+    shiftsPerModule: { type: Object, default: () => ({}) },
 });
+
+const filterForm = ref({
+    shift: props.filters?.shift || '',
+    operator: props.filters?.operator || '',
+    module: props.filters?.module || '',
+});
+
+import { computed } from 'vue';
+
+const filteredOperators = computed(() => {
+    if (!filterForm.value.module) return props.operators;
+    return props.operators.filter(op => op.tipe === filterForm.value.module);
+});
+
+// Shows only shifts belonging to operators in the selected module
+const filteredShifts = computed(() => {
+    if (!filterForm.value.module) return props.shifts;
+    return props.shiftsPerModule[filterForm.value.module] || [];
+});
+
+const applyGlobalFilter = () => {
+    // If operator doesn't belong to newly selected module, clear it
+    if (filterForm.value.module && filterForm.value.operator) {
+        const isValid = props.operators.some(op => op.id === filterForm.value.operator && op.tipe === filterForm.value.module);
+        if (!isValid) filterForm.value.operator = '';
+    }
+    // If shift doesn't exist in new module's shifts, clear it
+    if (filterForm.value.module && filterForm.value.shift) {
+        const moduleShifts = props.shiftsPerModule[filterForm.value.module] || [];
+        if (!moduleShifts.includes(filterForm.value.shift)) filterForm.value.shift = '';
+    }
+    router.get(window.location.pathname, filterForm.value, { preserveState: true });
+};
+
+const resetGlobalFilter = () => {
+    filterForm.value = { shift: '', operator: '', module: '' };
+    router.get(window.location.pathname, filterForm.value, { preserveState: true });
+};
 
 const successRate = props.stats.total > 0 ? (props.stats.selesai / props.stats.total) * 100 : 0;
 
@@ -51,13 +99,13 @@ const formatWeight = (weight) => {
 
 const getRoute = (type) => {
     const routeMap = {
-        'fg': 'fg.dashboard',
-        'fg_psn': 'fg-psn.dashboard',
-        'fg_surabaya': 'fg-surabaya.dashboard',
-        'cs_noodle_sby': 'cs-noodle-sby.dashboard',
-        'cs_fg_sby': 'cs-fg-sby.dashboard',
-        'incoming_singkong': 'incoming.singkong.dashboard',
-        'incoming_rmpm': 'incoming.rmpm.dashboard',
+        'fg': 'admin.fg',
+        'fg_psn': 'admin.fg-psn',
+        'fg_surabaya': 'admin.fg-surabaya',
+        'cs_noodle_sby': 'admin.cs-noodle-sby',
+        'cs_fg_sby': 'admin.cs-fg-sby',
+        'incoming_singkong': 'admin.incoming.singkong',
+        'incoming_rmpm': 'admin.incoming.rmpm',
     };
     return routeMap[type] || 'dashboard';
 };
@@ -98,12 +146,61 @@ const getRoute = (type) => {
                             </div>
                         </div>
                     </div>
-                    <Button as="a" :href="route('penimbangan.export')" class="bg-blue-700 hover:bg-blue-800 shadow-sm transition-all">
+                    <Button as="a" :href="route('penimbangan.export', filterForm)" class="bg-blue-700 hover:bg-blue-800 shadow-sm transition-all whitespace-nowrap">
                         <FileDown class="w-4 h-4 mr-2" />
                         Export CSV
                     </Button>
                 </div>
             </div>
+
+            <!-- Global Filters Card -->
+            <Card class="bg-white border border-gray-200 shadow-sm rounded-xl">
+                <CardContent class="p-4 flex flex-col md:flex-row gap-4 md:items-end">
+                    <div class="flex-1 space-y-1.5">
+                        <label class="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                            <MapPin class="w-3.5 h-3.5" /> Modul / Lokasi
+                        </label>
+                        <select v-model="filterForm.module" @change="applyGlobalFilter" class="block w-full py-2 pl-3 pr-8 text-sm text-gray-900 transition-all bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Semua Modul</option>
+                            <optgroup label="Pasuruan">
+                                <option value="fg">Formulasi</option>
+                                <option value="fg_psn">Finished Goods</option>
+                                <option value="incoming_singkong">Incoming Singkong</option>
+                                <option value="incoming_rmpm">Incoming RMPM</option>
+                            </optgroup>
+                            <optgroup label="Surabaya">
+                                <option value="fg_surabaya">Formulasi</option>
+                                <option value="cs_noodle_sby">CS Noodle</option>
+                                <option value="cs_fg_sby">CS FG-Sby</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="flex-1 space-y-1.5">
+                        <label class="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                            <Clock class="w-3.5 h-3.5" /> Shift
+                        </label>
+                        <select v-model="filterForm.shift" @change="applyGlobalFilter" class="block w-full py-2 pl-3 pr-8 text-sm text-gray-900 transition-all bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Semua Shift</option>
+                            <option v-for="s in filteredShifts" :key="s" :value="s">{{ s }}</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 space-y-1.5">
+                        <label class="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                            <Users class="w-3.5 h-3.5" /> Operator
+                        </label>
+                        <select v-model="filterForm.operator" @change="applyGlobalFilter" class="block w-full py-2 pl-3 pr-8 text-sm text-gray-900 transition-all bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Semua Operator</option>
+                            <option v-for="op in filteredOperators" :key="op.id" :value="op.id">{{ op.name }} ({{ op.shift ? 'Shift '+op.shift : 'No Shift' }})</option>
+                        </select>
+                    </div>
+                    <div>
+                        <Button @click="resetGlobalFilter" variant="outline" class="w-full md:w-auto font-bold text-gray-600 border-gray-300 hover:bg-gray-100 rounded-lg py-2">
+                            <RotateCcw class="w-4 h-4 mr-2" />
+                            Reset
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
 
             <!-- Global Summary Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -178,39 +275,41 @@ const getRoute = (type) => {
                         <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">Overview Penimbangan</h2>
                     </div>
                     <div class="flex bg-gray-100 p-1 rounded-lg">
-                        <Link :href="route('dashboard', { chart_filter: 'week' })" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all" :class="chartFilter === 'week' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-900'">Mingguan</Link>
-                        <Link :href="route('dashboard', { chart_filter: 'month' })" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all" :class="chartFilter === 'month' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-900'">Bulanan</Link>
+                        <Link :href="route('dashboard', { ...filterForm, chart_filter: 'week' })" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all" :class="chartFilter === 'week' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-900'">Mingguan</Link>
+                        <Link :href="route('dashboard', { ...filterForm, chart_filter: 'month' })" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all" :class="chartFilter === 'month' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-900'">Bulanan</Link>
                     </div>
                 </div>
                 
-                <Card class="p-6 bg-white border-none shadow-sm rounded-3xl">
-                    <div class="h-64 flex items-end gap-2 md:gap-4 w-full justify-between pt-8 relative">
-                        <!-- Y-Axis Lines -->
-                        <div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6">
-                            <div class="w-full h-px bg-gray-100 border-b border-dashed border-gray-200"></div>
-                            <div class="w-full h-px bg-gray-100 border-b border-dashed border-gray-200"></div>
-                            <div class="w-full h-px bg-gray-100 border-b border-dashed border-gray-200"></div>
-                            <div class="w-full h-px bg-gray-100 border-b border-solid border-gray-200"></div>
-                        </div>
-
-                        <!-- Bars -->
-                        <div v-for="data in chartData" :key="data.name" class="relative flex flex-col items-center flex-1 h-full justify-end group z-10">
-                            <div class="w-full max-w-[48px] bg-indigo-100 rounded-t-sm relative transition-all duration-500 group-hover:bg-indigo-200"
-                                 :style="{ height: Math.max((data.total / Math.max(...chartData.map(d => d.total), 1)) * 100, 5) + '%' }">
-                                <div class="absolute inset-x-0 bottom-0 bg-indigo-600 rounded-t-sm transition-all duration-500 group-hover:bg-indigo-700"
-                                     :style="{ height: Math.max((data.berat / Math.max(...chartData.map(d => d.berat), 1)) * 100, 5) + '%' }"></div>
-                                
-                                <!-- Tooltip -->
-                                <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-50">
-                                    <p class="font-bold mb-0.5">{{ data.total }} items</p>
-                                    <p class="text-indigo-200">{{ formatWeight(data.berat) }} kg</p>
-                                    <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 border-[4px] border-transparent border-t-gray-900"></div>
-                                </div>
+                <Card class="p-4 sm:p-6 bg-white border-none shadow-sm rounded-3xl">
+                    <div class="overflow-x-auto -mx-2 sm:mx-0">
+                        <div class="h-56 sm:h-64 flex items-end gap-1.5 sm:gap-4 justify-between pt-8 relative" :style="{ minWidth: chartData.length * 44 + 'px' }">
+                            <!-- Y-Axis Lines -->
+                            <div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6">
+                                <div class="w-full h-px bg-gray-100 border-b border-dashed border-gray-200"></div>
+                                <div class="w-full h-px bg-gray-100 border-b border-dashed border-gray-200"></div>
+                                <div class="w-full h-px bg-gray-100 border-b border-dashed border-gray-200"></div>
+                                <div class="w-full h-px bg-gray-100 border-b border-solid border-gray-200"></div>
                             </div>
-                            <span class="text-[10px] sm:text-xs font-bold text-gray-500 mt-3 truncate max-w-full px-1">{{ data.name }}</span>
+
+                            <!-- Bars -->
+                            <div v-for="data in chartData" :key="data.name" class="relative flex flex-col items-center flex-1 h-full justify-end group z-10" style="min-width: 36px">
+                                <div class="w-full max-w-[40px] sm:max-w-[48px] bg-indigo-100 rounded-t-sm relative transition-all duration-500 group-hover:bg-indigo-200"
+                                     :style="{ height: Math.max((data.total / Math.max(...chartData.map(d => d.total), 1)) * 100, 5) + '%' }">
+                                    <div class="absolute inset-x-0 bottom-0 bg-indigo-600 rounded-t-sm transition-all duration-500 group-hover:bg-indigo-700"
+                                         :style="{ height: Math.max((data.berat / Math.max(...chartData.map(d => d.berat), 1)) * 100, 5) + '%' }"></div>
+                                    
+                                    <!-- Tooltip -->
+                                    <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 sm:px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-50">
+                                        <p class="font-bold mb-0.5">{{ data.total }} items</p>
+                                        <p class="text-indigo-200">{{ formatWeight(data.berat) }} kg</p>
+                                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 border-[4px] border-transparent border-t-gray-900"></div>
+                                    </div>
+                                </div>
+                                <span class="text-[9px] sm:text-[10px] font-bold text-gray-500 mt-2 truncate w-full text-center px-0.5">{{ data.name }}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="mt-8 flex items-center justify-center gap-6">
+                    <div class="mt-4 sm:mt-8 flex items-center justify-center gap-6">
                         <div class="flex items-center gap-2">
                             <div class="w-3 h-3 bg-indigo-100 rounded"></div>
                             <span class="text-xs text-gray-500 font-bold uppercase tracking-widest">Total Item</span>

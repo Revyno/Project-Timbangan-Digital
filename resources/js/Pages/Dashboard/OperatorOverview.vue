@@ -45,7 +45,7 @@ const formatWeight = (weight) => {
 </script>
 
 <template>
-    <Head title="Personal Dashboard" />
+    <Head title=" Dashboard Operator" />
 
     <AuthenticatedLayout>
         <div class="space-y-8">

@@ -84,6 +84,14 @@ class FgPsnController extends Controller
         if ($request->filled('produk')) {
             $query->where('produk_id', $request->produk);
         }
+        if ($request->filled('shift')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('shift', $request->shift);
+            });
+        }
+        if ($request->filled('operator')) {
+            $query->where('user_id', $request->operator);
+        }
 
         $penimbangans = (clone $query)->with(['produk', 'user'])
             ->orderByDesc('created_at')
@@ -96,15 +104,18 @@ class FgPsnController extends Controller
         ];
 
         $produks = Produk::orderBy('nama_produk')->get();
+        $operators = \App\Models\User::where('tipe', 'fg_psn')->select('id', 'name')->get();
 
         return \Inertia\Inertia::render('Dashboard/DataView', [
-            'title' => 'Pasuruan PSN',
-            'subtitle' => 'Data penimbangan Pasuruan PSN (Read Only)',
+            'title'       => 'Pasuruan Finished Goods',
+            'subtitle'    => 'Data penimbangan Finished Goods Pasuruan (Read Only)',
             'penimbangans' => $penimbangans,
-            'stats' => $stats,
-            'produks' => $produks,
-            'filters' => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk']),
-            'exportRoute' => 'fg-psn.export',
+            'stats'       => $stats,
+            'produks'     => $produks,
+            'shifts'      => \App\Models\User::where('tipe', 'fg_psn')->whereNotNull('shift')->distinct()->orderBy('shift')->pluck('shift'),
+            'operators'   => $operators,
+            'filters'     => $request->only(['tanggal_mulai', 'tanggal_selesai', 'produk', 'shift', 'operator']),
+            'exportRoute' => 'admin.fg-psn.export',
         ]);
     }
 

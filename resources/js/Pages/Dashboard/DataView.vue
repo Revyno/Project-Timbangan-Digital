@@ -2,27 +2,27 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-import { 
-    Card, 
-    CardContent, 
-    CardHeader, 
-    CardTitle 
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle
 } from '@/components/ui/card';
-import { 
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableHead, 
-    TableHeader, 
-    TableRow 
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-    Weight, 
-    Calendar, 
-    Filter, 
-    FileDown, 
+import {
+    Weight,
+    Calendar,
+    Filter,
+    FileDown,
     RotateCcw,
     ChevronLeft,
     ChevronRight,
@@ -37,6 +37,8 @@ const props = defineProps({
     produks:         Array,
     filters:         Object,
     exportRoute:     String,
+    shifts:          Array,
+    operators:       Array,
     // Incoming Singkong-specific
     jenisOptions:    { type: Array, default: () => [] },
     supplierOptions: { type: Array, default: () => [] },
@@ -46,6 +48,8 @@ const filterForm = ref({
     tanggal_mulai:   props.filters.tanggal_mulai   || new Date().toISOString().split('T')[0],
     tanggal_selesai: props.filters.tanggal_selesai || new Date().toISOString().split('T')[0],
     produk:          props.filters.produk          || '',
+    shift:           props.filters.shift           || '',
+    operator:        props.filters.operator        || '',
     supplier:        props.filters.supplier        || '',
     jenis:           props.filters.jenis           || '',
 });
@@ -59,6 +63,8 @@ const resetFilter = () => {
         tanggal_mulai:   new Date().toISOString().split('T')[0],
         tanggal_selesai: new Date().toISOString().split('T')[0],
         produk:          '',
+        shift:           '',
+        operator:        '',
         supplier:        '',
         jenis:           '',
     };
@@ -88,10 +94,10 @@ const formatDateTime = (date) => {
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-2xl font-black text-gray-800">{{ title }}</h2>
-                    <p class="text-sm text-gray-500 mt-1">{{ subtitle }}</p>
+                    <p class="mt-1 text-sm text-gray-500">{{ subtitle }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-4">
-                    <Card class="flex items-center p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+                    <Card class="flex items-center p-3 transition-colors bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50">
                         <div class="p-2 mr-3 bg-green-100 rounded-full">
                             <Calendar class="w-4 h-4 text-green-600" />
                         </div>
@@ -101,7 +107,7 @@ const formatDateTime = (date) => {
                         </div>
                     </Card>
 
-                    <Card class="flex items-center p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+                    <Card class="flex items-center p-3 transition-colors bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50">
                         <div class="p-2 mr-3 bg-blue-100 rounded-full">
                             <Weight class="w-4 h-4 text-blue-600" />
                         </div>
@@ -114,29 +120,46 @@ const formatDateTime = (date) => {
             </div>
 
             <!-- Filters -->
-            <Card class="p-6 bg-white border border-gray-200 rounded-2xl shadow-sm">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <Card class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
+                <div class="grid grid-cols-1 gap-4 mb-4 md:grid-cols-3">
                     <div>
                         <label class="block mb-1.5 text-sm font-semibold text-gray-600">Tanggal Mulai</label>
-                        <input v-model="filterForm.tanggal_mulai" type="date" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 shadow-sm transition-all">
+                        <input v-model="filterForm.tanggal_mulai" type="date" class="block w-full p-3 text-sm text-gray-900 transition-all bg-white border border-gray-300 shadow-sm rounded-xl focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block mb-1.5 text-sm font-semibold text-gray-600">Tanggal Selesai</label>
-                        <input v-model="filterForm.tanggal_selesai" type="date" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 shadow-sm transition-all">
+                        <input v-model="filterForm.tanggal_selesai" type="date" class="block w-full p-3 text-sm text-gray-900 transition-all bg-white border border-gray-300 shadow-sm rounded-xl focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <!-- Filter Produk (FG modules) -->
                     <div v-if="produks && produks.length > 0">
                         <label class="block mb-1.5 text-sm font-semibold text-gray-600">Produk</label>
-                        <select v-model="filterForm.produk" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 shadow-sm transition-all">
+                        <select v-model="filterForm.produk" class="block w-full p-3 text-sm text-gray-900 transition-all bg-white border border-gray-300 shadow-sm rounded-xl focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Semua</option>
                             <option v-for="p in produks" :key="p.id" :value="p.id">{{ p.nama_produk }}</option>
+                        </select>
+                    </div>
+                    <!-- filter  shift  -->
+                    <div v-if="shifts && shifts.length > 0">
+                        <label class="block mb-1.5 text-sm font-semibold text-gray-600">Shift</label>
+                        <select v-model="filterForm.shift" class="block w-full p-3 text-sm text-gray-900 transition-all bg-white border border-gray-300 shadow-sm rounded-xl focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Semua Shift</option>
+                            <option v-for="s in shifts" :key="s" :value="s">{{ s }}</option>
+                        </select>
+                    </div>
+
+                    <!-- Filter Operator -->
+                    <div v-if="operators && operators.length > 0">
+                        <label class="block mb-1.5 text-sm font-semibold text-gray-600">Operator</label>
+                        <select v-model="filterForm.operator" class="block w-full p-3 text-sm text-gray-900 transition-all bg-white border border-gray-300 shadow-sm rounded-xl focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Semua Operator</option>
+                            <option v-for="op in operators" :key="op.id" :value="op.id">{{ op.name }}</option>
                         </select>
                     </div>
 
                     <!-- Filter Supplier (Singkong) -->
                     <div v-if="supplierOptions && supplierOptions.length > 0">
                         <label class="block mb-1.5 text-sm font-semibold text-gray-600">Supplier</label>
-                        <select v-model="filterForm.supplier" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 shadow-sm transition-all">
+                        <select v-model="filterForm.supplier" class="block w-full p-3 text-sm text-gray-900 transition-all bg-white border border-gray-300 shadow-sm rounded-xl focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Semua Supplier</option>
                             <option v-for="s in supplierOptions" :key="s" :value="s">{{ s }}</option>
                         </select>
@@ -145,23 +168,23 @@ const formatDateTime = (date) => {
                     <!-- Filter Jenis Singkong -->
                     <div v-if="jenisOptions && jenisOptions.length > 0">
                         <label class="block mb-1.5 text-sm font-semibold text-gray-600">Jenis Singkong</label>
-                        <select v-model="filterForm.jenis" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 shadow-sm transition-all">
+                        <select v-model="filterForm.jenis" class="block w-full p-3 text-sm text-gray-900 transition-all bg-white border border-gray-300 shadow-sm rounded-xl focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Semua Jenis</option>
                             <option v-for="j in jenisOptions" :key="j" :value="j">{{ j }}</option>
                         </select>
                     </div>
                 </div>
-                
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <Button @click="applyFilter" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex-1 py-6">
+
+                <div class="flex flex-col gap-3 sm:flex-row">
+                    <Button @click="applyFilter" class="flex-1 py-6 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl">
                         <Filter class="w-4 h-4 mr-2" />
                         Filter Data
                     </Button>
-                    <Button as="a" :href="route(exportRoute, filterForm)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex-1 py-6">
+                    <Button as="a" :href="route(exportRoute, filterForm)" class="flex-1 py-6 font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">
                         <FileDown class="w-4 h-4 mr-2" />
                         Export CSV
                     </Button>
-                    <Button @click="resetFilter" variant="outline" class="border-gray-300 text-gray-600 font-bold rounded-xl px-8 py-6">
+                    <Button @click="resetFilter" variant="outline" class="px-8 py-6 font-bold text-gray-600 border-gray-300 rounded-xl">
                         <RotateCcw class="w-4 h-4 mr-2" />
                         Reset
                     </Button>
@@ -169,7 +192,7 @@ const formatDateTime = (date) => {
             </Card>
 
             <!-- Table -->
-            <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-2xl">
                 <Table>
                     <TableHeader class="bg-gray-50">
                         <TableRow>
@@ -196,11 +219,11 @@ const formatDateTime = (date) => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="(p, index) in penimbangans.data" :key="p.id" class="hover:bg-gray-50 transition-colors">
-                            <TableCell class="px-4 py-3 text-gray-400 font-bold">
+                        <TableRow v-for="(p, index) in penimbangans.data" :key="p.id" class="transition-colors hover:bg-gray-50">
+                            <TableCell class="px-4 py-3 font-bold text-gray-400">
                                 {{ (penimbangans.current_page - 1) * penimbangans.per_page + index + 1 }}
                             </TableCell>
-                            <TableCell class="px-4 py-3 text-gray-800 font-medium whitespace-nowrap">{{ formatDateTime(p.created_at) }}</TableCell>
+                            <TableCell class="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{{ formatDateTime(p.created_at) }}</TableCell>
 
                             <!-- Singkong specific cells -->
                             <template v-if="jenisOptions && jenisOptions.length > 0">
@@ -215,29 +238,32 @@ const formatDateTime = (date) => {
                             <template v-else>
                                 <TableCell class="px-4 py-3 font-medium text-gray-800">{{ p.produk?.nama_produk }}</TableCell>
                                 <TableCell class="px-4 py-3">
-                                    <span class="font-mono text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded">
+                                    <span class="px-2 py-1 font-mono text-xs text-blue-500 rounded bg-blue-50">
                                         {{ p.kode_produksi_display || p.kode_produksi }}
                                     </span>
                                 </TableCell>
                                 <TableCell class="px-4 py-3 whitespace-nowrap">{{ formatDate(p.tanggal_expired) }}</TableCell>
                             </template>
 
-                            <TableCell class="px-4 py-3">{{ p.user?.name }}</TableCell>
+                            <TableCell class="px-4 py-3">
+                                <div>{{ p.user?.name }}</div>
+                                <div v-if="p.user?.shift" class="text-xs text-gray-500">Shift {{ p.user.shift }}</div>
+                            </TableCell>
                             <TableCell class="px-4 py-3 font-bold text-gray-800 whitespace-nowrap">{{ formatWeight(p.berat) }}</TableCell>
                             <TableCell class="px-4 py-3">
-                                <Badge v-if="p.status == 'selesai'" class="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">Selesai</Badge>
-                                <Badge v-else class="bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-100">Menunggu</Badge>
+                                <Badge v-if="p.status == 'selesai'" class="text-green-700 bg-green-100 border-green-200 hover:bg-green-100">Selesai</Badge>
+                                <Badge v-else class="text-yellow-700 bg-yellow-100 border-yellow-200 hover:bg-yellow-100">Menunggu</Badge>
                             </TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
-                
+
                 <div v-if="penimbangans.data.length === 0" class="p-12 text-center text-gray-400">
                     Belum ada data.
                 </div>
 
                 <!-- Pagination -->
-                <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+                <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100">
                     <p class="text-sm text-gray-500">
                         Showing {{ penimbangans.from }} to {{ penimbangans.to }} of {{ penimbangans.total }} results
                     </p>
