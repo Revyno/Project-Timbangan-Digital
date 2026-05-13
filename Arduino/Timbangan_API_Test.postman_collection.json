@@ -1,0 +1,133 @@
+{
+	"info": {
+		"_postman_id": "7c6f057f-2091-4890-995b-3b5a4b4384fc",
+		"name": "Project Timbangan Digital API",
+		"description": "Koleksi API untuk testing pengiriman data dari ESP8266 ke Server Laravel",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Kirim Berat (POST Weight)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "token",
+							"value": "FG-PASURUAN-001",
+							"description": "Token device (Cek tabel devices)",
+							"type": "text"
+						},
+						{
+							"key": "berat",
+							"value": "50.75",
+							"description": "Nilai berat dalam Kg",
+							"type": "text"
+						},
+						{
+							"key": "kode_produksi",
+							"value": "-",
+							"description": "Gunakan '-' jika ingin mengikuti sesi operator aktif",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/iot/weight",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"iot",
+						"weight"
+					]
+				},
+				"description": "Endpoint utama yang digunakan ESP8266 untuk mengirim data berat timbangan."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Cek Status Perangkat (Ping)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/iot/ping?token=FG-PASURUAN-001",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"iot",
+						"ping"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "FG-PASURUAN-001"
+						}
+					]
+				},
+				"description": "Digunakan untuk mengecek apakah token perangkat valid dan mengupdate status 'Last Online' di database."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Ambil Pengaturan (Get Settings)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/iot/settings?token=FG-PASURUAN-001",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"iot",
+						"settings"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "FG-PASURUAN-001"
+						}
+					]
+				},
+				"description": "Digunakan ESP8266 saat booting untuk mengetahui Nama Operator dan Produk apa yang sedang aktif."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		}
+	]
+}
