@@ -1,0 +1,17 @@
+# Ignore large zip files
+Timbangan.zip
+*.zip
+
+# Ignore local IDE settings
+.vscode/
+.idea/
+.fleet/
+.nova/
+.zed/
+
+# OS/Temp files
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.tmp
