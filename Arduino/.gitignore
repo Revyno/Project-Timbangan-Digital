@@ -1,0 +1,34 @@
+# Arduino Build/Compilation outputs
+build/
+bin/
+*.hex
+*.elf
+*.bin
+*.o
+*.d
+*.a
+*.eep
+
+# Arduino IDE 2.x specific
+.arduino/
+.theia/
+
+# VS Code / PlatformIO / Eclipse
+.vscode/
+.pio/
+.pioenvs/
+.piolibdeps/
+.clang_complete
+.gcc-flags.json
+.mxproject
+.project
+.cproject
+.settings/
+
+# OS/Temp files
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.tmp
+*.zip
