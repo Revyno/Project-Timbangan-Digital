@@ -1,0 +1,310 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Scale IoT REST API — Timbangan Digital",
+    "version": "1.0.0",
+    "description": "REST API untuk sistem penimbangan IoT berbasis ESP8266. Digunakan untuk pengiriman data berat dari timbangan ke server Laravel, sync sesi operator, dan monitoring real-time via Laravel Reverb (WebSocket).",
+    "contact": {
+      "name": "PT Ladang Lima Surabaya"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000",
+      "description": "Local Development Server (via artisan serve)"
+    },
+    {
+      "url": "http://192.168.1.16:8000",
+      "description": "Local Network Server (akses dari ESP8266 / HP di WiFi yang sama)"
+    }
+  ],
+  "tags": [
+    { "name": "Ping",             "description": "Cek koneksi perangkat ke server" },
+    { "name": "Settings",         "description": "Ambil data sesi operator & produk" },
+    { "name": "Formulasi (FG)",   "description": "Kirim berat dari modul Formulasi Surabaya" },
+    { "name": "Incoming Singkong","description": "Kirim berat dari modul Incoming Singkong" }
+  ],
+  "paths": {
+
+    "/api/iot/ping": {
+      "get": {
+        "tags": ["Ping"],
+        "summary": "Ping Server — Cek Status Perangkat",
+        "description": "Dipanggil oleh ESP8266 secara berkala (setiap 30 detik) untuk memperbarui `last_online` perangkat di database dan memastikan koneksi aktif.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "description": "Device token perangkat (lihat tabel `devices` di database)",
+            "schema": { "type": "string", "example": "FG-SBY-001" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server aktif dan token dikenali",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "Timbangan Active",
+                  "device": "Timbangan Formulasi SBY"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token tidak dikenali",
+            "content": {
+              "application/json": {
+                "example": { "status": "error", "message": "Unauthorized" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Ping"],
+        "summary": "Ping via POST (alternatif)",
+        "description": "Sama seperti GET ping, bisa juga dikirim via POST untuk fleksibilitas.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["token"],
+                "properties": {
+                  "token": { "type": "string", "example": "FG-SBY-001" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Ping sukses" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+
+    "/api/iot/settings": {
+      "get": {
+        "tags": ["Settings"],
+        "summary": "Get Settings — Ambil Sesi Operator Aktif (Formulasi)",
+        "description": "Dipanggil ESP8266 saat booting atau tombol sync ditekan. Mengembalikan nama operator, produk, dan kode produksi yang sedang aktif. Dipakai oleh modul Formulasi Surabaya.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "FG-SBY-001" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesi aktif ditemukan",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ready": {
+                    "summary": "Operator sedang aktif",
+                    "value": {
+                      "status": "ready",
+                      "kode_produksi": "KP-2026-001",
+                      "nama_produk": "Tepung Mocaf Premium",
+                      "operator": "Budi Santoso",
+                      "expired": "2026-05-16"
+                    }
+                  },
+                  "idle": {
+                    "summary": "Tidak ada operator aktif",
+                    "value": {
+                      "status": "idle",
+                      "message": "Silahkan timbang sekarang.",
+                      "operator": "N/A"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Token tidak valid" }
+        }
+      }
+    },
+
+    "/api/iot/incoming-singkong/settings": {
+      "get": {
+        "tags": ["Incoming Singkong"],
+        "summary": "Get Settings — Ambil Sesi Singkong Aktif",
+        "description": "Dipanggil ESP8266 modul Incoming Singkong untuk mengambil sesi aktif. Pastikan operator tipe `incoming_singkong` sudah login dan memulai sesi.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "INCOMING-SINGKONG-001" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status sesi singkong",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ready": {
+                    "value": {
+                      "status": "ready",
+                      "kode_produksi": "SK-2026-005",
+                      "nama_produk": "Singkong Segar",
+                      "operator": "Siti Aminah",
+                      "no_surat": "SJ/001/V/2026",
+                      "nama_supplier": "UD Sumber Tani"
+                    }
+                  },
+                  "idle": {
+                    "value": {
+                      "status": "idle",
+                      "message": "Belum ada sesi aktif",
+                      "operator": "Siti Aminah"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+
+    "/api/iot/weight": {
+      "post": {
+        "tags": ["Formulasi (FG)"],
+        "summary": "Send Weight — Kirim Berat Formulasi",
+        "description": "Endpoint utama yang dipanggil ESP8266 saat operator menekan tombol SEND. Server akan:\n1. Validasi token perangkat\n2. Cari sesi operator aktif\n3. Simpan record ke database tabel `penimbangans`\n4. **Broadcast real-time via Laravel Reverb** ke dashboard\n\n**Tips Testing Postman:** Setelah Send, buka halaman dashboard di browser → data langsung muncul tanpa refresh!",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["token", "berat"],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "example": "FG-SBY-001",
+                    "description": "Token perangkat dari tabel `devices`"
+                  },
+                  "berat": {
+                    "type": "number",
+                    "format": "float",
+                    "example": 25.500,
+                    "description": "Berat timbangan dalam kg (min 0.05)"
+                  },
+                  "kode_produksi": {
+                    "type": "string",
+                    "example": "KP-2026-001",
+                    "description": "Kode produksi (opsional jika sesi cache aktif)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berat berhasil disimpan + Reverb dikirim",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "Berat berhasil disimpan."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Kode produksi belum diinput atau berat tidak valid",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "error",
+                  "message": "Kode Produksi (KP-) belum diinput. Silahkan input manual."
+                }
+              }
+            }
+          },
+          "401": { "description": "Token tidak dikenali" },
+          "403": {
+            "description": "Tidak ada operator aktif saat ini",
+            "content": {
+              "application/json": {
+                "example": { "status": "error", "message": "No active operator." }
+              }
+            }
+          },
+          "422": {
+            "description": "Validasi gagal (misal: berat bukan angka)",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "The berat field must be a number.",
+                  "errors": { "berat": ["The berat field must be a number."] }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/iot/incoming-singkong/weight": {
+      "post": {
+        "tags": ["Incoming Singkong"],
+        "summary": "Send Weight — Kirim Berat Singkong",
+        "description": "Endpoint untuk ESP8266 modul Incoming Singkong. Menyimpan berat ke tabel `incoming_singkongs` dan broadcast ke dashboard via Reverb.\n\n**Catatan:** Parameter key berbeda dari Formulasi → gunakan `weight` (bukan `berat`).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["token", "weight"],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "example": "INCOMING-SINGKONG-001"
+                  },
+                  "weight": {
+                    "type": "number",
+                    "format": "float",
+                    "example": 240.500,
+                    "description": "Berat truk/singkong dalam kg"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berat singkong berhasil disimpan",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "Data berat 240.5 kg tersimpan",
+                  "record_id": 42
+                }
+              }
+            }
+          },
+          "400": { "description": "Berat tidak valid atau tidak ada sesi aktif" },
+          "401": { "description": "Token tidak dikenali" }
+        }
+      }
+    }
+  }
+}
