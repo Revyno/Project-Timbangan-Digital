@@ -1,0 +1,233 @@
+{
+  "info": {
+    "name": "Timbangan IoT — Scale API Testing",
+    "_postman_id": "timbangan-iot-v1",
+    "description": "Koleksi testing REST API untuk sistem penimbangan IoT berbasis ESP8266 + Laravel Reverb.\n\nURLs:\n- Local: http://127.0.0.1:8000\n- Network (dari HP/ESP8266): http://192.168.1.16:8000\n\nToken perangkat tersimpan di tabel `devices` di database.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string",
+      "description": "Ganti ke http://192.168.1.16:8000 jika test dari HP/device lain di jaringan yang sama"
+    },
+    {
+      "key": "token_formulasi",
+      "value": "FG-SBY-001",
+      "type": "string"
+    },
+    {
+      "key": "token_singkong",
+      "value": "INCOMING-SINGKONG-001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔌 Ping & Koneksi",
+      "item": [
+        {
+          "name": "Ping Server (GET) — Formulasi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/iot/ping?token={{token_formulasi}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "iot", "ping"],
+              "query": [{ "key": "token", "value": "{{token_formulasi}}" }]
+            },
+            "description": "Cek apakah server aktif dan token perangkat dikenali. Juga memperbarui kolom `last_online` di tabel `devices`."
+          }
+        },
+        {
+          "name": "Ping Server (GET) — Incoming Singkong",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/iot/incoming-singkong/ping?token={{token_singkong}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "iot", "incoming-singkong", "ping"],
+              "query": [{ "key": "token", "value": "{{token_singkong}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Get Settings (Sync Sesi)",
+      "item": [
+        {
+          "name": "Get Settings — Formulasi SBY",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/iot/settings?token={{token_formulasi}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "iot", "settings"],
+              "query": [{ "key": "token", "value": "{{token_formulasi}}" }]
+            },
+            "description": "Ambil data operator aktif, nama produk, dan kode produksi untuk ditampilkan di LCD ESP8266.\n\nResponse 'status: ready' → ada sesi aktif.\nResponse 'status: idle' → operator belum mulai sesi."
+          }
+        },
+        {
+          "name": "Get Settings — Incoming Singkong",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/iot/incoming-singkong/settings?token={{token_singkong}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "iot", "incoming-singkong", "settings"],
+              "query": [{ "key": "token", "value": "{{token_singkong}}" }]
+            },
+            "description": "Ambil info sesi singkong aktif: no_surat, nama_supplier, jenis_singkong, dll."
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚖️ Send Weight — Kirim Data Berat",
+      "item": [
+        {
+          "name": "Send Weight (Formulasi) — Normal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "token",          "value": "{{token_formulasi}}", "type": "text", "description": "Token perangkat (wajib)" },
+                { "key": "berat",          "value": "25.500",              "type": "text", "description": "Berat dalam kg (min 0.05)" },
+                { "key": "kode_produksi",  "value": "KP-2026-001",         "type": "text", "description": "Kode produksi (opsional jika sesi cache aktif)" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/iot/weight",
+              "host": ["{{base_url}}"],
+              "path": ["api", "iot", "weight"]
+            },
+            "description": "Kirim data berat dari timbangan ke server.\n\n✅ Jika sukses:\n- Data tersimpan ke tabel `penimbangans`\n- Event WeightReceived di-broadcast via Laravel Reverb\n- Dashboard web langsung update (real-time tanpa refresh)\n\n⚠️ Sebelum test:\n1. Login sebagai operator di browser\n2. Operator harus sudah 'Mulai Penimbangan' (ada sesi aktif)\n3. Buka halaman dashboard agar bisa melihat update real-time"
+          }
+        },
+        {
+          "name": "Send Weight (Formulasi) — Tanpa Kode (pakai sesi cache)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "token", "value": "{{token_formulasi}}", "type": "text" },
+                { "key": "berat", "value": "30.250",              "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/iot/weight",
+              "host": ["{{base_url}}"],
+              "path": ["api", "iot", "weight"]
+            },
+            "description": "Kirim berat TANPA kode_produksi. Server akan menggunakan sesi cache yang aktif untuk operator yang sedang login."
+          }
+        },
+        {
+          "name": "Send Weight (Incoming Singkong) ✅",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "token",  "value": "{{token_singkong}}", "type": "text", "description": "Token perangkat singkong" },
+                { "key": "weight", "value": "240.500",            "type": "text", "description": "⚠️ Gunakan 'weight', bukan 'berat'!" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/iot/incoming-singkong/weight",
+              "host": ["{{base_url}}"],
+              "path": ["api", "iot", "incoming-singkong", "weight"]
+            },
+            "description": "Kirim berat masuk singkong ke dashboard.\n\n⚠️ PERBEDAAN PENTING:\n- Formulasi pakai key: `berat`\n- Singkong pakai key: `weight`\n\nServer akan broadcast ke channel `incoming_singkong` via Reverb."
+          }
+        }
+      ]
+    },
+    {
+      "name": "❌ Error Cases — Tes Penanganan Error",
+      "item": [
+        {
+          "name": "Send Weight — Token Salah (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "token", "value": "TOKEN-SALAH-123", "type": "text" },
+                { "key": "berat", "value": "10.0", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/iot/weight",
+              "host": ["{{base_url}}"],
+              "path": ["api", "iot", "weight"]
+            },
+            "description": "Harusnya return HTTP 401 Unauthorized karena token tidak ada di tabel `devices`."
+          }
+        },
+        {
+          "name": "Send Weight — Berat Kosong (422)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "token", "value": "{{token_formulasi}}", "type": "text" },
+                { "key": "berat", "value": "abc", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/iot/weight",
+              "host": ["{{base_url}}"],
+              "path": ["api", "iot", "weight"]
+            },
+            "description": "Harusnya return HTTP 422 Unprocessable Entity karena nilai berat bukan angka."
+          }
+        },
+        {
+          "name": "Send Weight — Berat Negatif (422)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "token", "value": "{{token_formulasi}}", "type": "text" },
+                { "key": "berat", "value": "-5.0", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/iot/weight",
+              "host": ["{{base_url}}"],
+              "path": ["api", "iot", "weight"]
+            },
+            "description": "Harusnya return 422 karena validasi `min:0` di controller."
+          }
+        }
+      ]
+    }
+  ]
+}

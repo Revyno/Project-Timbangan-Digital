@@ -1,0 +1,1718 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Timbangan Digital IoT API",
+        "description": "API untuk integrasi perangkat timbangan IoT (Arduino/ESP8266) dengan sistem penimbangan digital. Semua endpoint menggunakan token perangkat untuk autentikasi.",
+        "contact": {
+            "name": "Timbangan Digital Team"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/",
+            "description": " Development Server"
+        }
+    ],
+    "paths": {
+        "/api/v1/cs-fg-sby/settings": {
+            "get": {
+                "tags": [
+                    "CS FG Surabaya"
+                ],
+                "summary": "Get pengaturan sesi aktif timbangan CS FG Surabaya",
+                "operationId": "a87ccd5f4c2ef60bc662c79561a7cdc7",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-CS-FG-SBY-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SettingsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cs-fg-sby/weight": {
+            "post": {
+                "tags": [
+                    "CS FG Surabaya"
+                ],
+                "summary": "Kirim data berat timbangan CS FG Surabaya",
+                "operationId": "20e7f737d8064a7405f4c9f5f4488025",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "weight"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "DEV-TOKEN-CS-FG-SBY-001"
+                                    },
+                                    "weight": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 10.25
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berat berhasil disimpan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WeightSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Berat tidak valid / Tidak ada sesi aktif",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cs-fg-sby/ping": {
+            "get": {
+                "tags": [
+                    "CS FG Surabaya"
+                ],
+                "summary": "Ping perangkat timbangan CS FG Surabaya (GET)",
+                "operationId": "e95cf8b31092e31833aab4adb6405817",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-CS-FG-SBY-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "CS FG Surabaya"
+                ],
+                "summary": "Ping perangkat timbangan CS FG Surabaya",
+                "operationId": "46392baf68a0e644893236f83395feb1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cs-noodle-sby/settings": {
+            "get": {
+                "tags": [
+                    "CS Noodle Surabaya"
+                ],
+                "summary": "Get pengaturan sesi aktif timbangan CS Noodle Surabaya",
+                "operationId": "3d2fc75dbf4b415ae243497c19c647fb",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-CS-NOODLE-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SettingsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cs-noodle-sby/weight": {
+            "post": {
+                "tags": [
+                    "CS Noodle Surabaya"
+                ],
+                "summary": "Kirim data berat timbangan CS Noodle Surabaya",
+                "operationId": "b93a24c24fdcfb84b62494f1c0024a4c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "weight"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "DEV-TOKEN-CS-NOODLE-001"
+                                    },
+                                    "weight": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 10.25
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berat berhasil disimpan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WeightSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Berat tidak valid / Tidak ada sesi aktif",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cs-noodle-sby/ping": {
+            "get": {
+                "tags": [
+                    "CS Noodle Surabaya"
+                ],
+                "summary": "Ping perangkat timbangan CS Noodle Surabaya (GET)",
+                "operationId": "87767bf29aa3812cf04681dacdaf27d4",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-CS-NOODLE-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "CS Noodle Surabaya"
+                ],
+                "summary": "Ping perangkat timbangan CS Noodle Surabaya",
+                "operationId": "9f914000aa8f576195ef203861222050",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/driver/identify": {
+            "post": {
+                "tags": [
+                    "Driver"
+                ],
+                "summary": "Identifikasi driver via QR Code",
+                "description": "Memvalidasi QR Code driver dan mengembalikan informasi driver beserta supplier-nya. Digunakan oleh scanner/tablet di pintu masuk.",
+                "operationId": "21cacac737f1a0b897b0b501cba21ffc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "qr_code"
+                                ],
+                                "properties": {
+                                    "qr_code": {
+                                        "description": "Kode QR driver yang di-scan",
+                                        "type": "string",
+                                        "example": "DRV-2024-001"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Driver ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "driver": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Ahmad Sopir"
+                                                },
+                                                "supplier": {
+                                                    "type": "string",
+                                                    "example": "PT. Singkong Jaya"
+                                                },
+                                                "nomor_plat": {
+                                                    "type": "string",
+                                                    "example": "L 1234 AB"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Driver tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Driver tidak ditemukan."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/fg-psn/settings": {
+            "get": {
+                "tags": [
+                    "FG PSN"
+                ],
+                "summary": "Get pengaturan sesi aktif timbangan FG PSN",
+                "description": "Dipanggil oleh Arduino/ESP8266 untuk mendapatkan informasi sesi aktif operator FG PSN.",
+                "operationId": "7dfbfe34cad227fad3204420e5179ff5",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "description": "Token unik perangkat timbangan",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-FG-PSN-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SettingsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/fg-psn/weight": {
+            "post": {
+                "tags": [
+                    "FG PSN"
+                ],
+                "summary": "Kirim data berat timbangan FG PSN",
+                "description": "Menerima data berat dari ESP8266/Arduino untuk modul Finished Goods PSN.",
+                "operationId": "2c326db47457d234c19d24043bbdb8d8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "weight"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "DEV-TOKEN-FG-PSN-001"
+                                    },
+                                    "weight": {
+                                        "description": "Berat dalam kg",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 10.25
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berat berhasil disimpan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WeightSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Berat tidak valid / Tidak ada sesi aktif",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/fg-psn/ping": {
+            "get": {
+                "tags": [
+                    "FG PSN"
+                ],
+                "summary": "Ping perangkat timbangan FG PSN (GET)",
+                "operationId": "42195b2afbbc6fd49ddf3719230af049",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-FG-PSN-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "FG PSN"
+                ],
+                "summary": "Ping perangkat timbangan FG PSN",
+                "operationId": "6eb11d5f32b44309b6ca4b452ca3eda3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/fg-surabaya/settings": {
+            "get": {
+                "tags": [
+                    "FG Surabaya"
+                ],
+                "summary": "Get pengaturan sesi aktif timbangan FG Surabaya",
+                "operationId": "f9b508384932d91ce39ed77f9d291d47",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-FG-SBY-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SettingsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/fg-surabaya/weight": {
+            "post": {
+                "tags": [
+                    "FG Surabaya"
+                ],
+                "summary": "Kirim data berat timbangan FG Surabaya",
+                "operationId": "e9dbf0be5bd2b40d272147b89c2440de",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "weight"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "DEV-TOKEN-FG-SBY-001"
+                                    },
+                                    "weight": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 10.25
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berat berhasil disimpan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WeightSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Berat tidak valid / Tidak ada sesi aktif",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/fg-surabaya/ping": {
+            "get": {
+                "tags": [
+                    "FG Surabaya"
+                ],
+                "summary": "Ping perangkat timbangan FG Surabaya (GET)",
+                "operationId": "53314269a18d6b86f74022023055fa2f",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-FG-SBY-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "FG Surabaya"
+                ],
+                "summary": "Ping perangkat timbangan FG Surabaya",
+                "operationId": "93bafc47b747716a65e84637b0f33299",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/incoming-rmpm/settings": {
+            "get": {
+                "tags": [
+                    "Incoming RMPM"
+                ],
+                "summary": "Get pengaturan sesi aktif timbangan Incoming RMPM",
+                "description": "Mendapatkan informasi sesi aktif untuk penimbangan bahan baku RMPM masuk.",
+                "operationId": "b13cd4442634dbfe18ee7f6b938d29eb",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-RMPM-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "ready",
+                                                "idle"
+                                            ],
+                                            "example": "ready"
+                                        },
+                                        "kode_produksi": {
+                                            "type": "string",
+                                            "example": "BATCH-001"
+                                        },
+                                        "nama_produk": {
+                                            "type": "string",
+                                            "example": "Tepung Tapioka"
+                                        },
+                                        "operator": {
+                                            "type": "string",
+                                            "example": "Budi"
+                                        },
+                                        "no_surat": {
+                                            "type": "string",
+                                            "example": "SJ-RMPM-001"
+                                        },
+                                        "nama_supplier": {
+                                            "type": "string",
+                                            "example": "PT. Supplier RMPM"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/incoming-rmpm/weight": {
+            "post": {
+                "tags": [
+                    "Incoming RMPM"
+                ],
+                "summary": "Kirim data berat timbangan Incoming RMPM",
+                "description": "Menyimpan data berat RMPM masuk. Membutuhkan sesi aktif yang sudah diinput oleh operator.",
+                "operationId": "baa6f256510ca08cfcad66b7bc707822",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "weight"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "DEV-TOKEN-RMPM-001"
+                                    },
+                                    "weight": {
+                                        "description": "Berat dalam kg",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 500
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berat berhasil disimpan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WeightSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Berat tidak valid / Tidak ada sesi aktif",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/incoming-rmpm/ping": {
+            "get": {
+                "tags": [
+                    "Incoming RMPM"
+                ],
+                "summary": "Ping perangkat timbangan Incoming RMPM (GET)",
+                "operationId": "16a337100a58839c9205c0bb03dd634a",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-RMPM-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Incoming RMPM"
+                ],
+                "summary": "Ping perangkat timbangan Incoming RMPM",
+                "operationId": "643b690ac2330784401931583b6a6547",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/incoming-singkong/settings": {
+            "get": {
+                "tags": [
+                    "Incoming Singkong"
+                ],
+                "summary": "Get pengaturan sesi aktif timbangan Incoming Singkong",
+                "description": "Mendapatkan informasi sesi aktif untuk penimbangan singkong masuk, termasuk info supplier dan no surat.",
+                "operationId": "61a7422582822a92c0a20e8002000e2d",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-SINGKONG-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "ready",
+                                                "idle"
+                                            ],
+                                            "example": "ready"
+                                        },
+                                        "kode_produksi": {
+                                            "type": "string",
+                                            "example": "KP-SINGKONG-001"
+                                        },
+                                        "nama_produk": {
+                                            "type": "string",
+                                            "example": "Singkong Basah"
+                                        },
+                                        "operator": {
+                                            "type": "string",
+                                            "example": "Budi"
+                                        },
+                                        "no_surat": {
+                                            "type": "string",
+                                            "example": "SJ-001/2024"
+                                        },
+                                        "nama_supplier": {
+                                            "type": "string",
+                                            "example": "PT. Singkong Jaya"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/incoming-singkong/weight": {
+            "post": {
+                "tags": [
+                    "Incoming Singkong"
+                ],
+                "summary": "Kirim data berat timbangan Incoming Singkong",
+                "description": "Menyimpan data berat singkong masuk. Membutuhkan sesi aktif yang sudah diinput oleh operator.",
+                "operationId": "f9373a10246307e065e4e279db272737",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "weight"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "DEV-TOKEN-SINGKONG-001"
+                                    },
+                                    "weight": {
+                                        "description": "Berat dalam kg",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1500
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berat berhasil disimpan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WeightSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Berat tidak valid / Tidak ada sesi aktif",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/incoming-singkong/ping": {
+            "get": {
+                "tags": [
+                    "Incoming Singkong"
+                ],
+                "summary": "Ping perangkat timbangan Incoming Singkong (GET)",
+                "operationId": "f2cd9a2068b9d3981b2146f0a1de4ba5",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-SINGKONG-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Incoming Singkong"
+                ],
+                "summary": "Ping perangkat timbangan Incoming Singkong",
+                "operationId": "d6112e6b4207c721adff3a0239fc78bb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/fg-pasuruan/settings": {
+            "get": {
+                "tags": [
+                    "FG Pasuruan"
+                ],
+                "summary": "Get pengaturan sesi aktif timbangan FG Pasuruan",
+                "description": "Dipanggil oleh Arduino/ESP8266 untuk mendapatkan informasi sesi aktif (produk, operator, kode produksi). Gunakan token perangkat sebagai query parameter.",
+                "operationId": "67b2040c937c4063c7dad562278ded49",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "description": "Token unik perangkat timbangan",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-FG-PSN-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sukses - status ready atau idle",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SettingsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/fg-pasuruan/weight": {
+            "post": {
+                "tags": [
+                    "FG Pasuruan"
+                ],
+                "summary": "Kirim data berat timbangan FG Pasuruan",
+                "description": "Menerima data berat dari ESP8266/Arduino dan menyimpannya ke database. Broadcast via WebSocket ke dashboard real-time.",
+                "operationId": "de62025726b03e40b5d4263e0268d3c7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "berat"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "description": "Token unik perangkat",
+                                        "type": "string",
+                                        "example": "DEV-TOKEN-FG-PSN-001"
+                                    },
+                                    "berat": {
+                                        "description": "Berat dalam kg",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 25.5
+                                    },
+                                    "kode_produksi": {
+                                        "description": "Kode produksi (opsional jika sudah ada sesi aktif)",
+                                        "type": "string",
+                                        "example": "KP-2024-001"
+                                    },
+                                    "produk_id": {
+                                        "description": "ID produk (opsional)",
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berat berhasil disimpan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WeightSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Kode produksi belum diinput atau berat tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Tidak ada operator aktif",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/fg-pasuruan/device/update-product": {
+            "post": {
+                "tags": [
+                    "FG Pasuruan"
+                ],
+                "summary": "Update produk yang sedang ditimbang oleh perangkat",
+                "operationId": "2f425daab24f6ca36782089e5d94d1a9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "produk_id"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "DEV-TOKEN-FG-PSN-001"
+                                    },
+                                    "produk_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Produk perangkat berhasil diupdate"
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/fg-pasuruan/ping": {
+            "get": {
+                "tags": [
+                    "FG Pasuruan"
+                ],
+                "summary": "Ping perangkat timbangan FG Pasuruan (GET)",
+                "operationId": "be5c7a48aad338a9741c5c5b57bb0bdb",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "DEV-TOKEN-FG-PSN-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "FG Pasuruan"
+                ],
+                "summary": "Ping perangkat timbangan FG Pasuruan",
+                "description": "Digunakan perangkat untuk memperbarui status online dan mengecek koneksi ke server.",
+                "operationId": "04bcd2fbc07c56d54b2b9e8297e6a0dd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "WeightRequest": {
+                "required": [
+                    "token",
+                    "weight"
+                ],
+                "properties": {
+                    "token": {
+                        "description": "Token unik perangkat timbangan",
+                        "type": "string",
+                        "example": "DEV-TOKEN-12345"
+                    },
+                    "weight": {
+                        "description": "Berat timbangan dalam kilogram",
+                        "type": "number",
+                        "format": "float",
+                        "example": 25.5
+                    }
+                },
+                "type": "object"
+            },
+            "SettingsResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ready",
+                            "idle"
+                        ],
+                        "example": "ready"
+                    },
+                    "kode_produksi": {
+                        "type": "string",
+                        "example": "KP-2024-001"
+                    },
+                    "nama_produk": {
+                        "type": "string",
+                        "example": "Mie Goreng 85g"
+                    },
+                    "operator": {
+                        "type": "string",
+                        "example": "Budi Santoso"
+                    },
+                    "expired": {
+                        "type": "string",
+                        "example": "2025-12-31"
+                    }
+                },
+                "type": "object"
+            },
+            "WeightSuccessResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "example": "success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Data berat 25.5 kg tersimpan"
+                    },
+                    "record_id": {
+                        "type": "integer",
+                        "example": 42
+                    }
+                },
+                "type": "object"
+            },
+            "PingRequest": {
+                "required": [
+                    "token"
+                ],
+                "properties": {
+                    "token": {
+                        "description": "Token unik perangkat timbangan",
+                        "type": "string",
+                        "example": "DEV-TOKEN-12345"
+                    }
+                },
+                "type": "object"
+            },
+            "PingResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "example": "ok"
+                    },
+                    "server_time": {
+                        "type": "string",
+                        "example": "2024-01-15 08:30:00"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "example": "error"
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Unauthorized"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "FG Pasuruan",
+            "description": "Endpoint untuk timbangan Formulasi Pasuruan (FG)"
+        },
+        {
+            "name": "FG PSN",
+            "description": "Endpoint untuk timbangan Finished Goods Pasuruan (FG PSN)"
+        },
+        {
+            "name": "FG Surabaya",
+            "description": "Endpoint untuk timbangan Formulasi Surabaya"
+        },
+        {
+            "name": "CS Noodle Surabaya",
+            "description": "Endpoint untuk timbangan CS Noodle Surabaya"
+        },
+        {
+            "name": "CS FG Surabaya",
+            "description": "Endpoint untuk timbangan CS FG Surabaya"
+        },
+        {
+            "name": "Incoming Singkong",
+            "description": "Endpoint untuk timbangan Incoming Singkong Pasuruan"
+        },
+        {
+            "name": "Incoming RMPM",
+            "description": "Endpoint untuk timbangan Incoming RMPM"
+        },
+        {
+            "name": "Driver",
+            "description": "Identifikasi driver via QR Code"
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+0000000000000000000000000000000000000000 806fc560f6f732a47896037a1dd926cfdb51019e unknown <reveliowalker22@gmail.com> 1776820449 +0700	commit (initial): [1] first push
+806fc560f6f732a47896037a1dd926cfdb51019e e371e850667544d6610c7077ef1eb1bb920c3688 unknown <reveliowalker22@gmail.com> 1776821956 +0700	commit: testing
+e371e850667544d6610c7077ef1eb1bb920c3688 e371e850667544d6610c7077ef1eb1bb920c3688 unknown <reveliowalker22@gmail.com> 1776832921 +0700	Branch: renamed refs/heads/main to refs/heads/main
+e371e850667544d6610c7077ef1eb1bb920c3688 e371e850667544d6610c7077ef1eb1bb920c3688 unknown <reveliowalker22@gmail.com> 1776832936 +0700	Branch: renamed refs/heads/main to refs/heads/main
+e371e850667544d6610c7077ef1eb1bb920c3688 e371e850667544d6610c7077ef1eb1bb920c3688 unknown <reveliowalker22@gmail.com> 1777140441 +0700	Branch: renamed refs/heads/main to refs/heads/main
+e371e850667544d6610c7077ef1eb1bb920c3688 e371e850667544d6610c7077ef1eb1bb920c3688 unknown <reveliowalker22@gmail.com> 1777140486 +0700	Branch: renamed refs/heads/main to refs/heads/main
+e371e850667544d6610c7077ef1eb1bb920c3688 fc7806e8f383c68bf3124666e449c7835431998f unknown <reveliowalker22@gmail.com> 1777140692 +0700	commit (merge): resolve conflict
+fc7806e8f383c68bf3124666e449c7835431998f ab8dfd33e1427371c5330e57ce187f0c8696edde unknown <reveliowalker22@gmail.com> 1777639781 +0700	commit: [2] revisi fitur
+ab8dfd33e1427371c5330e57ce187f0c8696edde 979cfd8af4eecf0dbca5a9768d60cb2858a9c082 unknown <reveliowalker22@gmail.com> 1777640307 +0700	commit (merge): fix structure
+979cfd8af4eecf0dbca5a9768d60cb2858a9c082 e08d371596f8aa2b8ff62a3a47c377b699a8c623 unknown <reveliowalker22@gmail.com> 1777696424 +0700	commit: Revisi vue
+e08d371596f8aa2b8ff62a3a47c377b699a8c623 eaf1ae7331e5330508ea3878af7f247de1eedef7 unknown <reveliowalker22@gmail.com> 1777696661 +0700	commit: remove env file
+eaf1ae7331e5330508ea3878af7f247de1eedef7 556dd036dd8b1a228b11001e1231591509256214 unknown <reveliowalker22@gmail.com> 1777697545 +0700	commit: [3] not done
+556dd036dd8b1a228b11001e1231591509256214 6b6db5a6644124f7a19e098c6ab42f3ae58b3b41 unknown <reveliowalker22@gmail.com> 1777716734 +0700	commit: [4] heheh
+6b6db5a6644124f7a19e098c6ab42f3ae58b3b41 9eef5a9bd46a2c873eff428d547428bec216f680 unknown <reveliowalker22@gmail.com> 1777717098 +0700	commit: remove env file
+9eef5a9bd46a2c873eff428d547428bec216f680 b317e13d004102ca89c111b09b17d35804a96949 unknown <reveliowalker22@gmail.com> 1777717145 +0700	commit: remove env file
+b317e13d004102ca89c111b09b17d35804a96949 b6e99de74bc1651d5f233c686f9b17d0ad3f5d14 unknown <reveliowalker22@gmail.com> 1777906826 +0700	commit: [7] minus incoming rnpm
+b6e99de74bc1651d5f233c686f9b17d0ad3f5d14 18d3ad52a71457a15dbe62309a00ac9b1961e689 unknown <reveliowalker22@gmail.com> 1777955729 +0700	commit: [8] done all minus rasbery pi
+18d3ad52a71457a15dbe62309a00ac9b1961e689 ec4e1033a90155e89f253c446ca1c95c2f5cac85 unknown <reveliowalker22@gmail.com> 1777965178 +0700	commit: [11] progrees 90% minus integation in rasbery pi
+ec4e1033a90155e89f253c446ca1c95c2f5cac85 0cecc60107d9ff10fc57b6750165a8e399916382 unknown <reveliowalker22@gmail.com> 1778036850 +0700	commit: fix double file
+0cecc60107d9ff10fc57b6750165a8e399916382 be8370a2f247dd82ce319a668f882108de163c1a unknown <reveliowalker22@gmail.com> 1778040551 +0700	commit: test push fixing
