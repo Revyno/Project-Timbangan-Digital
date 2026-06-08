@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, usePage, router } from '@inertiajs/vue3';
 import { 
@@ -7,7 +7,7 @@ import {
     CardContent, 
     CardHeader, 
     CardTitle 
-} from '@/components/ui/card';
+} from '@/Components/ui/card';
 import { 
     Table, 
     TableBody, 
@@ -15,9 +15,19 @@ import {
     TableHead, 
     TableHeader, 
     TableRow 
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+} from '@/Components/ui/table';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationFirst,
+    PaginationItem,
+    PaginationLast,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/Components/ui/pagination';
 import { 
     User, 
     Settings2, 
@@ -28,6 +38,7 @@ import {
     AlertCircle,
     Loader2
 } from 'lucide-vue-next';
+import Swal from 'sweetalert2';
 
 const props = defineProps({
     produks: Array,
@@ -47,6 +58,37 @@ const form = useForm({
     produk_id: props.activePenimbangan?.produk_id || props.lastSession?.produk_id || '',
     kode_produksi: props.activePenimbangan?.kode_produksi || props.lastSession?.kode_produksi || '',
     tanggal_expired: props.activePenimbangan?.tanggal_expired || props.lastSession?.tanggal_expired || '',
+});
+
+const bannerMessage = ref('Sistem siap menerima data berat dari timbangan IoT untuk LOT ini.');
+
+onMounted(() => {
+    if (window.Echo) {
+        // We listen to the global 'iot-weights' channel since this is a shared component
+        window.Echo.channel('iot-weights')
+            .listen('.WeightReceived', (e) => {
+                // If the event operator doesn't match the current user, or it's not relevant, we can skip it,
+                // but since it's a shared screen, we reload if it's the current user's data
+                if (e.operator === auth.user.name) {
+                    bannerMessage.value = `Telah menerima data berat ${e.weight || e.berat} kg dari Arduino (IP: ${e.ip_address})`;
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: `Berat ${e.weight || e.berat} kg diterima dari IP ${e.ip_address}`,
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                    router.reload({ only: ['penimbangans', 'totalShift', 'totalBerat'] });
+                }
+            });
+    }
+});
+
+onUnmounted(() => {
+    if (window.Echo) {
+        window.Echo.leave('iot-weights');
+    }
 });
 
 const startSession = () => {
@@ -75,6 +117,10 @@ const formatDate = (date) => {
 
 const formatDateTime = (date) => {
     return new Date(date).toLocaleTimeString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
+
+const handlePageChange = (page) => {
+    router.get(route(route().current()), { page }, { preserveState: true, preserveScroll: true });
 };
 </script>
 
@@ -147,8 +193,9 @@ const formatDateTime = (date) => {
                         </div>
                         <div class="mt-4 p-3 bg-white/50 rounded-xl border border-emerald-100">
                             <p class="text-sm text-emerald-700 font-medium flex items-center gap-2">
-                                <Clock class="w-4 h-4 animate-pulse" />
-                                Sistem siap menerima data berat dari timbangan IoT untuk LOT ini.
+                                <Clock v-if="bannerMessage === 'Sistem siap menerima data berat dari timbangan IoT untuk LOT ini.'" class="w-4 h-4 animate-pulse" />
+                                <CheckCircle2 v-else class="w-4 h-4 text-emerald-600" />
+                                {{ bannerMessage }}
                             </p>
                         </div>
                     </div>
@@ -231,7 +278,40 @@ const formatDateTime = (date) => {
                         </TableBody>
                     </Table>
                     <div v-if="penimbangans.data.length === 0" class="p-12 text-center">
-                        <p class="text-gray-400 font-medium italic">You haven't recorded any weighings yet.</p>
+                        <p class="text-gray-400 font-medium italic">Belum ada data penimbangan.</p>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div v-if="penimbangans.total > penimbangans.per_page" class="mt-6 flex justify-center">
+                        <Pagination 
+                            :total="penimbangans.total" 
+                            :sibling-count="1" 
+                            show-edges 
+                            :default-page="penimbangans.current_page"
+                            @update:page="handlePageChange"
+                        >
+                            <PaginationContent>
+                                <PaginationFirst />
+                                <PaginationPrevious />
+
+                                <template v-for="(item, index) in penimbangans.links.slice(1, -1)" :key="index">
+                                    <PaginationItem>
+                                        <Button
+                                            v-if="item.url"
+                                            class="w-10 h-10 p-0"
+                                            :variant="item.active ? 'default' : 'outline'"
+                                            @click="handlePageChange(item.label)"
+                                        >
+                                            {{ item.label }}
+                                        </Button>
+                                        <PaginationEllipsis v-else />
+                                    </PaginationItem>
+                                </template>
+
+                                <PaginationNext />
+                                <PaginationLast />
+                            </PaginationContent>
+                        </Pagination>
                     </div>
                 </div>
             </Card>

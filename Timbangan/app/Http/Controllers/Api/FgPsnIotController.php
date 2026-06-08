@@ -44,20 +44,31 @@ class FgPsnIotController extends Controller
 
         $device->update(['last_online' => now()]);
 
-        $operator = User::where('tipe', 'fg_psn')
-            ->where('role', 'operator')
+        $operators = User::where('role', 'operator')
             ->where('session_locked', false)
-            ->first();
+            ->get();
 
-        if (!$operator) {
+        if ($operators->isEmpty()) {
             return response()->json(['status' => 'idle', 'message' => 'Tidak ada operator aktif', 'operator' => 'N/A']);
         }
 
-        $session = cache()->get("session_fg_psn_{$operator->id}");
+        $activeOperator = null;
+        $session = null;
+
+        foreach ($operators as $op) {
+            $sess = cache()->get("session_fg_psn_{$op->id}");
+            if ($sess) {
+                $activeOperator = $op;
+                $session = $sess;
+                break;
+            }
+        }
 
         if (!$session) {
-            return response()->json(['status' => 'idle', 'message' => 'Belum ada sesi aktif', 'operator' => $operator->name]);
+            return response()->json(['status' => 'idle', 'message' => 'Belum ada sesi aktif', 'operator' => $operators->first()->name]);
         }
+
+        $operator = $activeOperator;
 
         $produk = Produk::find($session['produk_id']);
 
@@ -107,20 +118,31 @@ class FgPsnIotController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Berat tidak valid'], 400);
         }
 
-        $operator = User::where('tipe', 'fg_psn')
-            ->where('role', 'operator')
+        $operators = User::where('role', 'operator')
             ->where('session_locked', false)
-            ->first();
+            ->get();
 
-        if (!$operator) {
+        if ($operators->isEmpty()) {
             return response()->json(['status' => 'error', 'message' => 'No active operator'], 400);
         }
 
-        $session = cache()->get("session_fg_psn_{$operator->id}");
+        $activeOperator = null;
+        $session = null;
+
+        foreach ($operators as $op) {
+            $sess = cache()->get("session_fg_psn_{$op->id}");
+            if ($sess) {
+                $activeOperator = $op;
+                $session = $sess;
+                break;
+            }
+        }
 
         if (!$session) {
             return response()->json(['status' => 'error', 'message' => 'No active session'], 400);
         }
+
+        $operator = $activeOperator;
 
         $produk = Produk::find($session['produk_id']);
         $target = $produk ? $produk->target_berat : 0;
@@ -138,13 +160,18 @@ class FgPsnIotController extends Controller
             'status' => 'selesai',
         ]);
 
-        broadcast(new WeightReceived('fg_psn', [
-            'weight' => $weight,
-            'operator' => $operator->name,
-            'product' => $produk ? $produk->nama_produk : 'Unknown',
-            'kode_produksi' => $session['kode_produksi'],
-            'status' => 'selesai'
-        ]));
+        try {
+            broadcast(new WeightReceived('fg_psn', [
+                'weight' => $weight,
+                'operator' => $operator->name,
+                'product' => $produk ? $produk->nama_produk : 'Unknown',
+                'kode_produksi' => $session['kode_produksi'],
+                'status' => 'selesai',
+                'ip_address' => $request->ip()
+            ]));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Broadcast failed: " . $e->getMessage());
+        }
 
         return response()->json([
             'status' => 'success',

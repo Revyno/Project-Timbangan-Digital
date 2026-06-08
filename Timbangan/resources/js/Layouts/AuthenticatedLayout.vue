@@ -15,8 +15,8 @@ import {
     Building2,
     UserCheck
 } from 'lucide-vue-next';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/Components/ui/button';
+import { Alert, AlertTitle, AlertDescription } from '@/Components/ui/alert';
 import Swal from 'sweetalert2';
 
 const { auth } = usePage().props;

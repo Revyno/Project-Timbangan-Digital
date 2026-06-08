@@ -18,6 +18,7 @@ class WeightReceived implements ShouldBroadcastNow
     public $product;
     public $kode_produksi;
     public $status;
+    public $ip_address;
 
     /**
      * Create a new event instance.
@@ -25,11 +26,12 @@ class WeightReceived implements ShouldBroadcastNow
     public function __construct($module, $data)
     {
         $this->module = $module;
-        $this->berat = $data['weight'] ?? 0;
+        $this->weight = $data['weight'] ?? 0;
         $this->operator = $data['operator'] ?? 'Unknown';
-        $this->nama_produk = $data['product'] ?? 'Unknown';
+        $this->product = $data['product'] ?? 'Unknown';
         $this->kode_produksi = $data['kode_produksi'] ?? '-';
         $this->status = $data['status'] ?? 'selesai';
+        $this->ip_address = $data['ip_address'] ?? 'Unknown IP';
     }
 
     /**

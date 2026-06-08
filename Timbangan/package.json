@@ -25,14 +25,16 @@
         "@inertiajs/vue3": "^3.0.3",
         "@vitejs/plugin-vue": "^6.0.6",
         "@vueuse/core": "^14.3.0",
+        "chart.js": "^4.5.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "lucide-vue-next": "^1.0.0",
         "radix-vue": "^1.9.17",
-        "reka-ui": "^2.9.6",
+        "reka-ui": "^2.9.8",
         "sweetalert2": "^11.26.24",
         "tailwind-merge": "^3.5.0",
         "tailwindcss-animate": "^1.0.7",
-        "vue": "^3.5.33"
+        "vue": "^3.5.33",
+        "vue-chartjs": "^5.3.3"
     }
 }

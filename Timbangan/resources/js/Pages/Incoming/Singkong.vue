@@ -7,7 +7,7 @@ import {
     CardContent, 
     CardHeader, 
     CardTitle 
-} from '@/components/ui/card';
+} from '@/Components/ui/card';
 import { 
     Table, 
     TableBody, 
@@ -15,11 +15,21 @@ import {
     TableHead, 
     TableHeader, 
     TableRow 
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@/Components/ui/table';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationFirst,
+    PaginationItem,
+    PaginationLast,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/Components/ui/pagination';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
 import { 
     User, 
     Settings2, 
@@ -58,6 +68,8 @@ const form = useForm({
     jenis_singkong: props.activeSession?.jenis_singkong || '',
     kode_produksi:  props.activeSession?.kode_produksi  || '',
 });
+
+const bannerMessage = ref('Menunggu data berat dari timbangan...');
 
 const scanning = ref(false);
 const showScanner = ref(false);
@@ -102,6 +114,15 @@ onMounted(() => {
         window.Echo.channel('iot-weights.incoming_singkong')
             .listen('.WeightReceived', (e) => {
                 console.log('Weight received:', e);
+                bannerMessage.value = `Telah menerima data berat ${e.weight || e.berat} kg dari Arduino dengan IP ${e.ip_address}`;
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: `Berat ${e.weight || e.berat} kg diterima dari IP ${e.ip_address}`,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                 // Auto reload only weight related data
                 router.reload({ only: ['history', 'totalShift', 'totalBerat'] });
             });
@@ -135,6 +156,10 @@ const formatWeight = (weight) => {
 
 const formatDateTime = (date) => {
     return new Date(date).toLocaleTimeString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
+
+const handlePageChange = (page) => {
+    router.get(route(route().current()), { page }, { preserveState: true, preserveScroll: true });
 };
 </script>
 
@@ -200,8 +225,9 @@ const formatDateTime = (date) => {
                         </div>
                         <div class="mt-4 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
                              <p class="text-sm text-emerald-700 font-medium flex items-center gap-2">
-                                <Clock class="w-4 h-4 animate-pulse" />
-                                Menunggu data berat dari timbangan...
+                                <Clock v-if="bannerMessage === 'Menunggu data berat dari timbangan...'" class="w-4 h-4 animate-pulse" />
+                                <CheckCircle2 v-else class="w-4 h-4 text-emerald-600" />
+                                {{ bannerMessage }}
                             </p>
                         </div>
                     </div>
@@ -359,6 +385,39 @@ const formatDateTime = (date) => {
                     </Table>
                     <div v-if="history.data.length === 0" class="p-12 text-center text-gray-400">
                         Belum ada riwayat untuk shift ini.
+                    </div>
+
+                    <!-- Pagination -->
+                    <div v-if="history.total > history.per_page" class="mt-6 pb-6 flex justify-center">
+                        <Pagination 
+                            :total="history.total" 
+                            :sibling-count="1" 
+                            show-edges 
+                            :default-page="history.current_page"
+                            @update:page="handlePageChange"
+                        >
+                            <PaginationContent>
+                                <PaginationFirst />
+                                <PaginationPrevious />
+
+                                <template v-for="(item, index) in history.links.slice(1, -1)" :key="index">
+                                    <PaginationItem>
+                                        <Button
+                                            v-if="item.url"
+                                            class="w-10 h-10 p-0"
+                                            :variant="item.active ? 'default' : 'outline'"
+                                            @click="handlePageChange(item.label)"
+                                        >
+                                            {{ item.label }}
+                                        </Button>
+                                        <PaginationEllipsis v-else />
+                                    </PaginationItem>
+                                </template>
+
+                                <PaginationNext />
+                                <PaginationLast />
+                            </PaginationContent>
+                        </Pagination>
                     </div>
                 </div>
             </Card>

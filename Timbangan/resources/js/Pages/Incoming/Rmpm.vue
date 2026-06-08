@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, usePage, router } from '@inertiajs/vue3';
 import { 
@@ -7,7 +7,7 @@ import {
     CardContent, 
     CardHeader, 
     CardTitle 
-} from '@/components/ui/card';
+} from '@/Components/ui/card';
 import { 
     Table, 
     TableBody, 
@@ -15,11 +15,21 @@ import {
     TableHead, 
     TableHeader, 
     TableRow 
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@/Components/ui/table';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationFirst,
+    PaginationItem,
+    PaginationLast,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/Components/ui/pagination';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
 import { 
     User, 
     Settings2, 
@@ -157,6 +167,33 @@ const identifyDriver = () => {
     showScanner.value = true;
 };
 
+const bannerMessage = ref('Menunggu data berat dari timbangan...');
+
+onMounted(() => {
+    if (window.Echo) {
+        window.Echo.channel('iot-weights.incoming_rmpm')
+            .listen('.WeightReceived', (e) => {
+                console.log('Weight received:', e);
+                bannerMessage.value = `Telah menerima data berat ${e.weight || e.berat} kg dari Arduino (IP: ${e.ip_address})`;
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: `Berat ${e.weight || e.berat} kg diterima dari IP ${e.ip_address}`,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                router.reload({ only: ['history', 'totalShift', 'totalBerat'] });
+            });
+    }
+});
+
+onUnmounted(() => {
+    if (window.Echo) {
+        window.Echo.leave('iot-weights.incoming_rmpm');
+    }
+});
+
 const startSession = () => {
     form.post(route('incoming.rmpm.store'));
 };
@@ -178,6 +215,10 @@ const formatWeight = (weight) => {
 
 const formatDateTime = (date) => {
     return new Date(date).toLocaleTimeString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
+
+const handlePageChange = (page) => {
+    router.get(route(route().current()), { page }, { preserveState: true, preserveScroll: true });
 };
 </script>
 
@@ -239,6 +280,13 @@ const formatDateTime = (date) => {
                                 <p class="text-gray-400 font-bold uppercase text-[10px]">Exp Date</p>
                                 <p class="font-bold">{{ activeSession.expired_date || '-' }}</p>
                             </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                             <p class="text-sm text-indigo-700 font-medium flex items-center gap-2">
+                                <Clock v-if="bannerMessage === 'Menunggu data berat dari timbangan...'" class="w-4 h-4 animate-pulse" />
+                                <CheckCircle2 v-else class="w-4 h-4 text-indigo-600" />
+                                {{ bannerMessage }}
+                            </p>
                         </div>
                     </div>
 
@@ -389,6 +437,39 @@ const formatDateTime = (date) => {
                             </TableRow>
                         </TableBody>
                     </Table>
+
+                    <!-- Pagination -->
+                    <div v-if="history.total > history.per_page" class="mt-6 pb-6 flex justify-center">
+                        <Pagination 
+                            :total="history.total" 
+                            :sibling-count="1" 
+                            show-edges 
+                            :default-page="history.current_page"
+                            @update:page="handlePageChange"
+                        >
+                            <PaginationContent>
+                                <PaginationFirst />
+                                <PaginationPrevious />
+
+                                <template v-for="(item, index) in history.links.slice(1, -1)" :key="index">
+                                    <PaginationItem>
+                                        <Button
+                                            v-if="item.url"
+                                            class="w-10 h-10 p-0"
+                                            :variant="item.active ? 'default' : 'outline'"
+                                            @click="handlePageChange(item.label)"
+                                        >
+                                            {{ item.label }}
+                                        </Button>
+                                        <PaginationEllipsis v-else />
+                                    </PaginationItem>
+                                </template>
+
+                                <PaginationNext />
+                                <PaginationLast />
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
                 </div>
             </Card>
         </div>

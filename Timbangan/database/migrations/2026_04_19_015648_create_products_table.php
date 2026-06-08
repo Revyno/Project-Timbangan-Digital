@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('produks', function (Blueprint $table) {
             $table->id();
             $table->string('nama_produk');
-            $table->decimal('target_berat', 10, 3)->nullable();
+            $table->decimal('target_berat', 10, 2)->nullable();
             $table->timestamps();
         });
     }

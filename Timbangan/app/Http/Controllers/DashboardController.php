@@ -75,7 +75,33 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return \Inertia\Inertia::render('Dashboard/OperatorOverview', compact('stats', 'moduleStats', 'moduleNames', 'recentPenimbangans'));
+        // Chart Data Generation for Operator (Bar Chart - Filter: Week/Month)
+        $chartFilter = $request->input('chart_filter', 'week');
+        $chartData = [];
+
+        if ($chartFilter === 'week') {
+            for ($i = 6; $i >= 0; $i--) {
+                $date = now()->subDays($i)->format('Y-m-d');
+                $displayDate = now()->subDays($i)->format('d M');
+                $total = Penimbangan::where('user_id', $user->id)->whereDate('created_at', $date)->where('status', 'selesai')->count();
+                $berat = Penimbangan::where('user_id', $user->id)->whereDate('created_at', $date)->where('status', 'selesai')->sum('berat');
+                $chartData[] = ['name' => $displayDate, 'total' => (int)$total, 'berat' => (float)$berat];
+            }
+        } else if ($chartFilter === 'month') {
+            // Data for the last 4 weeks (28 days) ending today
+            $start = now()->subDays(27)->startOfDay();
+            for ($i = 0; $i < 4; $i++) {
+                $startOfWeek = $start->copy()->addDays($i * 7);
+                $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
+
+                $displayDate = $startOfWeek->format('d M') . ' - ' . $endOfWeek->format('d M');
+                $total = Penimbangan::where('user_id', $user->id)->whereBetween('created_at', [$startOfWeek, $endOfWeek])->where('status', 'selesai')->count();
+                $berat = Penimbangan::where('user_id', $user->id)->whereBetween('created_at', [$startOfWeek, $endOfWeek])->where('status', 'selesai')->sum('berat');
+                $chartData[] = ['name' => $displayDate, 'total' => (int)$total, 'berat' => (float)$berat];
+            }
+        }
+
+        return \Inertia\Inertia::render('Dashboard/OperatorOverview', compact('stats', 'moduleStats', 'moduleNames', 'recentPenimbangans', 'chartData', 'chartFilter'));
     }
 
     private function adminDashboard(Request $request)
@@ -148,23 +174,26 @@ class DashboardController extends Controller
             for ($i = 6; $i >= 0; $i--) {
                 $date = now()->subDays($i)->format('Y-m-d');
                 $displayDate = now()->subDays($i)->format('d M');
-                $total = Penimbangan::whereDate('created_at', $date)->where('status', 'selesai')->count();
-                $berat = Penimbangan::whereDate('created_at', $date)->where('status', 'selesai')->sum('berat');
-                $chartData[] = ['name' => $displayDate, 'total' => $total, 'berat' => $berat];
+
+                $query = (clone $baseQuery)->whereDate('penimbangans.created_at', $date)->where('status', 'selesai');
+                $total = $query->count();
+                $berat = $query->sum('berat');
+
+                $chartData[] = ['name' => $displayDate, 'total' => (int)$total, 'berat' => (float)$berat];
             }
         } else if ($chartFilter === 'month') {
-            // Data for the 4 weeks of the current month
-            $startOfMonth = now()->startOfMonth();
+            // Data for the last 4 weeks (28 days) ending today
+            $start = now()->subDays(27)->startOfDay();
             for ($i = 0; $i < 4; $i++) {
-                $startOfWeek = $startOfMonth->copy()->addWeeks($i);
-                $endOfWeek = $startOfWeek->copy()->endOfWeek();
-                if ($endOfWeek->greaterThan(now()->endOfMonth())) {
-                    $endOfWeek = now()->endOfMonth();
-                }
-                $displayDate = 'Week ' . ($i + 1);
-                $total = Penimbangan::whereBetween('created_at', [$startOfWeek, $endOfWeek])->where('status', 'selesai')->count();
-                $berat = Penimbangan::whereBetween('created_at', [$startOfWeek, $endOfWeek])->where('status', 'selesai')->sum('berat');
-                $chartData[] = ['name' => $displayDate, 'total' => $total, 'berat' => $berat];
+                $startOfWeek = $start->copy()->addDays($i * 7);
+                $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
+                $displayDate = $startOfWeek->format('d M') . ' - ' . $endOfWeek->format('d M');
+
+                $query = (clone $baseQuery)->whereBetween('penimbangans.created_at', [$startOfWeek, $endOfWeek])->where('status', 'selesai');
+                $total = $query->count();
+                $berat = $query->sum('berat');
+
+                $chartData[] = ['name' => $displayDate, 'total' => (int)$total, 'berat' => (float)$berat];
             }
         }
 
@@ -301,7 +330,7 @@ class DashboardController extends Controller
             'kode_produksi' => $validated['kode_produksi'],
             'tanggal_expired' => $validated['tanggal_expired'],
         ];
-
+        // sesi aktif disimpan selama 8 jam (cukup untuk 1 shift penuh), tapi sesi terakhir disimpan selama 7 hari agar bisa pre-fill otomatis jika operator login lagi dalam 7 hari ke depan
         cache()->put("session_operator_{$user->id}", $sessionData, now()->addHours(8));
 
         // Simpan juga sebagai "Sesi Terakhir" (Untuk pre-fill otomatis nanti)
@@ -324,7 +353,7 @@ class DashboardController extends Controller
         cache()->forget("session_operator_" . $user->id);
 
         // Kunci sesi — waktu kunci disimpan ke cache oleh User boot observer
-        $user->update(['session_locked' => true]);
+        // $user->update(['session_locked' => true]);
 
         Auth::logout();
         $request->session()->invalidate();
