@@ -1,12 +1,12 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { UserPlus, Building2, QrCode, Download, CheckCircle2, Truck } from 'lucide-vue-next';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
+import { UserPlus, Building2, QrCode, CheckCircle2, Truck } from 'lucide-vue-next';
 
 const props = defineProps({
     suppliers: Array,
@@ -35,127 +35,137 @@ const getQrUrl = (code) => {
     <GuestLayout>
         <Head title="Registrasi Driver" />
 
-        <div v-if="success" class="text-center space-y-6 animate-in fade-in zoom-in duration-500">
-            <div class="flex justify-center">
-                <div class="bg-green-100 p-4 rounded-full">
-                    <CheckCircle2 class="w-12 h-12 text-green-600" />
-                </div>
-            </div>
-            
-            <div class="space-y-2">
-                <h2 class="text-2xl font-black text-gray-900">Registrasi Berhasil!</h2>
-                <p class="text-gray-500 font-medium">Halo {{ driver.name }}, simpan QR Code Anda di bawah ini untuk digunakan saat penimbangan.</p>
-            </div>
+        <div v-if="success" class="animate-in fade-in zoom-in duration-500 w-full">
+            <Card class="border-emerald-200 shadow-md bg-emerald-50/30 dark:bg-emerald-950/20 dark:border-emerald-900">
+                <CardHeader class="text-center pb-2">
+                    <div class="flex justify-center mb-4">
+                        <div class="bg-emerald-500/10 p-4 rounded-full border border-emerald-500/20">
+                            <CheckCircle2 class="w-12 h-12 text-emerald-600" />
+                        </div>
+                    </div>
+                    <CardTitle class="text-2xl font-bold text-foreground">Registrasi Berhasil!</CardTitle>
+                    <CardDescription class="text-sm mt-2">
+                        Halo <strong>{{ driver.name }}</strong>, simpan QR Code Anda di bawah ini untuk digunakan saat penimbangan.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent class="text-center space-y-6 pt-4">
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-border inline-block mx-auto">
+                        <img :src="getQrUrl(driver.qr_code)" class="w-48 h-48 mx-auto border border-border rounded-lg p-2 bg-white mb-4 shadow-sm" alt="QR Code" />
+                        <div class="pt-4 border-t border-border/50">
+                            <p class="text-sm font-mono font-bold text-primary uppercase tracking-widest">{{ driver.qr_code }}</p>
+                            <p class="text-base font-bold text-foreground mt-1">{{ driver.supplier.name }}</p>
+                            <p class="text-xs text-muted-foreground mt-1">{{ driver.nomor_plat }}</p>
+                        </div>
+                    </div>
 
-            <div class="bg-white p-6 rounded-[2rem] border-4 border-blue-50 shadow-2xl inline-block mx-auto">
-                <img :src="getQrUrl(driver.qr_code)" class="w-48 h-48 mx-auto" alt="QR Code" />
-                <div class="mt-4 pt-4 border-t border-gray-100">
-                    <p class="text-xs font-black text-blue-600 uppercase tracking-widest">{{ driver.qr_code }}</p>
-                    <p class="text-sm font-bold text-gray-900 mt-1">{{ driver.supplier.name }}</p>
-                </div>
-            </div>
-
-            <div class="pt-6">
-                <Link :href="route('driver.register')" class="text-blue-600 font-bold hover:underline">
-                    Daftar driver lain
-                </Link>
-            </div>
+                    <div class="pt-2">
+                        <Link :href="route('driver.register')" class="text-sm font-semibold text-primary hover:underline inline-flex items-center">
+                            Daftar driver lain
+                        </Link>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
 
-        <form v-else @submit.prevent="submit" class="space-y-6">
-            <div class="text-center mb-8">
-                <h2 class="text-2xl font-black text-gray-900">Registrasi Driver</h2>
-                <p class="text-sm text-gray-500 mt-1">Lengkapi data untuk mendapatkan QR Code identitas.</p>
-            </div>
+        <Card v-else class="border-0 shadow-none sm:border sm:shadow-sm bg-transparent sm:bg-card">
+            <CardHeader class="text-center space-y-1">
+                <CardTitle class="text-2xl font-bold tracking-tight text-foreground">Registrasi Driver</CardTitle>
+                <CardDescription>Lengkapi data untuk mendapatkan QR Code identitas.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form @submit.prevent="submit" class="space-y-4">
 
             <div class="space-y-2">
-                <Label for="name" class="ml-1 text-xs font-bold text-gray-500 uppercase">Nama Lengkap Sopir</Label>
+                <Label for="name">Nama Lengkap Sopir</Label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors pointer-events-none group-focus-within:text-blue-600">
-                        <UserPlus class="w-5 h-5" />
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none group-focus-within:text-primary">
+                        <UserPlus class="w-4 h-4" />
                     </div>
                     <Input
                         id="name"
                         type="text"
-                        class="py-6 pl-12 transition-all border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-blue-600/20 rounded-2xl"
+                        class="pl-10"
                         v-model="form.name"
                         required
                         autofocus
                         placeholder="Contoh: Budi Santoso"
                     />
                 </div>
-                <InputError class="mt-2" :message="form.errors.name" />
+                <InputError class="mt-1" :message="form.errors.name" />
             </div>
 
             <div class="space-y-2">
-                <Label for="nomor_plat" class="ml-1 text-xs font-bold text-gray-500 uppercase">Nomor Plat Kendaraan</Label>
+                <Label for="nomor_plat">Nomor Plat Kendaraan</Label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors pointer-events-none group-focus-within:text-blue-600">
-                        <Truck class="w-5 h-5" />
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none group-focus-within:text-primary">
+                        <Truck class="w-4 h-4" />
                     </div>
                     <Input
                         id="nomor_plat"
                         type="text"
-                        class="py-6 pl-12 transition-all border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-blue-600/20 rounded-2xl"
+                        class="pl-10"
                         v-model="form.nomor_plat"
                         required
                         placeholder="Contoh: L 1234 ABC"
                     />
                 </div>
-                <InputError class="mt-2" :message="form.errors.nomor_plat" />
+                <InputError class="mt-1" :message="form.errors.nomor_plat" />
             </div>
 
             <div class="space-y-2">
-                <Label for="supplier" class="ml-1 text-xs font-bold text-gray-500 uppercase">Pilih Supplier</Label>
+                <Label for="supplier">Pilih Supplier</Label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors pointer-events-none group-focus-within:text-blue-600">
-                        <Building2 class="w-5 h-5" />
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none group-focus-within:text-primary">
+                        <Building2 class="w-4 h-4" />
                     </div>
                     <select
                         id="supplier"
                         v-model="form.supplier_id"
                         required
-                        class="w-full py-3 pl-12 pr-4 transition-all border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-blue-600/20 rounded-2xl text-sm font-medium"
+                        class="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <option value="" disabled>-- Pilih Supplier --</option>
                         <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
                     </select>
                 </div>
-                <InputError class="mt-2" :message="form.errors.supplier_id" />
+                <InputError class="mt-1" :message="form.errors.supplier_id" />
             </div>
 
             <div class="space-y-2">
-                <Label for="asal" class="ml-1 text-xs font-bold text-gray-500 uppercase">Pilih Asal</Label>
+                <Label for="asal">Pilih Asal</Label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors pointer-events-none group-focus-within:text-blue-600">
-                        <Building2 class="w-5 h-5" />
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none group-focus-within:text-primary">
+                        <Building2 class="w-4 h-4" />
                     </div>
                     <select
                         id="asal"
                         v-model="form.asal"
                         required
-                        class="w-full py-3 pl-12 pr-4 transition-all border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-blue-600/20 rounded-2xl text-sm font-medium"
+                        class="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <option value="" disabled>-- Pilih Asal --</option>
                         <option v-for="a in asalOptions" :key="a" :value="a">{{ a }}</option>
                     </select>
                 </div>
-                <InputError class="mt-2" :message="form.errors.asal" />
+                <InputError class="mt-1" :message="form.errors.asal" />
             </div>
 
+            <!-- Submit -->
             <Button
-                class="w-full text-lg font-black text-white transition-all bg-blue-600 shadow-xl hover:bg-blue-700 py-7 rounded-2xl shadow-blue-100 group"
-                :class="{ 'opacity-25': form.processing }"
+                type="submit"
+                class="w-full flex items-center justify-center pt-2"
                 :disabled="form.processing"
             >
                 Dapatkan QR Code
             </Button>
 
-            <div class="text-center pt-4 border-t border-gray-50">
-                <Link :href="route('login')" class="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
-                    Kembali ke <span class="font-bold text-blue-600">Login</span>
-                </Link>
-            </div>
-        </form>
+                    <div class="text-center pt-4 border-t border-border">
+                        <Link :href="route('login')" class="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                            Kembali ke <span class="font-bold text-primary hover:underline">Login</span>
+                        </Link>
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
     </GuestLayout>
 </template>

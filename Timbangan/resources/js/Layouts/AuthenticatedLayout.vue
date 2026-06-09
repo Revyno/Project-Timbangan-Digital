@@ -82,28 +82,28 @@ const logout = () => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-100">
+    <div class="min-h-screen bg-background text-foreground">
         <!-- Top Navbar -->
-        <nav :class="[desktopSidebarOpen ? 'sm:ml-64 sm:w-[calc(100%-16rem)]' : 'sm:ml-0 sm:w-full']" class="fixed top-0 z-40 w-full bg-blue-700 border-b border-blue-800 shadow-sm transition-all duration-300">
+        <nav :class="[desktopSidebarOpen ? 'sm:ml-64 sm:w-[calc(100%-16rem)]' : 'sm:ml-0 sm:w-full']" class="fixed top-0 z-40 w-full bg-background/80 backdrop-blur-md border-b border-border shadow-sm transition-all duration-300">
             <div class="px-3 py-3 lg:px-5 lg:pl-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center justify-start">
                         <!-- Sidebar Toggle for Mobile -->
-                        <button @click="sidebarOpen = true" type="button" class="inline-flex items-center p-2 text-sm text-blue-100 rounded-lg sm:hidden hover:bg-blue-600 focus:outline-none">
+                        <Button @click="sidebarOpen = true" variant="ghost" size="icon" class="sm:hidden mr-2 text-muted-foreground">
                             <span class="sr-only">Open sidebar</span>
-                            <Menu class="w-6 h-6" />
-                        </button>
+                            <Menu class="w-5 h-5" />
+                        </Button>
                         
                         <!-- Sidebar Toggle for Desktop -->
-                        <button @click="desktopSidebarOpen = !desktopSidebarOpen" type="button" class="hidden sm:inline-flex items-center p-2 text-sm text-blue-100 rounded-lg hover:bg-blue-600 focus:outline-none mr-2">
-                            <Menu class="w-6 h-6" />
-                        </button>
+                        <Button @click="desktopSidebarOpen = !desktopSidebarOpen" variant="ghost" size="icon" class="hidden sm:flex mr-2 text-muted-foreground">
+                            <Menu class="w-5 h-5" />
+                        </Button>
 
                         <Link v-if="!desktopSidebarOpen" :href="route('dashboard')" class="hidden sm:flex items-center ms-2 md:me-24 gap-2">
-                            <img src="/images/logo.webp" alt="Ladang Lima" class="h-8 w-auto brightness-0 invert">
+                            <img src="/images/logo.webp" alt="Ladang Lima" class="h-8 w-auto">
                         </Link>
                         <Link :href="route('dashboard')" class="flex items-center ms-2 md:me-24 gap-2 sm:hidden">
-                            <img src="/images/logo.webp" alt="Ladang Lima" class="h-8 w-auto brightness-0 invert">
+                            <img src="/images/logo.webp" alt="Ladang Lima" class="h-8 w-auto">
                         </Link>
                     </div>
                     <div class="flex items-center">
@@ -111,10 +111,10 @@ const logout = () => {
                             <div class="flex items-center gap-4">
                                 <!-- Notification Bell -->
                                 <div class="relative">
-                                    <button @click="toggleNotifications" type="button" class="p-2 text-blue-100 rounded-lg hover:bg-blue-600 transition-all">
-                                        <Bell class="w-6 h-6" />
-                                        <div v-if="notificationDot" class="absolute top-2 right-2 w-3 h-3 bg-red-500 border-2 border-blue-700 rounded-full"></div>
-                                    </button>
+                                    <Button @click="toggleNotifications" variant="ghost" size="icon" class="text-muted-foreground relative">
+                                        <Bell class="w-5 h-5" />
+                                        <div v-if="notificationDot" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 border-background rounded-full"></div>
+                                    </Button>
                                     <!-- Notifications Dropdown - Mobile: fixed full-width, Desktop: absolute -->
                                     <!-- Mobile overlay backdrop -->
                                     <div 
@@ -124,25 +124,25 @@ const logout = () => {
                                     ></div>
                                     <div 
                                         v-if="showNotifications" 
-                                        class="fixed left-2 right-2 top-16 z-50 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+                                        class="fixed left-2 right-2 top-16 z-50 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 bg-popover text-popover-foreground rounded-lg shadow-lg border border-border overflow-hidden"
                                     >
-                                        <div class="p-4 border-b border-gray-100 flex justify-between items-center">
-                                            <h6 class="font-bold text-gray-900">Notifications</h6>
+                                        <div class="p-4 border-b border-border flex justify-between items-center">
+                                            <h6 class="font-semibold text-foreground text-sm">Notifications</h6>
                                             <div class="flex items-center gap-3">
-                                                <button @click="clearNotifications" class="text-xs font-bold text-blue-600 hover:text-blue-800">Clear</button>
-                                                <button @click="showNotifications = false" class="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 sm:hidden">
+                                                <Button @click="clearNotifications" variant="link" size="sm" class="h-auto p-0 text-xs text-primary">Clear</Button>
+                                                <Button @click="showNotifications = false" variant="ghost" size="icon" class="h-6 w-6 sm:hidden">
                                                     <X class="w-4 h-4" />
-                                                </button>
+                                                </Button>
                                             </div>
                                         </div>
                                         <div class="max-h-[60vh] sm:max-h-96 overflow-y-auto p-2 space-y-2">
-                                            <Alert v-for="notif in notifications" :key="notif.id" class="border-blue-100 bg-blue-50/50">
-                                                <AlertTitle class="text-blue-800 text-sm font-bold">{{ notif.title }}</AlertTitle>
-                                                <AlertDescription class="text-xs text-blue-600 mt-1">
+                                            <Alert v-for="notif in notifications" :key="notif.id">
+                                                <AlertTitle class="text-sm font-semibold">{{ notif.title }}</AlertTitle>
+                                                <AlertDescription class="text-xs text-muted-foreground mt-1">
                                                     {{ notif.message }}
                                                 </AlertDescription>
                                             </Alert>
-                                            <div v-if="notifications.length === 0" class="p-4 text-center text-sm text-gray-500">
+                                            <div v-if="notifications.length === 0" class="p-4 text-center text-sm text-muted-foreground">
                                                 No new notifications
                                             </div>
                                         </div>
@@ -150,11 +150,11 @@ const logout = () => {
                                 </div>
 
                                 <div class="text-right hidden md:block">
-                                    <p class="text-sm font-bold text-white">{{ auth.user.name }}</p>
-                                    <p class="text-xs text-blue-200 capitalize">{{ auth.user.role.replace('_', ' ') }} - Shift {{ auth.user.shift ?? '-' }}</p>
+                                    <p class="text-sm font-semibold text-foreground">{{ auth.user.name }}</p>
+                                    <p class="text-xs text-muted-foreground capitalize">{{ auth.user.role.replace('_', ' ') }} - Shift {{ auth.user.shift ?? '-' }}</p>
                                 </div>
                                 
-                                <Button @click="logout" variant="destructive" size="sm" class="bg-red-600 hover:bg-red-700">
+                                <Button @click="logout" variant="outline" size="sm" class="font-medium text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200">
                                     Logout
                                 </Button>
                             </div>
@@ -177,19 +177,21 @@ const logout = () => {
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full',
                 desktopSidebarOpen ? 'sm:translate-x-0' : 'sm:-translate-x-full'
             ]" 
-            class="fixed top-0 left-0 z-50 w-64 h-screen pt-20 sm:pt-0 transition-transform duration-300 bg-white border-r border-gray-200 shadow-xl sm:shadow-none" 
+            class="fixed top-0 left-0 z-50 w-64 h-screen pt-20 sm:pt-0 transition-transform duration-300 bg-card border-r border-border shadow-xl sm:shadow-none" 
             aria-label="Sidebar"
         >
-            <div class="h-full px-4 pb-4 overflow-y-auto bg-white">
+            <div class="h-full px-4 pb-4 overflow-y-auto">
                 <!-- Logo Sidebar -->
-                <div class="flex items-center justify-center h-[65px] border-b border-gray-100 mb-6">
-                    <img src="/images/logo.webp" alt="Ladang Lima" class="h-10 sm:h-8 w-auto">
+                <div class="flex items-center justify-center h-[65px] border-b border-border mb-6 py-2">
+                    <div class="flex items-center justify-center w-full max-w-[180px]">
+                        <img src="/images/logo.webp" alt="Ladang Lima" class="h-10 sm:h-8 w-auto">
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-between mb-6 sm:hidden">
-                    <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Menu Navigasi</span>
-                    <button @click="sidebarOpen = false" class="p-2 hover:bg-gray-100 rounded-full">
-                        <X class="w-5 h-5 text-gray-500" />
+                    <span class="text-xs font-black text-muted-foreground uppercase tracking-widest">Menu Navigasi</span>
+                    <button @click="sidebarOpen = false" class="p-2 hover:bg-accent rounded-full">
+                        <X class="w-5 h-5 text-muted-foreground" />
                     </button>
                 </div>
 
@@ -198,10 +200,10 @@ const logout = () => {
                         <Link :href="route('dashboard')">
                             <Button 
                                 variant="ghost" 
-                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                class="w-full justify-start gap-3 h-10 px-3 transition-colors"
+                                :class="route().current('dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
                             >
-                                <LayoutDashboard class="w-5 h-5" :class="route().current('dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <LayoutDashboard class="w-4 h-4" />
                                 <span>Overview</span>
                             </Button>
                         </Link>
@@ -215,10 +217,10 @@ const logout = () => {
                         <Link :href="auth.user.role === 'admin' ? route('admin.fg') : route('fg.dashboard')">
                             <Button 
                                 variant="ghost" 
-                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('admin.fg') || route().current('fg.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                class="w-full justify-start gap-3 h-10 px-3 transition-colors"
+                                :class="route().current('admin.fg') || route().current('fg.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
                             >
-                                <ClipboardList class="w-5 h-5" :class="route().current('admin.fg') || route().current('fg.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <ClipboardList class="w-4 h-4" />
                                 <span>Formulasi</span>
                             </Button>
                         </Link>
@@ -227,10 +229,10 @@ const logout = () => {
                         <Link :href="auth.user.role === 'admin' ? route('admin.fg-psn') : route('fg-psn.dashboard')">
                             <Button 
                                 variant="ghost" 
-                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('admin.fg-psn') || route().current('fg-psn.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                class="w-full justify-start gap-3 h-10 px-3 transition-colors"
+                                :class="route().current('admin.fg-psn') || route().current('fg-psn.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
                             >
-                                <Box class="w-5 h-5" :class="route().current('admin.fg-psn') || route().current('fg-psn.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <Box class="w-4 h-4" />
                                 <span>Finished Goods</span>
                             </Button>
                         </Link>
@@ -239,10 +241,10 @@ const logout = () => {
                         <Link :href="auth.user.role === 'admin' ? route('admin.incoming.singkong') : route('incoming.singkong.dashboard')">
                             <Button 
                                 variant="ghost" 
-                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('admin.incoming.singkong') || route().current('incoming.singkong.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                class="w-full justify-start gap-3 h-10 px-3 transition-colors"
+                                :class="route().current('admin.incoming.singkong') || route().current('incoming.singkong.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
                             >
-                                <Truck class="w-5 h-5" :class="route().current('admin.incoming.singkong') || route().current('incoming.singkong.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <Truck class="w-4 h-4" />
                                 <span>Incoming Singkong</span>
                             </Button>
                         </Link>
@@ -251,10 +253,10 @@ const logout = () => {
                         <Link :href="auth.user.role === 'admin' ? route('admin.incoming.rmpm') : route('incoming.rmpm.dashboard')">
                             <Button 
                                 variant="ghost" 
-                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('admin.incoming.rmpm') || route().current('incoming.rmpm.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                class="w-full justify-start gap-3 h-10 px-3 transition-colors"
+                                :class="route().current('admin.incoming.rmpm') || route().current('incoming.rmpm.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
                             >
-                                <Package class="w-5 h-5" :class="route().current('admin.incoming.rmpm') || route().current('incoming.rmpm.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <Package class="w-4 h-4" />
                                 <span>Incoming RMPM</span>
                             </Button>
                         </Link>
@@ -268,10 +270,10 @@ const logout = () => {
                         <Link :href="auth.user.role === 'admin' ? route('admin.fg-surabaya') : route('fg-surabaya.dashboard')">
                             <Button 
                                 variant="ghost" 
-                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('admin.fg-surabaya') || route().current('fg-surabaya.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                class="w-full justify-start gap-3 h-10 px-3 transition-colors"
+                                :class="route().current('admin.fg-surabaya') || route().current('fg-surabaya.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
                             >
-                                <ClipboardList class="w-5 h-5" :class="route().current('admin.fg-surabaya') || route().current('fg-surabaya.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <ClipboardList class="w-4 h-4" />
                                 <span>Formulasi</span>
                             </Button>
                         </Link>
@@ -280,10 +282,10 @@ const logout = () => {
                         <Link :href="auth.user.role === 'admin' ? route('admin.cs-noodle-sby') : route('cs-noodle-sby.dashboard')">
                             <Button 
                                 variant="ghost" 
-                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('admin.cs-noodle-sby') || route().current('cs-noodle-sby.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                class="w-full justify-start gap-3 h-10 px-3 transition-colors"
+                                :class="route().current('admin.cs-noodle-sby') || route().current('cs-noodle-sby.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
                             >
-                                <Box class="w-5 h-5" :class="route().current('admin.cs-noodle-sby') || route().current('cs-noodle-sby.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <Box class="w-4 h-4" />
                                 <span>CS Noodle</span>
                             </Button>
                         </Link>
@@ -292,10 +294,10 @@ const logout = () => {
                         <Link :href="auth.user.role === 'admin' ? route('admin.cs-fg-sby') : route('cs-fg-sby.dashboard')">
                             <Button 
                                 variant="ghost" 
-                                class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                :class="route().current('admin.cs-fg-sby') || route().current('cs-fg-sby.dashboard') ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                class="w-full justify-start gap-3 h-10 px-3 transition-colors"
+                                :class="route().current('admin.cs-fg-sby') || route().current('cs-fg-sby.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
                             >
-                                <Box class="w-5 h-5" :class="route().current('admin.cs-fg-sby') || route().current('cs-fg-sby.dashboard') ? 'text-blue-600' : 'text-gray-400'" />
+                                <Box class="w-4 h-4" />
                                 <span>CS FG-Sby</span>
                             </Button>
                         </Link>
@@ -310,10 +312,10 @@ const logout = () => {
                             <Link :href="link.href">
                                 <Button 
                                     variant="ghost" 
-                                    class="w-full justify-start gap-3 h-11 px-3 rounded-xl transition-all"
-                                    :class="link.active ? 'bg-blue-50 text-blue-700 font-black' : 'text-gray-600 hover:bg-gray-50'"
+                                    class="w-full justify-start gap-3 h-10 px-3 transition-colors"
+                                    :class="link.active ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
                                 >
-                                    <component :is="link.icon" class="w-5 h-5" :class="link.active ? 'text-blue-600' : 'text-gray-400'" />
+                                    <component :is="link.icon" class="w-4 h-4" />
                                     <span>{{ link.name }}</span>
                                 </Button>
                             </Link>
@@ -325,9 +327,9 @@ const logout = () => {
                         <Button 
                             @click="logout" 
                             variant="ghost" 
-                            class="w-full justify-start gap-3 h-11 px-3 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700 transition-all font-bold"
+                            class="w-full justify-start gap-3 h-10 px-3 text-red-600 hover:bg-red-50 hover:text-red-700 font-medium"
                         >
-                            <LogOut class="w-5 h-5 text-red-500" />
+                            <LogOut class="w-4 h-4" />
                             <span>Logout</span>
                         </Button>
                     </li>
@@ -336,7 +338,7 @@ const logout = () => {
         </aside>
 
         <!-- Content Area -->
-        <main :class="[desktopSidebarOpen ? 'sm:ml-64' : 'sm:ml-0']" class="p-4 mt-14 transition-all">
+        <main :class="[desktopSidebarOpen ? 'sm:ml-64' : 'sm:ml-0']" class="p-6 mt-14 transition-all">
             <slot />
         </main>
     </div>

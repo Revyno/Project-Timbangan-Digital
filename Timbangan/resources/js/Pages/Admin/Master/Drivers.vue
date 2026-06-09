@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
 import { 
     Card, 
     CardContent, 
@@ -18,7 +19,7 @@ import {
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { UserCheck, Plus, Search, QrCode, Download } from 'lucide-vue-next';
+import { UserCheck, Plus, Search, QrCode } from 'lucide-vue-next';
 
 const props = defineProps({
     drivers: Array,
@@ -31,6 +32,20 @@ const form = useForm({
     supplier_id: '',
     nomor_plat: '',
     asal: '',
+});
+
+const search = ref('');
+
+const filteredDrivers = computed(() => {
+    if (!search.value) return props.drivers;
+    const q = search.value.toLowerCase();
+    return props.drivers.filter(d => 
+        (d.name && d.name.toLowerCase().includes(q)) ||
+        (d.nomor_plat && d.nomor_plat.toLowerCase().includes(q)) ||
+        (d.supplier?.name && d.supplier.name.toLowerCase().includes(q)) ||
+        (d.asal && d.asal.toLowerCase().includes(q)) ||
+        (d.qr_code && d.qr_code.toLowerCase().includes(q))
+    );
 });
 
 const submit = () => {
@@ -77,19 +92,17 @@ const printQr = (driver) => {
 
     <AuthenticatedLayout>
         <div class="space-y-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-2xl font-black text-gray-800">Master Data Drivers</h2>
-                    <p class="text-sm text-gray-500 mt-1">Kelola data sopir dan generate QR Code untuk identifikasi otomatis.</p>
-                </div>
+            <div>
+                <h2 class="text-2xl font-bold tracking-tight text-foreground">Master Data Drivers</h2>
+                <p class="text-sm text-muted-foreground mt-1">Kelola data sopir dan generate QR Code untuk identifikasi otomatis.</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Form Add -->
-                <Card class="h-fit">
+                <Card class="bg-emerald-50/60 border-emerald-200 shadow-sm dark:bg-emerald-950/40 dark:border-emerald-800">
                     <CardHeader>
                         <CardTitle class="text-lg flex items-center gap-2">
-                            <Plus class="w-5 h-5 text-blue-600" />
+                            <Plus class="w-4 h-4 text-primary" />
                             Tambah Driver
                         </CardTitle>
                     </CardHeader>
@@ -127,7 +140,7 @@ const printQr = (driver) => {
                                     <option v-for="a in asalOptions" :key="a" :value="a">{{ a }}</option>
                                 </select>
                             </div>
-                            <Button :disabled="form.processing" class="w-full bg-blue-600 hover:bg-blue-700">
+                            <Button :disabled="form.processing" class="w-full">
                                 Simpan Driver & Generate QR
                             </Button>
                         </form>
@@ -135,17 +148,17 @@ const printQr = (driver) => {
                 </Card>
 
                 <!-- List Table -->
-                <Card class="lg:col-span-2">
-                    <CardHeader class="flex flex-row items-center justify-between">
+                <Card class="lg:col-span-2 bg-emerald-50/60 border-emerald-200 shadow-sm dark:bg-emerald-950/40 dark:border-emerald-800">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-4">
                         <CardTitle class="text-lg">Daftar Sopir</CardTitle>
                         <div class="relative w-64">
-                            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input placeholder="Cari sopir..." class="pl-10" />
+                            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input v-model="search" placeholder="Cari sopir..." class="pl-10" />
                         </div>
                     </CardHeader>
                     <CardContent class="p-0">
                         <Table>
-                            <TableHeader class="bg-gray-50">
+                            <TableHeader>
                                 <TableRow>
                                     <TableHead>Nama Sopir</TableHead>
                                     <TableHead>Nomor Plat</TableHead>
@@ -156,10 +169,10 @@ const printQr = (driver) => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="d in drivers" :key="d.id">
-                                    <TableCell class="font-bold text-gray-800">
+                                <TableRow v-for="d in filteredDrivers" :key="d.id">
+                                    <TableCell class="font-medium">
                                         <div class="flex items-center gap-2">
-                                            <UserCheck class="w-4 h-4 text-gray-400" />
+                                            <UserCheck class="w-4 h-4 text-muted-foreground" />
                                             {{ d.name }}
                                         </div>
                                     </TableCell>
@@ -167,21 +180,19 @@ const printQr = (driver) => {
                                     <TableCell>{{ d.supplier.name }}</TableCell>
                                     <TableCell>{{ d.asal || '-' }}</TableCell>
                                     <TableCell>
-                                        <div class="flex items-center gap-2">
-                                            <code class="bg-gray-100 px-2 py-0.5 rounded text-xs font-bold text-blue-600">
-                                                {{ d.qr_code }}
-                                            </code>
-                                        </div>
+                                        <code class="bg-primary/10 px-2 py-0.5 rounded text-xs font-mono font-semibold text-primary border border-primary/20">
+                                            {{ d.qr_code }}
+                                        </code>
                                     </TableCell>
                                     <TableCell class="text-right">
-                                        <Button @click="printQr(d)" variant="outline" size="sm" class="border-blue-200 text-blue-600 hover:bg-blue-50 font-bold">
+                                        <Button @click="printQr(d)" variant="outline" size="sm">
                                             <QrCode class="w-4 h-4 mr-1.5" /> Print QR
                                         </Button>
                                     </TableCell>
                                 </TableRow>
-                                <TableRow v-if="drivers.length === 0">
-                                    <TableCell colspan="4" class="text-center py-12 text-gray-400 italic">
-                                        Belum ada data sopir.
+                                <TableRow v-if="filteredDrivers.length === 0">
+                                    <TableCell colspan="6" class="text-center py-12 text-muted-foreground italic">
+                                        Belum ada data atau tidak ditemukan.
                                     </TableCell>
                                 </TableRow>
                             </TableBody>

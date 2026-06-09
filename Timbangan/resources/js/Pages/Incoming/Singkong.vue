@@ -46,6 +46,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { onMounted, onUnmounted } from 'vue';
 import QrScanner from '@/Components/QrScanner.vue';
+import { formatWeight } from '@/utils/format';
 
 const props = defineProps({
     activeSession:   Object,
@@ -149,17 +150,12 @@ const stopSession = () => {
     }
 };
 
-const formatWeight = (weight) => {
-    if (!weight || weight <= 0) return 'Belum ditimbang';
-    return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(weight) + ' kg';
+const handlePageChange = (page) => {
+    router.get(route(route().current()), { page }, { preserveState: true, preserveScroll: true });
 };
 
 const formatDateTime = (date) => {
     return new Date(date).toLocaleTimeString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-};
-
-const handlePageChange = (page) => {
-    router.get(route(route().current()), { page }, { preserveState: true, preserveScroll: true });
 };
 </script>
 
@@ -170,62 +166,73 @@ const handlePageChange = (page) => {
         <div class="space-y-6">
             <!-- Header -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card class="p-5 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl shadow-lg text-white border-none">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="p-3 bg-white/20 rounded-xl">
-                            <Truck class="w-6 h-6 text-white" />
+                <Card class="bg-amber-50/60 border-amber-200 shadow-sm dark:bg-amber-950/40 dark:border-amber-800">
+                    <CardHeader class="flex flex-row items-center gap-4 space-y-0 pb-3">
+                        <div class="p-2 bg-primary/10 text-primary rounded-lg">
+                            <Truck class="w-5 h-5" />
                         </div>
                         <div>
-                            <h5 class="text-xs font-bold uppercase tracking-widest opacity-70">Operator Incoming</h5>
-                            <p class="text-xl font-black">{{ auth.user.name }}</p>
+                            <p class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Operator Incoming</p>
+                            <CardTitle class="text-xl font-bold">{{ auth.user.name }}</CardTitle>
                         </div>
-                    </div>
-                    <div class="text-xs bg-black/20 p-3 rounded-xl border border-white/10">
-                        <p>Shift: <b>{{ auth.user.shift }}</b></p>
-                        <p>Total Items: <b>{{ totalShift }}</b></p>
-                        <p>Total Berat: <b>{{ new Intl.NumberFormat('id-ID').format(totalBerat) }} kg</b></p>
-                    </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-sm border rounded-lg p-3 bg-background space-y-1">
+                            <div class="flex justify-between">
+                                <span class="text-muted-foreground">Shift:</span>
+                                <span class="font-bold">{{ auth.user.shift }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-muted-foreground">Total Sesi:</span>
+                                <span class="font-bold">{{ totalShift }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-muted-foreground">Total Berat:</span>
+                                <span class="font-bold text-primary">{{ new Intl.NumberFormat('id-ID').format(totalBerat) }} kg</span>
+                            </div>
+                        </div>
+                    </CardContent>
                 </Card>
 
-                <Card class="md:col-span-2 p-6 bg-white border-none rounded-3xl shadow-xl">
+                <Card class="md:col-span-2 bg-amber-50/60 border-amber-200 shadow-sm dark:bg-amber-950/40 dark:border-amber-800">
                     <!-- Active Session Info -->
-                    <div v-if="activeSession" class="space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
+                    <div v-if="activeSession" class="p-6 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4">
                             <div>
-                                <Badge class="bg-emerald-100 text-emerald-700 mb-2">SESI AKTIF</Badge>
-                                <h3 class="text-xl sm:text-2xl font-black text-gray-900">{{ activeSession.nama_supplier }}</h3>
-                                <p class="text-sm text-gray-500">KP: {{ activeSession.kode_produksi }} | No Surat: {{ activeSession.no_surat }}</p>
+                                <Badge class="bg-emerald-600 hover:bg-emerald-600 text-white mb-2">SESI AKTIF</Badge>
+                                <h3 class="text-xl sm:text-2xl font-bold text-foreground">{{ activeSession.nama_supplier }}</h3>
+                                <p class="text-sm text-muted-foreground">KP: {{ activeSession.kode_produksi }} | No Surat: {{ activeSession.no_surat }}</p>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                                <Button @click="nextSession" variant="outline" class="border-emerald-200 text-emerald-700 hover:bg-emerald-50 py-5 px-5 w-full sm:w-auto justify-center">
+                                <Button @click="nextSession" variant="outline" class="w-full sm:w-auto justify-center">
                                     <RotateCcw class="w-4 h-4 mr-2" /> Ganti Sesi
                                 </Button>
-                                <Button @click="stopSession" variant="destructive" class="bg-red-600 py-5 px-5 w-full sm:w-auto justify-center">
+                                <Button @click="stopSession" variant="destructive" class="w-full sm:w-auto justify-center">
                                     <LogOut class="w-4 h-4 mr-2" /> Stop Shift
                                 </Button>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
-                                <p class="text-gray-400 font-bold uppercase text-[10px]">Sopir</p>
-                                <p class="font-bold">{{ activeSession.nama_sopir }}</p>
+                                <p class="text-muted-foreground font-semibold uppercase text-[10px]">Sopir</p>
+                                <p class="font-bold text-foreground">{{ activeSession.nama_sopir }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-400 font-bold uppercase text-[10px]">Plat Nomor</p>
-                                <p class="font-bold">{{ activeSession.nomor_plat }}</p>
+                                <p class="text-muted-foreground font-semibold uppercase text-[10px]">Plat Nomor</p>
+                                <p class="font-bold text-foreground">{{ activeSession.nomor_plat }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-400 font-bold uppercase text-[10px]">Asal</p>
-                                <p class="font-bold">{{ activeSession.asal }}</p>
+                                <p class="text-muted-foreground font-semibold uppercase text-[10px]">Asal</p>
+                                <p class="font-bold text-foreground">{{ activeSession.asal }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-400 font-bold uppercase text-[10px]">Jenis</p>
-                                <p class="font-bold">{{ activeSession.jenis_singkong }}</p>
+                                <p class="text-muted-foreground font-semibold uppercase text-[10px]">Jenis</p>
+                                <p class="font-bold text-foreground">{{ activeSession.jenis_singkong }}</p>
                             </div>
                         </div>
-                        <div class="mt-4 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <div class="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-md">
                              <p class="text-sm text-emerald-700 font-medium flex items-center gap-2">
-                                <Clock v-if="bannerMessage === 'Menunggu data berat dari timbangan...'" class="w-4 h-4 animate-pulse" />
+                                <Clock v-if="bannerMessage === 'Menunggu data berat dari timbangan...'" class="w-4 h-4 animate-pulse text-emerald-500" />
                                 <CheckCircle2 v-else class="w-4 h-4 text-emerald-600" />
                                 {{ bannerMessage }}
                             </p>
@@ -233,192 +240,193 @@ const handlePageChange = (page) => {
                     </div>
 
                     <!-- Start Session Form -->
-                    <div v-else>
+                    <div v-else class="p-6">
                         <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-bold text-gray-900">Mulai Sesi Baru</h3>
-                            <Button @click="identifyDriver" type="button" class="bg-blue-600 hover:bg-blue-700 font-bold">
+                            <CardTitle class="text-lg font-bold text-foreground">Mulai Sesi Baru</CardTitle>
+                            <Button @click="identifyDriver" type="button">
                                 <QrCode class="w-4 h-4 mr-2" /> Scan QR Driver
                             </Button>
                         </div>
 
                         <form @submit.prevent="startSession" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- No. Surat — plain text -->
-                        <div class="space-y-1">
-                            <Label for="no_surat">No. Surat</Label>
-                            <Input
-                                id="no_surat"
-                                v-model="form.no_surat"
-                                required
-                                placeholder="No. Surat Jalan"
-                            />
-                            <p v-if="form.errors.no_surat" class="text-red-500 text-xs">{{ form.errors.no_surat }}</p>
-                        </div>
+                            <!-- No. Surat — plain text -->
+                            <div class="space-y-1">
+                                <Label for="no_surat">No. Surat</Label>
+                                <Input
+                                    id="no_surat"
+                                    v-model="form.no_surat"
+                                    required
+                                    placeholder="No. Surat Jalan"
+                                />
+                                <p v-if="form.errors.no_surat" class="text-destructive text-xs">{{ form.errors.no_surat }}</p>
+                            </div>
 
-                        <!-- Supplier — DROPDOWN -->
-                        <div class="space-y-1">
-                            <Label for="nama_supplier">Supplier</Label>
-                            <select
-                                id="nama_supplier"
-                                v-model="form.nama_supplier"
-                                required
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            >
-                                <option value="" disabled>-- Pilih Supplier --</option>
-                                <option v-for="s in supplierOptions" :key="s" :value="s">{{ s }}</option>
-                            </select>
-                            <p v-if="form.errors.nama_supplier" class="text-red-500 text-xs">{{ form.errors.nama_supplier }}</p>
-                        </div>
+                            <!-- Supplier — DROPDOWN -->
+                            <div class="space-y-1">
+                                <Label for="nama_supplier">Supplier</Label>
+                                <select
+                                    id="nama_supplier"
+                                    v-model="form.nama_supplier"
+                                    required
+                                    class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
+                                >
+                                    <option value="" disabled>-- Pilih Supplier --</option>
+                                    <option v-for="s in supplierOptions" :key="s" :value="s">{{ s }}</option>
+                                </select>
+                                <p v-if="form.errors.nama_supplier" class="text-destructive text-xs">{{ form.errors.nama_supplier }}</p>
+                            </div>
 
-                        <!-- Asal — DROPDOWN -->
-                        <div class="space-y-1">
-                            <Label for="asal">Asal</Label>
-                            <select
-                                id="asal"
-                                v-model="form.asal"
-                                required
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            >
-                                <option value="" disabled>-- Pilih Asal --</option>
-                                <option v-for="a in asalOptions" :key="a" :value="a">{{ a }}</option>
-                            </select>
-                            <p v-if="form.errors.asal" class="text-red-500 text-xs">{{ form.errors.asal }}</p>
-                        </div>
+                            <!-- Asal — DROPDOWN -->
+                            <div class="space-y-1">
+                                <Label for="asal">Asal</Label>
+                                <select
+                                    id="asal"
+                                    v-model="form.asal"
+                                    required
+                                    class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
+                                >
+                                    <option value="" disabled>-- Pilih Asal --</option>
+                                    <option v-for="a in asalOptions" :key="a" :value="a">{{ a }}</option>
+                                </select>
+                                <p v-if="form.errors.asal" class="text-destructive text-xs">{{ form.errors.asal }}</p>
+                            </div>
 
-                        <!-- Nama Sopir — plain text -->
-                        <div class="space-y-1">
-                            <Label for="nama_sopir">Nama Sopir</Label>
-                            <Input
-                                id="nama_sopir"
-                                v-model="form.nama_sopir"
-                                required
-                                placeholder="Nama Sopir"
-                            />
-                            <p v-if="form.errors.nama_sopir" class="text-red-500 text-xs">{{ form.errors.nama_sopir }}</p>
-                        </div>
+                            <!-- Nama Sopir — plain text -->
+                            <div class="space-y-1">
+                                <Label for="nama_sopir">Nama Sopir</Label>
+                                <Input
+                                    id="nama_sopir"
+                                    v-model="form.nama_sopir"
+                                    required
+                                    placeholder="Nama Sopir"
+                                />
+                                <p v-if="form.errors.nama_sopir" class="text-destructive text-xs">{{ form.errors.nama_sopir }}</p>
+                            </div>
 
-                        <!-- No. Plat — plain text -->
-                        <div class="space-y-1">
-                            <Label for="nomor_plat">No. Plat</Label>
-                            <Input
-                                id="nomor_plat"
-                                v-model="form.nomor_plat"
-                                required
-                                placeholder="Nopol Kendaraan"
-                            />
-                            <p v-if="form.errors.nomor_plat" class="text-red-500 text-xs">{{ form.errors.nomor_plat }}</p>
-                        </div>
+                            <!-- No. Plat — plain text -->
+                            <div class="space-y-1">
+                                <Label for="nomor_plat">No. Plat</Label>
+                                <Input
+                                    id="nomor_plat"
+                                    v-model="form.nomor_plat"
+                                    required
+                                    placeholder="Nopol Kendaraan"
+                                />
+                                <p v-if="form.errors.nomor_plat" class="text-destructive text-xs">{{ form.errors.nomor_plat }}</p>
+                            </div>
 
-                        <!-- Jenis Singkong — DROPDOWN -->
-                        <div class="space-y-1">
-                            <Label for="jenis_singkong">Jenis Singkong</Label>
-                            <select
-                                id="jenis_singkong"
-                                v-model="form.jenis_singkong"
-                                required
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            >
-                                <option value="" disabled>-- Pilih Jenis --</option>
-                                <option v-for="j in jenisOptions" :key="j" :value="j">{{ j }}</option>
-                            </select>
-                            <p v-if="form.errors.jenis_singkong" class="text-red-500 text-xs">{{ form.errors.jenis_singkong }}</p>
-                        </div>
+                            <!-- Jenis Singkong — DROPDOWN -->
+                            <div class="space-y-1">
+                                <Label for="jenis_singkong">Jenis Singkong</Label>
+                                <select
+                                    id="jenis_singkong"
+                                    v-model="form.jenis_singkong"
+                                    required
+                                    class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
+                                >
+                                    <option value="" disabled>-- Pilih Jenis --</option>
+                                    <option v-for="j in jenisOptions" :key="j" :value="j">{{ j }}</option>
+                                </select>
+                                <p v-if="form.errors.jenis_singkong" class="text-destructive text-xs">{{ form.errors.jenis_singkong }}</p>
+                            </div>
 
-                        <!-- Kode Produksi — plain text -->
-                        <div class="space-y-1">
-                            <Label for="kode_produksi">Kode Produksi</Label>
-                            <Input
-                                id="kode_produksi"
-                                v-model="form.kode_produksi"
-                                required
-                                placeholder="LOT / KP"
-                            />
-                            <p v-if="form.errors.kode_produksi" class="text-red-500 text-xs">{{ form.errors.kode_produksi }}</p>
-                        </div>
+                            <!-- Kode Produksi — plain text -->
+                            <div class="space-y-1">
+                                <Label for="kode_produksi">Kode Produksi</Label>
+                                <Input
+                                    id="kode_produksi"
+                                    v-model="form.kode_produksi"
+                                    required
+                                    placeholder="LOT / KP"
+                                />
+                                <p v-if="form.errors.kode_produksi" class="text-destructive text-xs">{{ form.errors.kode_produksi }}</p>
+                            </div>
 
-                        <div class="lg:col-span-3 pt-2">
-                            <Button
-                                type="submit"
-                                :disabled="form.processing"
-                                class="w-full bg-emerald-600 hover:bg-emerald-700 py-6 font-bold text-lg"
-                            >
-                                <Loader2 v-if="form.processing" class="w-5 h-5 mr-2 animate-spin" />
-                                <Play v-else class="w-5 h-5 mr-2" /> 
-                                {{ form.processing ? 'Memulai Sesi...' : 'Mulai Penimbangan' }}
-                            </Button>
-                        </div>
-                    </form>
-                </div>
+                            <div class="lg:col-span-3 pt-2">
+                                <Button
+                                    type="submit"
+                                    :disabled="form.processing"
+                                    class="w-full font-bold text-base"
+                                >
+                                    <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
+                                    <Play v-else class="w-4 h-4 mr-2" /> 
+                                    {{ form.processing ? 'Memulai Sesi...' : 'Mulai Penimbangan' }}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
                 </Card>
             </div>
-
-            <!-- History -->
-            <Card class="bg-white border-none rounded-3xl shadow-xl overflow-hidden">
-                <div class="p-6 border-b border-gray-100">
-                    <h5 class="text-xl font-black text-gray-900">Riwayat Penimbangan Singkong</h5>
+                  <!-- History -->
+            <Card class="overflow-hidden bg-amber-50/60 border-amber-200 shadow-sm dark:bg-amber-950/40 dark:border-amber-800">
+                <div class="p-6 border-b border-border">
+                    <CardTitle class="text-xl font-bold text-foreground">Riwayat Penimbangan Singkong</CardTitle>
                 </div>
-                <div class="p-0">
+                <div class="overflow-x-auto">
                     <Table>
-                        <TableHeader class="bg-gray-50">
+                        <TableHeader>
                             <TableRow>
-                                <TableHead class="px-6 py-4">Waktu</TableHead>
-                                <TableHead class="px-6 py-4">No Surat</TableHead>
-                                <TableHead class="px-6 py-4">Supplier</TableHead>
-                                <TableHead class="px-6 py-4">Asal</TableHead>
-                                <TableHead class="px-6 py-4">Jenis</TableHead>
-                                <TableHead class="px-6 py-4">Berat</TableHead>
-                                <TableHead class="px-6 py-4">Status</TableHead>
+                                <TableHead class="px-6 py-4 text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">Waktu</TableHead>
+                                <TableHead class="px-6 py-4 text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">No Surat</TableHead>
+                                <TableHead class="px-6 py-4 text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">Supplier</TableHead>
+                                <TableHead class="px-6 py-4 text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">Asal</TableHead>
+                                <TableHead class="px-6 py-4 text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">Jenis</TableHead>
+                                <TableHead class="px-6 py-4 text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">Berat</TableHead>
+                                <TableHead class="px-6 py-4 text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             <TableRow v-for="h in history.data" :key="h.id">
-                                <TableCell class="px-6 py-4">{{ formatDateTime(h.created_at) }}</TableCell>
-                                <TableCell class="px-6 py-4 font-mono">{{ h.no_surat }}</TableCell>
-                                <TableCell class="px-6 py-4 font-bold">{{ h.nama_supplier }}</TableCell>
-                                <TableCell class="px-6 py-4">{{ h.asal }}</TableCell>
-                                <TableCell class="px-6 py-4">{{ h.jenis_singkong }}</TableCell>
-                                <TableCell class="px-6 py-4 font-black">{{ formatWeight(h.berat) }}</TableCell>
+                                <TableCell class="px-6 py-4 text-muted-foreground whitespace-nowrap">{{ formatDateTime(h.created_at) }}</TableCell>
+                                <TableCell class="px-6 py-4 font-mono text-xs">{{ h.no_surat }}</TableCell>
+                                <TableCell class="px-6 py-4 font-bold text-sm">{{ h.nama_supplier }}</TableCell>
+                                <TableCell class="px-6 py-4 text-sm text-muted-foreground">{{ h.asal }}</TableCell>
                                 <TableCell class="px-6 py-4">
-                                    <Badge :variant="h.status === 'selesai' ? 'default' : 'secondary'">{{ h.status }}</Badge>
+                                    <Badge variant="secondary">{{ h.jenis_singkong }}</Badge>
+                                </TableCell>
+                                <TableCell class="px-6 py-4 font-bold whitespace-nowrap">{{ formatWeight(h.berat) }} <span class="text-xs font-normal text-muted-foreground">kg</span></TableCell>
+                                <TableCell class="px-6 py-4">
+                                    <Badge v-if="h.status === 'selesai'" class="bg-emerald-100 text-emerald-800 border-emerald-200">Selesai</Badge>
+                                    <Badge v-else variant="outline" class="bg-amber-100 text-amber-800 border-amber-200">{{ h.status }}</Badge>
                                 </TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
-                    <div v-if="history.data.length === 0" class="p-12 text-center text-gray-400">
-                        Belum ada riwayat untuk shift ini.
-                    </div>
+                </div>
+                <div v-if="history.data.length === 0" class="p-12 text-center text-muted-foreground">
+                    Belum ada riwayat untuk shift ini.
+                </div>
 
-                    <!-- Pagination -->
-                    <div v-if="history.total > history.per_page" class="mt-6 pb-6 flex justify-center">
-                        <Pagination 
-                            :total="history.total" 
-                            :sibling-count="1" 
-                            show-edges 
-                            :default-page="history.current_page"
-                            @update:page="handlePageChange"
-                        >
-                            <PaginationContent>
-                                <PaginationFirst />
-                                <PaginationPrevious />
+                <!-- Pagination -->
+                <div v-if="history.total > history.per_page" class="px-6 py-4 border-t border-border flex justify-center">
+                    <Pagination 
+                        v-slot="{ page }"
+                        :total="history.total" 
+                        :items-per-page="history.per_page"
+                        :sibling-count="1" 
+                        show-edges 
+                        :page="history.current_page"
+                        @update:page="handlePageChange"
+                    >
+                        <PaginationContent v-slot="{ items }">
+                            <PaginationFirst />
+                            <PaginationPrevious />
 
-                                <template v-for="(item, index) in history.links.slice(1, -1)" :key="index">
-                                    <PaginationItem>
-                                        <Button
-                                            v-if="item.url"
-                                            class="w-10 h-10 p-0"
-                                            :variant="item.active ? 'default' : 'outline'"
-                                            @click="handlePageChange(item.label)"
-                                        >
-                                            {{ item.label }}
-                                        </Button>
-                                        <PaginationEllipsis v-else />
-                                    </PaginationItem>
-                                </template>
+                            <template v-for="(item, index) in items" :key="index">
+                                <PaginationItem
+                                    v-if="item.type === 'page'"
+                                    :value="item.value"
+                                    :is-active="item.value === page"
+                                >
+                                    {{ item.value }}
+                                </PaginationItem>
+                                <PaginationEllipsis v-else />
+                            </template>
 
-                                <PaginationNext />
-                                <PaginationLast />
-                            </PaginationContent>
-                        </Pagination>
-                    </div>
+                            <PaginationNext />
+                            <PaginationLast />
+                        </PaginationContent>
+                    </Pagination>
                 </div>
             </Card>
         </div>

@@ -36,9 +36,11 @@ import {
     Play, 
     CheckCircle2, 
     AlertCircle,
-    Loader2
+    Loader2,
+    Clock
 } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
+import { formatWeight } from '@/utils/format';
 
 const props = defineProps({
     produks: Array,
@@ -105,9 +107,8 @@ const stopSession = () => {
     }
 };
 
-const formatWeight = (weight) => {
-    if (!weight || weight <= 0) return 'Belum ditimbang';
-    return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(weight) + ' kg';
+const handlePageChange = (page) => {
+    router.get(route(route().current()), { page }, { preserveState: true, preserveScroll: true });
 };
 
 const formatDate = (date) => {
@@ -117,10 +118,6 @@ const formatDate = (date) => {
 
 const formatDateTime = (date) => {
     return new Date(date).toLocaleTimeString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-};
-
-const handlePageChange = (page) => {
-    router.get(route(route().current()), { page }, { preserveState: true, preserveScroll: true });
 };
 </script>
 
@@ -132,187 +129,195 @@ const handlePageChange = (page) => {
             <!-- Status Overview -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Operator Card -->
-                <Card class="p-5 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-lg text-white border-none">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="p-3 bg-white/20 rounded-xl">
-                            <User class="w-6 h-6 text-white" />
+                <Card class="bg-slate-50/50 border-slate-200/60 dark:bg-slate-900/20 dark:border-slate-800">
+                    <CardHeader class="flex flex-row items-center gap-4 space-y-0 pb-3">
+                        <div class="p-2 bg-primary/10 text-primary rounded-lg">
+                            <User class="w-5 h-5" />
                         </div>
                         <div>
-                            <h5 class="text-xs font-bold uppercase tracking-widest opacity-70">Operator Aktif</h5>
-                            <p class="text-xl font-black">{{ auth.user.name }}</p>
+                            <p class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Operator Aktif</p>
+                            <CardTitle class="text-xl font-bold">{{ auth.user.name }}</CardTitle>
                         </div>
-                    </div>
-                    <div class="text-xs bg-black/20 p-3 rounded-xl border border-white/10">
-                        <div class="flex justify-between mb-1">
-                            <span>Shift Saat Ini:</span>
-                            <span class="font-bold">{{ auth.user.shift }}</span>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-sm border rounded-lg p-3 bg-background space-y-1">
+                            <div class="flex justify-between">
+                                <span class="text-muted-foreground">Shift Saat Ini:</span>
+                                <span class="font-bold">{{ auth.user.shift }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-muted-foreground">Waktu Shift:</span>
+                                <span class="font-bold">{{ auth.user.shift_start }} - {{ auth.user.shift_end }}</span>
+                            </div>
                         </div>
-                        <div class="flex justify-between">
-                            <span>Waktu Shift:</span>
-                            <span class="font-bold">{{ auth.user.shift_start }} - {{ auth.user.shift_end }}</span>
-                        </div>
-                    </div>
+                    </CardContent>
                 </Card>
 
                 <!-- Manual Session Control -->
-                <Card class="md:col-span-2 p-6 bg-white border-none rounded-3xl shadow-xl">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="p-2 bg-indigo-100 rounded-lg">
-                            <Settings2 class="w-5 h-5 text-indigo-600" />
+                <Card class="md:col-span-2 bg-blue-50/60 border-blue-200 shadow-sm dark:bg-blue-950/40 dark:border-blue-800">
+                    <CardHeader class="flex flex-row items-center gap-3 space-y-0 pb-4">
+                        <div class="p-2 bg-primary/10 text-primary rounded-lg">
+                            <Settings2 class="w-5 h-5" />
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900">Kontrol Sesi Penimbangan</h3>
-                    </div>
-
-                    <div v-if="activePenimbangan" class="p-5 bg-emerald-50 border border-emerald-100 rounded-2xl">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div>
-                                <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Sesi Aktif</span>
-                                <h4 class="text-2xl font-black text-gray-900 mt-1">{{ activePenimbangan.produk?.nama_produk }}</h4>
-                                <div class="flex flex-wrap gap-4 mt-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs text-gray-500">KP:</span>
-                                        <span class="text-xs font-bold text-gray-900">{{ activePenimbangan.kode_produksi }}</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs text-gray-500">Expired:</span>
-                                        <span class="text-xs font-bold text-gray-900">{{ formatDate(activePenimbangan.tanggal_expired) }}</span>
+                        <CardTitle class="text-lg font-bold">Kontrol Sesi Penimbangan</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div v-if="activePenimbangan" class="p-5 border border-emerald-200 bg-emerald-50 text-emerald-950 rounded-lg">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div>
+                                    <Badge class="bg-emerald-600 text-white hover:bg-emerald-600">Sesi Aktif</Badge>
+                                    <h4 class="text-2xl font-bold mt-2">{{ activePenimbangan.produk?.nama_produk }}</h4>
+                                    <div class="flex flex-wrap gap-4 mt-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-emerald-800">KP:</span>
+                                            <span class="text-xs font-bold text-emerald-950">{{ activePenimbangan.kode_produksi }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-emerald-800">Expired:</span>
+                                            <span class="text-xs font-bold text-emerald-950">{{ formatDate(activePenimbangan.tanggal_expired) }}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                                <Button @click="nextSession" class="bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 py-5 px-6 w-full sm:w-auto justify-center">
-                                    <RotateCcw class="w-5 h-5 mr-2" />
-                                    Ganti Produk
-                                </Button>
+                                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                                    <Button @click="nextSession" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                                        <RotateCcw class="w-4 h-4 mr-2" />
+                                        Ganti Produk
+                                    </Button>
 
-                                <Button @click="stopSession" variant="destructive" class="bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-200 py-5 px-6 w-full sm:w-auto justify-center">
-                                    <LogOut class="w-5 h-5 mr-2" />
-                                    Selesai Shift
-                                </Button>
+                                    <Button @click="stopSession" variant="destructive" class="w-full sm:w-auto font-bold">
+                                        <LogOut class="w-4 h-4 mr-2" />
+                                        Selesai Shift
+                                    </Button>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 rounded-md">
+                                <p class="text-xs text-emerald-700 font-medium flex items-center gap-2">
+                                    <Clock v-if="bannerMessage === 'Sistem siap menerima data berat dari timbangan IoT untuk LOT ini.'" class="w-4 h-4 animate-pulse text-emerald-500" />
+                                    <CheckCircle2 v-else class="w-4 h-4 text-emerald-600" />
+                                    {{ bannerMessage }}
+                                </p>
                             </div>
                         </div>
-                        <div class="mt-4 p-3 bg-white/50 rounded-xl border border-emerald-100">
-                            <p class="text-sm text-emerald-700 font-medium flex items-center gap-2">
-                                <Clock v-if="bannerMessage === 'Sistem siap menerima data berat dari timbangan IoT untuk LOT ini.'" class="w-4 h-4 animate-pulse" />
-                                <CheckCircle2 v-else class="w-4 h-4 text-emerald-600" />
-                                {{ bannerMessage }}
-                            </p>
-                        </div>
-                    </div>
 
-                    <form v-else @submit.prevent="startSession" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Pilih Produk</label>
-                            <select v-model="form.produk_id" required class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block p-3">
-                                <option value="">-- Pilih Produk --</option>
-                                <option v-for="p in produks" :key="p.id" :value="p.id">{{ p.nama_produk }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Kode Produksi (KP)</label>
-                            <input v-model="form.kode_produksi" type="text" required placeholder="Contoh: KP-20240423-001" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block p-3">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Tanggal Expired</label>
-                            <input v-model="form.tanggal_expired" type="date" required class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block p-3">
-                        </div>
-                        <div class="md:col-span-3">
-                            <Button type="submit" :disabled="form.processing" class="w-full md:w-auto px-10 py-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200">
-                                <Loader2 v-if="form.processing" class="w-5 h-5 mr-2 animate-spin" />
-                                <Play v-else class="w-5 h-5 mr-2" />
-                                {{ form.processing ? 'Memulai...' : 'Mulai Menimbang' }}
-                            </Button>
-                        </div>
-                    </form>
+                        <form v-else @submit.prevent="startSession" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-muted-foreground uppercase mb-2">Pilih Produk</label>
+                                <select v-model="form.produk_id" required class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring">
+                                    <option value="">-- Pilih Produk --</option>
+                                    <option v-for="p in produks" :key="p.id" :value="p.id">{{ p.nama_produk }}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-muted-foreground uppercase mb-2">Kode Produksi (KP)</label>
+                                <input v-model="form.kode_produksi" type="text" required placeholder="Contoh: KP-20240423-001" class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-muted-foreground uppercase mb-2">Tanggal Expired</label>
+                                <input v-model="form.tanggal_expired" type="date" required class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring">
+                            </div>
+                            <div class="md:col-span-3">
+                                <Button type="submit" :disabled="form.processing" class="w-full md:w-auto px-6 font-bold">
+                                    <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
+                                    <Play v-else class="w-4 h-4 mr-2" />
+                                    {{ form.processing ? 'Memulai...' : 'Mulai Menimbang' }}
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
                 </Card>
 
                 <!-- Quick Stats -->
-                <Card class="p-5 bg-white border-none rounded-2xl shadow-lg">
-                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Total Produksi (Shift Ini)</h5>
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-4xl font-black text-gray-900">{{ totalShift }}</span>
-                        <span class="text-sm font-bold text-gray-400 uppercase">Items</span>
-                    </div>
-                    <p class="text-[10px] text-emerald-600 font-bold mt-2 flex items-center gap-1">
-                        <CheckCircle2 class="w-3 h-3" />
-                        Semua sistem berjalan normal
-                    </p>
+                <Card class="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50">
+                    <CardHeader class="pb-2">
+                        <CardTitle class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Total Produksi (Shift Ini)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-4xl font-bold text-blue-950 dark:text-blue-50">{{ totalShift }}</span>
+                            <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase">Items</span>
+                        </div>
+                        <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-3 flex items-center gap-1">
+                            <CheckCircle2 class="w-3 h-3 text-emerald-500" />
+                            Semua sistem berjalan normal
+                        </p>
+                    </CardContent>
                 </Card>
             </div>
 
             <!-- Live History -->
-            <Card class="bg-white border-none rounded-3xl shadow-xl overflow-hidden">
-                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+            <Card class="overflow-hidden bg-blue-50/60 border-blue-200 shadow-sm dark:bg-blue-950/40 dark:border-blue-800">
+                <CardHeader class="flex flex-row items-center justify-between border-b pb-4">
                     <div>
-                        <h5 class="text-xl font-black text-gray-900">Monitoring Penimbangan Real-Time</h5>
-                        <p class="text-xs text-gray-500 mt-1">Data dari IoT akan langsung muncul di sini tanpa refresh halaman.</p>
+                        <CardTitle class="text-base">Monitoring Penimbangan Real-Time</CardTitle>
+                        <p class="text-xs text-muted-foreground mt-1">Data dari IoT akan langsung muncul di sini tanpa refresh halaman.</p>
                     </div>
-                </div>
-                <div class="p-6">
+                </CardHeader>
+                <div class="overflow-x-auto">
                     <Table>
-                        <TableHeader class="bg-gray-50">
+                        <TableHeader>
                             <TableRow>
-                                <TableHead class="px-6 py-3 text-xs uppercase text-gray-700">Tanggal Penimbangan</TableHead>
-                                <TableHead class="px-6 py-3 text-xs uppercase text-gray-700">Produk</TableHead>
-                                <TableHead class="px-6 py-3 text-xs uppercase text-gray-700">Kode Produksi</TableHead>
-                                <TableHead class="px-6 py-3 text-xs uppercase text-gray-700">Berat</TableHead>
-                                <TableHead class="px-6 py-3 text-xs uppercase text-gray-700">Tanggal Expired</TableHead>
-                                <TableHead class="px-6 py-3 text-xs uppercase text-gray-700">Status</TableHead>
+                                <TableHead class="px-6 py-3 text-xs uppercase text-muted-foreground">Tanggal Penimbangan</TableHead>
+                                <TableHead class="px-6 py-3 text-xs uppercase text-muted-foreground">Produk</TableHead>
+                                <TableHead class="px-6 py-3 text-xs uppercase text-muted-foreground">Kode Produksi</TableHead>
+                                <TableHead class="px-6 py-3 text-xs uppercase text-muted-foreground">Berat</TableHead>
+                                <TableHead class="px-6 py-3 text-xs uppercase text-muted-foreground">Tanggal Expired</TableHead>
+                                <TableHead class="px-6 py-3 text-xs uppercase text-muted-foreground">Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="p in penimbangans.data" :key="p.id" class="bg-white border-b hover:bg-gray-50">
-                                <TableCell class="px-6 py-4 font-medium text-gray-900">{{ formatDateTime(p.created_at) }}</TableCell>
-                                <TableCell class="px-6 py-4 font-medium text-gray-900">{{ p.produk.nama_produk }}</TableCell>
+                            <TableRow v-for="p in penimbangans.data" :key="p.id">
+                                <TableCell class="px-6 py-4 font-medium text-foreground">{{ formatDateTime(p.created_at) }}</TableCell>
+                                <TableCell class="px-6 py-4 font-medium text-foreground">{{ p.produk.nama_produk }}</TableCell>
                                 <TableCell class="px-6 py-4">
-                                    <span class="font-mono text-xs">{{ p.kode_produksi }}</span>
+                                    <code class="bg-muted px-2 py-0.5 rounded font-mono text-xs border border-border">
+                                        {{ p.kode_produksi }}
+                                    </code>
                                 </TableCell>
-                                <TableCell class="px-6 py-4 font-bold text-gray-900">{{ formatWeight(p.berat) }}</TableCell>
-                                <TableCell class="px-6 py-4">{{ formatDate(p.tanggal_expired) }}</TableCell>
+                                <TableCell class="px-6 py-4 font-bold text-foreground">{{ formatWeight(p.berat) }} <span class="text-xs font-normal text-muted-foreground">kg</span></TableCell>
+                                <TableCell class="px-6 py-4 text-muted-foreground">{{ formatDate(p.tanggal_expired) }}</TableCell>
                                 <TableCell class="px-6 py-4">
-                                    <Badge v-if="p.status == 'menunggu'" class="bg-yellow-100 text-yellow-800 border-none">Menunggu</Badge>
-                                    <Badge v-else-if="p.status == 'selesai'" class="bg-green-100 text-green-800 border-none">Selesai</Badge>
-                                    <Badge v-else class="bg-red-100 text-red-800 border-none">Invalid</Badge>
+                                    <Badge v-if="p.status == 'menunggu'" variant="outline" class="bg-amber-100 text-amber-800 border-amber-200">Menunggu</Badge>
+                                    <Badge v-else-if="p.status == 'selesai'" class="bg-emerald-100 text-emerald-800 border-emerald-200">Selesai</Badge>
+                                    <Badge v-else variant="destructive">Invalid</Badge>
                                 </TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
-                    <div v-if="penimbangans.data.length === 0" class="p-12 text-center">
-                        <p class="text-gray-400 font-medium italic">Belum ada data penimbangan.</p>
-                    </div>
+                </div>
+                <div v-if="penimbangans.data.length === 0" class="p-12 text-center text-muted-foreground">
+                    Belum ada data penimbangan.
+                </div>
 
-                    <!-- Pagination -->
-                    <div v-if="penimbangans.total > penimbangans.per_page" class="mt-6 flex justify-center">
-                        <Pagination 
-                            :total="penimbangans.total" 
-                            :sibling-count="1" 
-                            show-edges 
-                            :default-page="penimbangans.current_page"
-                            @update:page="handlePageChange"
-                        >
-                            <PaginationContent>
-                                <PaginationFirst />
-                                <PaginationPrevious />
+                <!-- Pagination -->
+                <div v-if="penimbangans.total > penimbangans.per_page" class="px-6 py-4 border-t border-border flex justify-center">
+                    <Pagination 
+                        v-slot="{ page }"
+                        :total="penimbangans.total" 
+                        :items-per-page="penimbangans.per_page"
+                        :sibling-count="1" 
+                        show-edges 
+                        :page="penimbangans.current_page"
+                        @update:page="handlePageChange"
+                    >
+                        <PaginationContent v-slot="{ items }">
+                            <PaginationFirst />
+                            <PaginationPrevious />
 
-                                <template v-for="(item, index) in penimbangans.links.slice(1, -1)" :key="index">
-                                    <PaginationItem>
-                                        <Button
-                                            v-if="item.url"
-                                            class="w-10 h-10 p-0"
-                                            :variant="item.active ? 'default' : 'outline'"
-                                            @click="handlePageChange(item.label)"
-                                        >
-                                            {{ item.label }}
-                                        </Button>
-                                        <PaginationEllipsis v-else />
-                                    </PaginationItem>
-                                </template>
+                            <template v-for="(item, index) in items" :key="index">
+                                <PaginationItem
+                                    v-if="item.type === 'page'"
+                                    :value="item.value"
+                                    :is-active="item.value === page"
+                                >
+                                    {{ item.value }}
+                                </PaginationItem>
+                                <PaginationEllipsis v-else />
+                            </template>
 
-                                <PaginationNext />
-                                <PaginationLast />
-                            </PaginationContent>
-                        </Pagination>
-                    </div>
+                            <PaginationNext />
+                            <PaginationLast />
+                        </PaginationContent>
+                    </Pagination>
                 </div>
             </Card>
         </div>
