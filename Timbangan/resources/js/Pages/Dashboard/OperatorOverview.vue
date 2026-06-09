@@ -5,6 +5,8 @@ import { Head, usePage, router } from '@inertiajs/vue3';
 import {
     Card,
     CardContent,
+    CardHeader,
+    CardTitle,
 } from '@/Components/ui/card';
 import {
     Table,
@@ -15,20 +17,22 @@ import {
     TableRow
 } from '@/Components/ui/table';
 import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
 import {
-    Weight,
-    CheckCircle2,
-    Clock,
+    Package,
+    Scale,
     TrendingUp,
     AlertCircle,
-    Wifi,
     Activity,
-    Package,
+    Wifi,
+    CheckCircle2,
+    Clock,
     User,
 } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import { Link } from '@inertiajs/vue3';
 import DashboardChart from '@/Components/ui/chart/DashboardChart.vue';
+import { formatWeight } from '@/utils/format.js';
 
 const props = defineProps({
     stats: Object,
@@ -62,7 +66,7 @@ onMounted(() => {
                         toast: true,
                         position: 'top-end',
                         icon: 'success',
-                        title: `Berat ${e.weight || e.berat} kg diterima`,
+                        title: `Berat ${formatWeight(e.weight || e.berat)} kg diterima`,
                         text: `IP: ${e.ip_address}`,
                         showConfirmButton: false,
                         timer: 3000,
@@ -85,20 +89,6 @@ onUnmounted(() => {
 const successRate = props.stats.total > 0 ? (props.stats.selesai / props.stats.total) * 100 : 0;
 
 const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
-const formatWeight = (weight) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(weight);
-
-const getModuleColor = (type) => {
-    const colors = {
-        'fg': 'from-blue-500 to-blue-700',
-        'fg_psn': 'from-indigo-500 to-indigo-700',
-        'fg_surabaya': 'from-violet-500 to-violet-700',
-        'cs_noodle_sby': 'from-cyan-500 to-cyan-700',
-        'cs_fg_sby': 'from-teal-500 to-teal-700',
-        'incoming_singkong': 'from-amber-500 to-amber-700',
-        'incoming_rmpm': 'from-rose-500 to-rose-700',
-    };
-    return colors[type] || 'from-gray-500 to-gray-700';
-};
 </script>
 
 <template>
@@ -110,22 +100,19 @@ const getModuleColor = (type) => {
             <!-- ── Header ── -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-black text-gray-900 tracking-tight">Dashboard Personal</h1>
-                    <p class="text-sm text-gray-500">
-                        Halo, <span class="font-bold text-indigo-600">{{ auth.user.name }}</span>. Berikut ringkasan performa Anda.
-                    </p>
+                    <h1 class="text-2xl font-bold tracking-tight text-foreground">Overview Operator</h1>
+                    <p class="text-sm text-muted-foreground mt-1">Ringkasan operasional penimbangan Anda hari ini.</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <!-- Live Indicator -->
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl shadow-sm">
-                        <span class="relative flex h-2.5 w-2.5">
-                            <span :class="liveIndicator ? 'animate-ping bg-emerald-400' : 'bg-gray-300'" class="absolute inline-flex h-full w-full rounded-full opacity-75"></span>
-                            <span :class="liveIndicator ? 'bg-emerald-500' : 'bg-gray-400'" class="relative inline-flex rounded-full h-2.5 w-2.5"></span>
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-foreground rounded-md border">
+                        <span class="relative flex h-2 w-2">
+                            <span :class="liveIndicator ? 'animate-ping bg-emerald-500' : 'bg-muted-foreground'" class="absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+                            <span :class="liveIndicator ? 'bg-emerald-500' : 'bg-muted-foreground'" class="relative inline-flex rounded-full h-2 w-2"></span>
                         </span>
-                        <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">Live</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider">Live</span>
                     </div>
-                    <Badge class="px-4 py-2 bg-indigo-50 text-indigo-700 border-none rounded-xl text-xs font-bold">
-                        <User class="w-3.5 h-3.5 mr-1.5" /> Shift {{ auth.user.shift ?? '-' }}
+                    <Badge variant="secondary" class="gap-1.5">
+                        <User class="w-3.5 h-3.5" /> Shift {{ auth.user.shift ?? '-' }}
                     </Badge>
                 </div>
             </div>
@@ -139,147 +126,162 @@ const getModuleColor = (type) => {
                 leave-from-class="opacity-100"
                 leave-to-class="opacity-0"
             >
-                <div v-if="lastReceived" class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 shadow-lg shadow-emerald-200/50 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div v-if="lastReceived" class="bg-emerald-50/50 dark:bg-emerald-950/20 text-card-foreground border border-emerald-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative overflow-hidden">
+                    <div class="absolute inset-y-0 left-0 w-1 bg-emerald-500"></div>
                     <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <div class="p-2.5 bg-emerald-100 text-emerald-600 rounded-lg">
                             <Wifi class="w-5 h-5 animate-pulse" />
                         </div>
                         <div>
-                            <p class="text-xs font-bold uppercase tracking-widest opacity-80">Data Diterima Real-Time</p>
-                            <p class="text-sm font-black mt-0.5">
-                                {{ lastReceived.weight }} kg dari Arduino
+                            <p class="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Data Diterima Real-Time</p>
+                            <p class="text-sm font-bold mt-0.5">
+                                {{ formatWeight(lastReceived.weight) }} kg dari Arduino
                             </p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3 text-xs opacity-90">
-                        <span class="bg-white/20 px-3 py-1 rounded-full font-bold backdrop-blur-sm">IP: {{ lastReceived.ip }}</span>
-                        <span class="bg-white/20 px-3 py-1 rounded-full font-bold backdrop-blur-sm">{{ lastReceived.time }}</span>
+                    <div class="flex items-center gap-3 text-xs font-medium text-muted-foreground">
+                        <Badge variant="outline">IP: {{ lastReceived.ip }}</Badge>
+                        <Badge variant="outline">{{ lastReceived.time }}</Badge>
                     </div>
                 </div>
             </transition>
 
             <!-- ── Stats Cards ── -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg shadow-blue-200">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-[10px] font-bold uppercase tracking-widest opacity-75">Total Penimbangan</span>
-                        <div class="p-2 bg-white/20 rounded-lg"><Package class="w-4 h-4" /></div>
-                    </div>
-                    <p class="text-3xl font-black">{{ formatNumber(stats.total) }}</p>
-                    <p class="text-xs opacity-60 mt-1">Semua penimbangan Anda</p>
-                </div>
+                <Card class="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Total Penimbangan</CardTitle>
+                        <Package class="h-4 w-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-blue-950 dark:text-blue-50">{{ formatNumber(stats.total) }}</div>
+                        <p class="text-xs text-blue-600/80 dark:text-blue-300/80 mt-1">Semua penimbangan Anda</p>
+                    </CardContent>
+                </Card>
 
-                <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-lg shadow-emerald-200">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-[10px] font-bold uppercase tracking-widest opacity-75">Total Berat</span>
-                        <div class="p-2 bg-white/20 rounded-lg"><Weight class="w-4 h-4" /></div>
-                    </div>
-                    <p class="text-2xl font-black">{{ formatWeight(stats.total_berat) }} <span class="text-sm opacity-70">kg</span></p>
-                    <p class="text-xs opacity-60 mt-1">Berat status selesai</p>
-                </div>
+                <Card class="bg-indigo-50/50 border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/50">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Total Berat</CardTitle>
+                        <Scale class="h-4 w-4 text-indigo-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-indigo-950 dark:text-indigo-50">{{ formatWeight(stats.total_berat) }} <span class="text-sm font-normal text-indigo-600/80 dark:text-indigo-300/80">kg</span></div>
+                        <p class="text-xs text-indigo-600/80 dark:text-indigo-300/80 mt-1">Berat status selesai</p>
+                    </CardContent>
+                </Card>
 
-                <div class="bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl p-5 text-white shadow-lg shadow-violet-200">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-[10px] font-bold uppercase tracking-widest opacity-75">Success Rate</span>
-                        <div class="p-2 bg-white/20 rounded-lg"><TrendingUp class="w-4 h-4" /></div>
-                    </div>
-                    <p class="text-3xl font-black">{{ formatNumber(successRate) }}%</p>
-                    <p class="text-xs opacity-60 mt-1">{{ stats.selesai }}/{{ stats.total }} selesai</p>
-                </div>
+                <Card class="bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/50">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Success Rate</CardTitle>
+                        <TrendingUp class="h-4 w-4 text-emerald-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-emerald-950 dark:text-emerald-50">{{ formatNumber(successRate) }}%</div>
+                        <p class="text-xs text-emerald-600/80 dark:text-emerald-300/80 mt-1">{{ stats.selesai }}/{{ stats.total }} selesai</p>
+                    </CardContent>
+                </Card>
 
-                <div class="bg-gradient-to-br from-rose-600 to-red-700 rounded-2xl p-5 text-white shadow-lg shadow-rose-200">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-[10px] font-bold uppercase tracking-widest opacity-75">Invalid</span>
-                        <div class="p-2 bg-white/20 rounded-lg"><AlertCircle class="w-4 h-4" /></div>
-                    </div>
-                    <p class="text-3xl font-black">{{ formatNumber(stats.invalid) }}</p>
-                    <p class="text-xs opacity-60 mt-1">Records gagal</p>
-                </div>
+                <Card class="bg-rose-50/50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-900/50">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Invalid</CardTitle>
+                        <AlertCircle class="h-4 w-4 text-rose-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-rose-950 dark:text-rose-50">{{ formatNumber(stats.invalid) }}</div>
+                        <p class="text-xs text-rose-600/80 dark:text-rose-300/80 mt-1">Records gagal</p>
+                    </CardContent>
+                </Card>
             </div>
 
             <!-- ── Chart ── -->
-            <div v-if="chartData && chartData.length > 0" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <h2 class="text-base font-bold text-gray-900">Grafik Penimbangan</h2>
-                    <div class="flex bg-gray-100 p-1 rounded-lg">
-                        <Link :href="route('dashboard', { chart_filter: 'week' })" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all" :class="chartFilter === 'week' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-900'">Mingguan</Link>
-                        <Link :href="route('dashboard', { chart_filter: 'month' })" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all" :class="chartFilter === 'month' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-900'">Bulanan</Link>
+            <Card v-if="chartData && chartData.length > 0" class="overflow-hidden bg-indigo-50/60 border-indigo-200 shadow-sm dark:bg-indigo-950/40 dark:border-indigo-800">
+                <div class="px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h2 class="text-base font-semibold">Grafik Penimbangan</h2>
+                    <div class="flex gap-1 bg-muted p-1 rounded-md">
+                        <Link :href="route('dashboard', { chart_filter: 'week' })">
+                            <Button variant="ghost" size="sm" class="h-7 text-xs" :class="chartFilter === 'week' ? 'bg-background shadow-sm' : ''">Mingguan</Button>
+                        </Link>
+                        <Link :href="route('dashboard', { chart_filter: 'month' })">
+                            <Button variant="ghost" size="sm" class="h-7 text-xs" :class="chartFilter === 'month' ? 'bg-background shadow-sm' : ''">Bulanan</Button>
+                        </Link>
                     </div>
                 </div>
                 <div class="p-6">
                     <DashboardChart :data="chartData" />
                 </div>
-            </div>
+            </Card>
 
             <!-- ── Module Performance ── -->
             <div v-if="Object.keys(moduleStats).length > 0">
-                <h2 class="text-base font-bold text-gray-900 mb-4">Kontribusi Per Modul</h2>
+                <h2 class="text-lg font-semibold tracking-tight mb-4">Kontribusi Per Modul</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <template v-for="(name, type) in moduleNames" :key="type">
-                        <div v-if="moduleStats[type]" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                            <div :class="'bg-gradient-to-r ' + getModuleColor(type)" class="px-5 py-3 text-white">
-                                <h3 class="text-sm font-black">{{ name }}</h3>
-                            </div>
-                            <div class="p-4 space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs text-gray-500">Penimbangan</span>
-                                    <span class="text-sm font-black text-gray-900">{{ formatNumber(moduleStats[type].total) }}</span>
+                        <Card v-if="moduleStats[type]" class="bg-indigo-50/60 border-indigo-200 shadow-sm dark:bg-indigo-950/40 dark:border-indigo-800">
+                            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle class="text-sm font-semibold">{{ name }}</CardTitle>
+                                <Package class="w-4 h-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div class="space-y-2 mt-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-medium text-muted-foreground">Penimbangan</span>
+                                        <span class="text-sm font-semibold">{{ formatNumber(moduleStats[type].total) }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-medium text-muted-foreground">Berat</span>
+                                        <span class="text-sm font-semibold">{{ formatWeight(moduleStats[type].total_berat) }} kg</span>
+                                    </div>
                                 </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs text-gray-500">Berat</span>
-                                    <span class="text-sm font-black text-gray-900">{{ formatWeight(moduleStats[type].total_berat) }} kg</span>
-                                </div>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
                     </template>
                 </div>
             </div>
 
-            <!-- ── Recent Activity ── -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <Card class="overflow-hidden bg-indigo-50/60 border-indigo-200 shadow-sm dark:bg-indigo-950/40 dark:border-indigo-800">
+                <CardHeader class="flex flex-row items-center justify-between border-b px-6 py-4">
                     <div>
-                        <h2 class="text-base font-bold text-gray-900">Penimbangan Terakhir Anda</h2>
-                        <p class="text-xs text-gray-400 mt-0.5">Data terbaru akan muncul otomatis tanpa refresh.</p>
+                        <CardTitle class="text-base">Penimbangan Terakhir Anda</CardTitle>
+                        <p class="text-xs text-muted-foreground mt-1">Data terbaru akan muncul otomatis tanpa refresh.</p>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <Activity class="w-3.5 h-3.5 text-emerald-500" />
-                        <span class="text-xs font-bold text-emerald-600">Real-Time</span>
+                        <span class="text-xs font-medium text-emerald-600">Real-Time</span>
                     </div>
-                </div>
+                </CardHeader>
                 <div class="overflow-x-auto">
                     <Table>
-                        <TableHeader class="bg-gray-50">
+                        <TableHeader>
                             <TableRow>
-                                <TableHead class="px-5 py-3 text-xs font-bold text-gray-500 uppercase whitespace-nowrap">Waktu</TableHead>
-                                <TableHead class="px-5 py-3 text-xs font-bold text-gray-500 uppercase whitespace-nowrap">Produk</TableHead>
-                                <TableHead class="px-5 py-3 text-xs font-bold text-gray-500 uppercase whitespace-nowrap">Berat</TableHead>
-                                <TableHead class="px-5 py-3 text-xs font-bold text-gray-500 uppercase whitespace-nowrap text-center">Status</TableHead>
+                                <TableHead>Waktu</TableHead>
+                                <TableHead>Produk</TableHead>
+                                <TableHead>Berat</TableHead>
+                                <TableHead class="text-center">Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="p in recentPenimbangans" :key="p.id" class="hover:bg-indigo-50/30 transition-colors border-b border-gray-50">
-                                <TableCell class="px-5 py-3.5 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-700">
+                            <TableRow v-for="p in recentPenimbangans" :key="p.id">
+                                <TableCell class="whitespace-nowrap">
+                                    <div class="text-sm font-medium">
                                         {{ new Date(p.created_at).toLocaleTimeString('id-ID') }}
                                     </div>
-                                    <div class="text-[10px] text-gray-400">
+                                    <div class="text-[10px] text-muted-foreground">
                                         {{ new Date(p.created_at).toLocaleDateString('id-ID') }}
                                     </div>
                                 </TableCell>
-                                <TableCell class="px-5 py-3.5 font-semibold text-gray-900 text-sm">{{ p.produk?.nama_produk || '-' }}</TableCell>
-                                <TableCell class="px-5 py-3.5 font-black text-gray-900 whitespace-nowrap">
-                                    {{ formatWeight(p.berat) }} <span class="text-[10px] font-normal text-gray-400">kg</span>
+                                <TableCell class="font-medium text-sm">{{ p.produk?.nama_produk || '-' }}</TableCell>
+                                <TableCell class="font-semibold whitespace-nowrap">
+                                    {{ formatWeight(p.berat) }} <span class="text-[10px] font-normal text-muted-foreground">kg</span>
                                 </TableCell>
-                                <TableCell class="px-5 py-3.5 text-center">
-                                    <span v-if="p.status == 'selesai'" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600">
-                                        <CheckCircle2 class="w-4 h-4 stroke-[3]" />
+                                <TableCell class="text-center">
+                                    <span v-if="p.status == 'selesai'" class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600">
+                                        <CheckCircle2 class="w-3.5 h-3.5" />
                                     </span>
-                                    <span v-else-if="p.status == 'menunggu'" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-50 text-amber-600 animate-pulse">
-                                        <Clock class="w-4 h-4 stroke-[3]" />
+                                    <span v-else-if="p.status == 'menunggu'" class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-600 animate-pulse">
+                                        <Clock class="w-3.5 h-3.5" />
                                     </span>
-                                    <span v-else class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-rose-50 text-rose-600">
-                                        <AlertCircle class="w-4 h-4 stroke-[3]" />
+                                    <span v-else class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-100 text-rose-600">
+                                        <AlertCircle class="w-3.5 h-3.5" />
                                     </span>
                                 </TableCell>
                             </TableRow>
@@ -287,13 +289,13 @@ const getModuleColor = (type) => {
                     </Table>
                 </div>
                 <div v-if="recentPenimbangans.length === 0" class="p-16 text-center">
-                    <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <Package class="w-8 h-8 text-gray-300" />
+                    <div class="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Package class="w-6 h-6 text-muted-foreground" />
                     </div>
-                    <p class="text-gray-500 font-bold">Belum ada penimbangan</p>
-                    <p class="text-gray-400 text-sm mt-1">Data akan muncul di sini saat Anda mulai menimbang.</p>
+                    <p class="text-foreground font-medium">Belum ada penimbangan</p>
+                    <p class="text-muted-foreground text-sm mt-1">Data akan muncul di sini saat Anda mulai menimbang.</p>
                 </div>
-            </div>
+            </Card>
 
         </div>
     </AuthenticatedLayout>

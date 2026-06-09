@@ -37,18 +37,18 @@ const submit = () => {
     <GuestLayout>
         <Head title="Register" />
 
-        <form @submit.prevent="submit" class="space-y-5">
+        <form @submit.prevent="submit" class="space-y-4">
             <!-- Name -->
             <div class="space-y-2">
-                <Label for="name" class="ml-1 text-xs font-bold text-gray-500 uppercase">Nama Lengkap</Label>
+                <Label for="name">Nama Lengkap</Label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors pointer-events-none group-focus-within:text-blue-600">
-                        <User class="w-5 h-5" />
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none group-focus-within:text-primary">
+                        <User class="w-4 h-4" />
                     </div>
                     <Input
                         id="name"
                         type="text"
-                        class="py-6 pl-12 transition-all border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-blue-600/20 rounded-2xl"
+                        class="pl-10"
                         v-model="form.name"
                         required
                         autofocus
@@ -61,15 +61,15 @@ const submit = () => {
 
             <!-- Email -->
             <div class="space-y-2">
-                <Label for="email" class="ml-1 text-xs font-bold text-gray-500 uppercase">Email Address</Label>
+                <Label for="email">Email Address</Label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors pointer-events-none group-focus-within:text-blue-600">
-                        <Mail class="w-5 h-5" />
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none group-focus-within:text-primary">
+                        <Mail class="w-4 h-4" />
                     </div>
                     <Input
                         id="email"
                         type="email"
-                        class="py-6 pl-12 transition-all border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-blue-600/20 rounded-2xl"
+                        class="pl-10"
                         v-model="form.email"
                         required
                         autocomplete="username"
@@ -81,15 +81,15 @@ const submit = () => {
 
             <!-- Role -->
             <div class="space-y-2">
-                <Label for="role" class="ml-1 text-xs font-bold text-gray-500 uppercase">Role</Label>
+                <Label for="role">Role</Label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors pointer-events-none group-focus-within:text-blue-600">
-                        <Shield class="w-5 h-5" />
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none group-focus-within:text-primary">
+                        <Shield class="w-4 h-4" />
                     </div>
                     <select
                         id="role"
                         v-model="form.role"
-                        class="w-full py-3 pl-12 pr-4 transition-all border border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-blue-600/20 rounded-2xl text-sm appearance-none"
+                        class="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <option value="admin">Admin</option>
                         <option value="operator">Operator</option>
@@ -100,11 +100,11 @@ const submit = () => {
 
             <!-- Tipe (Only for operator) -->
             <div v-if="form.role === 'operator'" class="space-y-2">
-                <Label for="tipe" class="ml-1 text-xs font-bold text-gray-500 uppercase">Tipe Operator</Label>
+                <Label for="tipe">Tipe Operator</Label>
                 <select
                     id="tipe"
                     v-model="form.tipe"
-                    class="w-full py-3 px-4 transition-all border border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-blue-600/20 rounded-2xl text-sm appearance-none"
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <option v-for="t in tipeOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
                 </select>
@@ -113,15 +113,15 @@ const submit = () => {
 
             <!-- Password -->
             <div class="space-y-2">
-                <Label for="password" class="ml-1 text-xs font-bold text-gray-500 uppercase">Password</Label>
+                <Label for="password">Password</Label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors pointer-events-none group-focus-within:text-blue-600">
-                        <Lock class="w-5 h-5" />
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none group-focus-within:text-primary">
+                        <Lock class="w-4 h-4" />
                     </div>
                     <Input
                         id="password"
                         type="password"
-                        class="py-6 pl-12 transition-all border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-blue-600/20 rounded-2xl"
+                        class="pl-10"
                         v-model="form.password"
                         required
                         autocomplete="new-password"
@@ -133,15 +133,15 @@ const submit = () => {
 
             <!-- Confirm Password -->
             <div class="space-y-2">
-                <Label for="password_confirmation" class="ml-1 text-xs font-bold text-gray-500 uppercase">Konfirmasi Password</Label>
+                <Label for="password_confirmation">Konfirmasi Password</Label>
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors pointer-events-none group-focus-within:text-blue-600">
-                        <Lock class="w-5 h-5" />
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none group-focus-within:text-primary">
+                        <Lock class="w-4 h-4" />
                     </div>
                     <Input
                         id="password_confirmation"
                         type="password"
-                        class="py-6 pl-12 transition-all border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-blue-600/20 rounded-2xl"
+                        class="pl-10"
                         v-model="form.password_confirmation"
                         required
                         autocomplete="new-password"
@@ -154,17 +154,17 @@ const submit = () => {
             <!-- Submit -->
             <Button
                 type="submit"
-                class="w-full text-lg font-black text-white transition-all bg-blue-600 shadow-xl hover:bg-blue-700 py-7 rounded-2xl shadow-blue-100 group"
-                :class="{ 'opacity-25': form.processing }"
+                class="w-full flex items-center justify-center pt-2"
                 :disabled="form.processing"
             >
-                <UserPlus class="w-5 h-5 mr-2 transition-transform group-hover:translate-x-1" />
+                <UserPlus class="w-4 h-4 mr-2" />
                 Register
             </Button>
 
-            <div class="text-center">
-                <Link :href="route('login')" class="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
-                    Sudah punya akun? <span class="font-bold text-blue-600">Sign In</span>
+            <div class="text-center text-sm text-muted-foreground pt-2">
+                Sudah punya akun? 
+                <Link :href="route('login')" class="font-semibold text-primary hover:underline">
+                    Sign In
                 </Link>
             </div>
         </form>
