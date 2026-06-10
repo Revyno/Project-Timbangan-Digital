@@ -129,44 +129,44 @@ const formatDateTime = (date) => {
             <!-- Status Overview -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Operator Card -->
-                <Card class="bg-slate-50/50 border-slate-200/60 dark:bg-slate-900/20 dark:border-slate-800">
+                <Card class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-indigo-50 dark:bg-indigo-950/40 hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center gap-4 space-y-0 pb-3">
                         <div class="p-2 bg-primary/10 text-primary rounded-lg">
                             <User class="w-5 h-5" />
                         </div>
                         <div>
-                            <p class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Operator Aktif</p>
-                            <CardTitle class="text-xl font-bold">{{ auth.user.name }}</CardTitle>
+                            <p class="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Operator Aktif</p>
+                            <CardTitle class="font-display text-2xl tracking-wider">{{ auth.user.name }}</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div class="text-sm border rounded-lg p-3 bg-background space-y-1">
                             <div class="flex justify-between">
-                                <span class="text-muted-foreground">Shift Saat Ini:</span>
-                                <span class="font-bold">{{ auth.user.shift }}</span>
+                                <span class="font-mono text-xs font-bold text-muted-foreground">Shift Saat Ini:</span>
+                                <span class="font-display tracking-wider">{{ auth.user.shift ? (String(auth.user.shift).toLowerCase().includes('shift') ? auth.user.shift : 'Shift ' + auth.user.shift) : '-' }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-muted-foreground">Waktu Shift:</span>
-                                <span class="font-bold">{{ auth.user.shift_start }} - {{ auth.user.shift_end }}</span>
+                                <span class="font-mono text-xs font-bold text-muted-foreground">Waktu Shift:</span>
+                                <span class="font-display tracking-wider">{{ auth.user.shift_start }} - {{ auth.user.shift_end }}</span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 <!-- Manual Session Control -->
-                <Card class="md:col-span-2 bg-blue-50/60 border-blue-200 shadow-sm dark:bg-blue-950/40 dark:border-blue-800">
+                <Card class="md:col-span-2 border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-blue-50 dark:bg-blue-950/40 hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center gap-3 space-y-0 pb-4">
                         <div class="p-2 bg-primary/10 text-primary rounded-lg">
                             <Settings2 class="w-5 h-5" />
                         </div>
-                        <CardTitle class="text-lg font-bold">Kontrol Sesi Penimbangan</CardTitle>
+                        <CardTitle class="font-display text-2xl tracking-wider">Kontrol Sesi Penimbangan</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="activePenimbangan" class="p-5 border border-emerald-200 bg-emerald-50 text-emerald-950 rounded-lg">
+                        <div v-if="activePenimbangan" class="p-5 border-2 border-success bg-success/10 text-success rounded-xl">
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div>
-                                    <Badge class="bg-emerald-600 text-white hover:bg-emerald-600">Sesi Aktif</Badge>
-                                    <h4 class="text-2xl font-bold mt-2">{{ activePenimbangan.produk?.nama_produk }}</h4>
+                                    <Badge class="bg-success text-white hover:bg-success/90 font-mono text-xs border border-black">Sesi Aktif</Badge>
+                                    <h4 class="font-display text-3xl tracking-wider mt-3">{{ activePenimbangan.produk?.nama_produk }}</h4>
                                     <div class="flex flex-wrap gap-4 mt-2">
                                         <div class="flex items-center gap-2">
                                             <span class="text-xs text-emerald-800">KP:</span>
@@ -227,14 +227,14 @@ const formatDateTime = (date) => {
                 </Card>
 
                 <!-- Quick Stats -->
-                <Card class="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50">
+                <Card class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-success/10 hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="pb-2">
-                        <CardTitle class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Total Produksi (Shift Ini)</CardTitle>
+                        <CardTitle class="font-mono text-[10px] font-bold text-success uppercase tracking-widest">Total Produksi (Shift Ini)</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div class="flex items-baseline gap-2">
-                            <span class="text-4xl font-bold text-blue-950 dark:text-blue-50">{{ totalShift }}</span>
-                            <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase">Items</span>
+                            <span class="font-display text-5xl tracking-wider text-success">{{ totalShift }}</span>
+                            <span class="font-mono text-xs font-bold text-success uppercase">Items</span>
                         </div>
                         <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-3 flex items-center gap-1">
                             <CheckCircle2 class="w-3 h-3 text-emerald-500" />
@@ -245,11 +245,11 @@ const formatDateTime = (date) => {
             </div>
 
             <!-- Live History -->
-            <Card class="overflow-hidden bg-blue-50/60 border-blue-200 shadow-sm dark:bg-blue-950/40 dark:border-blue-800">
+            <Card class="overflow-hidden border-2 border-black rounded-xl shadow-[4px_4px_0_0_#000000] bg-surface dark:bg-slate-900">
                 <CardHeader class="flex flex-row items-center justify-between border-b pb-4">
                     <div>
-                        <CardTitle class="text-base">Monitoring Penimbangan Real-Time</CardTitle>
-                        <p class="text-xs text-muted-foreground mt-1">Data dari IoT akan langsung muncul di sini tanpa refresh halaman.</p>
+                        <CardTitle class="font-display text-2xl tracking-wider">Monitoring Penimbangan Real-Time</CardTitle>
+                        <p class="font-mono text-xs font-bold text-muted-foreground mt-1">Data dari IoT akan langsung muncul di sini tanpa refresh halaman.</p>
                     </div>
                 </CardHeader>
                 <div class="overflow-x-auto">
