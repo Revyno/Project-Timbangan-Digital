@@ -151,7 +151,7 @@ const logout = () => {
 
                                 <div class="text-right hidden md:block">
                                     <p class="text-sm font-semibold text-foreground">{{ auth.user.name }}</p>
-                                    <p class="text-xs text-muted-foreground capitalize">{{ auth.user.role.replace('_', ' ') }} - Shift {{ auth.user.shift ?? '-' }}</p>
+                                    <p class="text-xs text-muted-foreground capitalize">{{ auth.user.role.replace('_', ' ') }} - {{ auth.user.shift ? (String(auth.user.shift).toLowerCase().includes('shift') ? auth.user.shift : 'Shift ' + auth.user.shift) : '-' }}</p>
                                 </div>
                                 
                                 <Button @click="logout" variant="outline" size="sm" class="font-medium text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200">
@@ -201,7 +201,7 @@ const logout = () => {
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-10 px-3 transition-colors"
-                                :class="route().current('dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+                                :class="route().current('dashboard') ? 'bg-primary/15 text-primary font-bold border-r-4 border-primary rounded-r-none' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'"
                             >
                                 <LayoutDashboard class="w-4 h-4" />
                                 <span>Overview</span>
@@ -218,7 +218,7 @@ const logout = () => {
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-10 px-3 transition-colors"
-                                :class="route().current('admin.fg') || route().current('fg.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+                                :class="route().current('admin.fg') || route().current('fg.dashboard') ? 'bg-primary/15 text-primary font-bold border-r-4 border-primary rounded-r-none' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'"
                             >
                                 <ClipboardList class="w-4 h-4" />
                                 <span>Formulasi</span>
@@ -230,7 +230,7 @@ const logout = () => {
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-10 px-3 transition-colors"
-                                :class="route().current('admin.fg-psn') || route().current('fg-psn.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+                                :class="route().current('admin.fg-psn') || route().current('fg-psn.dashboard') ? 'bg-primary/15 text-primary font-bold border-r-4 border-primary rounded-r-none' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'"
                             >
                                 <Box class="w-4 h-4" />
                                 <span>Finished Goods</span>
@@ -242,7 +242,7 @@ const logout = () => {
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-10 px-3 transition-colors"
-                                :class="route().current('admin.incoming.singkong') || route().current('incoming.singkong.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+                                :class="route().current('admin.incoming.singkong') || route().current('incoming.singkong.dashboard') ? 'bg-primary/15 text-primary font-bold border-r-4 border-primary rounded-r-none' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'"
                             >
                                 <Truck class="w-4 h-4" />
                                 <span>Incoming Singkong</span>
@@ -254,7 +254,7 @@ const logout = () => {
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-10 px-3 transition-colors"
-                                :class="route().current('admin.incoming.rmpm') || route().current('incoming.rmpm.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+                                :class="route().current('admin.incoming.rmpm') || route().current('incoming.rmpm.dashboard') ? 'bg-primary/15 text-primary font-bold border-r-4 border-primary rounded-r-none' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'"
                             >
                                 <Package class="w-4 h-4" />
                                 <span>Incoming RMPM</span>
@@ -271,7 +271,7 @@ const logout = () => {
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-10 px-3 transition-colors"
-                                :class="route().current('admin.fg-surabaya') || route().current('fg-surabaya.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+                                :class="route().current('admin.fg-surabaya') || route().current('fg-surabaya.dashboard') ? 'bg-primary/15 text-primary font-bold border-r-4 border-primary rounded-r-none' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'"
                             >
                                 <ClipboardList class="w-4 h-4" />
                                 <span>Formulasi</span>
@@ -283,7 +283,7 @@ const logout = () => {
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-10 px-3 transition-colors"
-                                :class="route().current('admin.cs-noodle-sby') || route().current('cs-noodle-sby.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+                                :class="route().current('admin.cs-noodle-sby') || route().current('cs-noodle-sby.dashboard') ? 'bg-primary/15 text-primary font-bold border-r-4 border-primary rounded-r-none' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'"
                             >
                                 <Box class="w-4 h-4" />
                                 <span>CS Noodle</span>
@@ -295,7 +295,7 @@ const logout = () => {
                             <Button 
                                 variant="ghost" 
                                 class="w-full justify-start gap-3 h-10 px-3 transition-colors"
-                                :class="route().current('admin.cs-fg-sby') || route().current('cs-fg-sby.dashboard') ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+                                :class="route().current('admin.cs-fg-sby') || route().current('cs-fg-sby.dashboard') ? 'bg-primary/15 text-primary font-bold border-r-4 border-primary rounded-r-none' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'"
                             >
                                 <Box class="w-4 h-4" />
                                 <span>CS FG-Sby</span>
@@ -313,7 +313,7 @@ const logout = () => {
                                 <Button 
                                     variant="ghost" 
                                     class="w-full justify-start gap-3 h-10 px-3 transition-colors"
-                                    :class="link.active ? 'bg-accent text-accent-foreground font-semibold' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+                                    :class="link.active ? 'bg-primary/15 text-primary font-bold border-r-4 border-primary rounded-r-none' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'"
                                 >
                                     <component :is="link.icon" class="w-4 h-4" />
                                     <span>{{ link.name }}</span>

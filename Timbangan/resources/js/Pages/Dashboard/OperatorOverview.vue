@@ -100,8 +100,8 @@ const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
             <!-- ── Header ── -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight text-foreground">Overview Operator</h1>
-                    <p class="text-sm text-muted-foreground mt-1">Ringkasan operasional penimbangan Anda hari ini.</p>
+                    <h1 class="font-display text-4xl tracking-wider text-primary drop-shadow-sm">Overview Operator</h1>
+                    <p class="font-mono text-sm font-bold text-muted-foreground mt-1">Ringkasan operasional penimbangan Anda hari ini.</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-foreground rounded-md border">
@@ -112,7 +112,7 @@ const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
                         <span class="text-xs font-semibold uppercase tracking-wider">Live</span>
                     </div>
                     <Badge variant="secondary" class="gap-1.5">
-                        <User class="w-3.5 h-3.5" /> Shift {{ auth.user.shift ?? '-' }}
+                        <User class="w-3.5 h-3.5" /> {{ auth.user.shift ? (String(auth.user.shift).toLowerCase().includes('shift') ? auth.user.shift : 'Shift ' + auth.user.shift) : '-' }}
                     </Badge>
                 </div>
             </div>
@@ -148,53 +148,53 @@ const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
 
             <!-- ── Stats Cards ── -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card class="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50">
+                <Card class="bg-primary/10 border-2 border-primary rounded-2xl shadow-[4px_4px_0_0_#3B82F6] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Total Penimbangan</CardTitle>
-                        <Package class="h-4 w-4 text-blue-500" />
+                        <CardTitle class="font-display text-xl tracking-wider text-primary">Total Penimbangan</CardTitle>
+                        <Package class="h-6 w-6 text-primary" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold text-blue-950 dark:text-blue-50">{{ formatNumber(stats.total) }}</div>
-                        <p class="text-xs text-blue-600/80 dark:text-blue-300/80 mt-1">Semua penimbangan Anda</p>
+                        <div class="font-display text-4xl text-primary mt-2">{{ formatNumber(stats.total) }}</div>
+                        <p class="font-mono text-xs font-bold text-primary/80 mt-1">Semua penimbangan Anda</p>
                     </CardContent>
                 </Card>
 
-                <Card class="bg-indigo-50/50 border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/50">
+                <Card class="bg-secondary/10 border-2 border-secondary rounded-2xl shadow-[4px_4px_0_0_#8B5CF6] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Total Berat</CardTitle>
-                        <Scale class="h-4 w-4 text-indigo-500" />
+                        <CardTitle class="font-display text-xl tracking-wider text-secondary">Total Berat</CardTitle>
+                        <Scale class="h-6 w-6 text-secondary" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold text-indigo-950 dark:text-indigo-50">{{ formatWeight(stats.total_berat) }} <span class="text-sm font-normal text-indigo-600/80 dark:text-indigo-300/80">kg</span></div>
-                        <p class="text-xs text-indigo-600/80 dark:text-indigo-300/80 mt-1">Berat status selesai</p>
+                        <div class="font-display text-4xl text-secondary mt-2">{{ formatWeight(stats.total_berat) }} <span class="text-xl">kg</span></div>
+                        <p class="font-mono text-xs font-bold text-secondary/80 mt-1">Berat status selesai</p>
                     </CardContent>
                 </Card>
 
-                <Card class="bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/50">
+                <Card class="bg-success/10 border-2 border-success rounded-2xl shadow-[4px_4px_0_0_#16A34A] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Success Rate</CardTitle>
-                        <TrendingUp class="h-4 w-4 text-emerald-500" />
+                        <CardTitle class="font-display text-xl tracking-wider text-success">Success Rate</CardTitle>
+                        <TrendingUp class="h-6 w-6 text-success" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold text-emerald-950 dark:text-emerald-50">{{ formatNumber(successRate) }}%</div>
-                        <p class="text-xs text-emerald-600/80 dark:text-emerald-300/80 mt-1">{{ stats.selesai }}/{{ stats.total }} selesai</p>
+                        <div class="font-display text-4xl text-success mt-2">{{ formatNumber(successRate) }}%</div>
+                        <p class="font-mono text-xs font-bold text-success/80 mt-1">{{ stats.selesai }}/{{ stats.total }} selesai</p>
                     </CardContent>
                 </Card>
 
-                <Card class="bg-rose-50/50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-900/50">
+                <Card class="bg-danger/10 border-2 border-danger rounded-2xl shadow-[4px_4px_0_0_#DC2626] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Invalid</CardTitle>
-                        <AlertCircle class="h-4 w-4 text-rose-500" />
+                        <CardTitle class="font-display text-xl tracking-wider text-danger">Invalid</CardTitle>
+                        <AlertCircle class="h-6 w-6 text-danger" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold text-rose-950 dark:text-rose-50">{{ formatNumber(stats.invalid) }}</div>
-                        <p class="text-xs text-rose-600/80 dark:text-rose-300/80 mt-1">Records gagal</p>
+                        <div class="font-display text-4xl text-danger mt-2">{{ formatNumber(stats.invalid) }}</div>
+                        <p class="font-mono text-xs font-bold text-danger/80 mt-1">Records gagal</p>
                     </CardContent>
                 </Card>
             </div>
 
             <!-- ── Chart ── -->
-            <Card v-if="chartData && chartData.length > 0" class="overflow-hidden bg-indigo-50/60 border-indigo-200 shadow-sm dark:bg-indigo-950/40 dark:border-indigo-800">
+            <Card v-if="chartData && chartData.length > 0" class="overflow-hidden bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200 shadow-sm dark:from-indigo-950/40 dark:to-blue-950/40 dark:border-indigo-800">
                 <div class="px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <h2 class="text-base font-semibold">Grafik Penimbangan</h2>
                     <div class="flex gap-1 bg-muted p-1 rounded-md">
@@ -216,20 +216,20 @@ const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
                 <h2 class="text-lg font-semibold tracking-tight mb-4">Kontribusi Per Modul</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <template v-for="(name, type) in moduleNames" :key="type">
-                        <Card v-if="moduleStats[type]" class="bg-indigo-50/60 border-indigo-200 shadow-sm dark:bg-indigo-950/40 dark:border-indigo-800">
+                        <Card v-if="moduleStats[type]" class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] hover:translate-y-[-2px] transition-transform">
                             <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle class="text-sm font-semibold">{{ name }}</CardTitle>
-                                <Package class="w-4 h-4 text-muted-foreground" />
+                                <CardTitle class="font-display text-lg tracking-wider">{{ name }}</CardTitle>
+                                <Package class="w-5 h-5 text-black" />
                             </CardHeader>
                             <CardContent>
-                                <div class="space-y-2 mt-2">
+                                <div class="space-y-3 mt-2">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs font-medium text-muted-foreground">Penimbangan</span>
-                                        <span class="text-sm font-semibold">{{ formatNumber(moduleStats[type].total) }}</span>
+                                        <span class="font-mono text-xs font-bold text-muted-foreground">Penimbangan</span>
+                                        <span class="font-display text-xl text-black">{{ formatNumber(moduleStats[type].total) }}</span>
                                     </div>
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs font-medium text-muted-foreground">Berat</span>
-                                        <span class="text-sm font-semibold">{{ formatWeight(moduleStats[type].total_berat) }} kg</span>
+                                        <span class="font-mono text-xs font-bold text-muted-foreground">Berat</span>
+                                        <span class="font-display text-xl text-black">{{ formatWeight(moduleStats[type].total_berat) }} kg</span>
                                     </div>
                                 </div>
                             </CardContent>
@@ -238,11 +238,11 @@ const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
                 </div>
             </div>
 
-            <Card class="overflow-hidden bg-indigo-50/60 border-indigo-200 shadow-sm dark:bg-indigo-950/40 dark:border-indigo-800">
+            <Card class="overflow-hidden bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200 shadow-sm dark:from-slate-900 dark:to-gray-900 dark:border-slate-800">
                 <CardHeader class="flex flex-row items-center justify-between border-b px-6 py-4">
                     <div>
-                        <CardTitle class="text-base">Penimbangan Terakhir Anda</CardTitle>
-                        <p class="text-xs text-muted-foreground mt-1">Data terbaru akan muncul otomatis tanpa refresh.</p>
+                        <CardTitle class="font-display text-xl tracking-wider">Penimbangan Terakhir Anda</CardTitle>
+                        <p class="font-mono text-xs font-bold text-muted-foreground mt-1">Data terbaru akan muncul otomatis tanpa refresh.</p>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <Activity class="w-3.5 h-3.5 text-emerald-500" />

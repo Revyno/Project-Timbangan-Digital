@@ -16,7 +16,7 @@ import { Package } from 'lucide-vue-next';
 
             <div class="relative z-20 flex flex-col items-center gap-6">
                 <!-- Logo Centered -->
-                <div class="bg-white p-4 rounded-2xl shadow-xl ring-1 ring-white/20">
+                <div class="mb-4">
                     <img src="/images/logo.webp" alt="Ladang Lima Logo" class="h-16 w-auto object-contain" />
                 </div>
                 
@@ -36,8 +36,8 @@ import { Package } from 'lucide-vue-next';
             <div class="w-full max-w-sm">
                 <!-- Form Header & Logo -->
                 <div class="flex flex-col items-center mb-10">
-                    <div class="bg-white p-3 rounded-2xl shadow-sm border border-border mb-4 inline-flex">
-                        <img src="/images/logo.webp" alt="Ladang Lima Logo" class="h-10 w-auto object-contain" />
+                    <div class="mb-4 inline-flex">
+                        <img src="/images/logo.webp" alt="Ladang Lima Logo" class="h-16 w-auto object-contain" />
                     </div>
                     <!-- Judul hanya muncul di mobile karena desktop sudah ada di sebelah kiri -->
                     <h1 class="text-2xl font-bold tracking-tight text-foreground lg:hidden">Timbangan Digital</h1>

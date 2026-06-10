@@ -178,7 +178,7 @@ const getLocationLabel = (type) => {
             <!-- ── Page Header ── -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Overview Panel</h1>
+                    <h1 class="font-display text-4xl tracking-wider text-primary drop-shadow-sm">Overview Panel</h1>
                     <p class="text-sm text-muted-foreground">Ringkasan operasional real-time semua lokasi.</p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -227,47 +227,47 @@ const getLocationLabel = (type) => {
 
             <!-- ── Stats Cards ── -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card class="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50">
+                <Card class="bg-primary/10 border-2 border-primary rounded-2xl shadow-[4px_4px_0_0_#3B82F6] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Total Penimbangan</CardTitle>
-                        <ClipboardList class="h-4 w-4 text-blue-500" />
+                        <CardTitle class="font-display text-xl tracking-wider text-primary">Total Penimbangan</CardTitle>
+                        <ClipboardList class="h-6 w-6 text-primary" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold text-blue-950 dark:text-blue-50">{{ formatNumber(stats.total) }}</div>
-                        <p class="text-xs text-blue-600/80 dark:text-blue-300/80 mt-1">Items keseluruhan</p>
+                        <div class="font-display text-4xl text-primary mt-2">{{ formatNumber(stats.total) }}</div>
+                        <p class="font-mono text-xs font-bold text-primary/80 mt-1">Items keseluruhan</p>
                     </CardContent>
                 </Card>
 
-                <Card class="bg-indigo-50/50 border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/50">
+                <Card class="bg-secondary/10 border-2 border-secondary rounded-2xl shadow-[4px_4px_0_0_#8B5CF6] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Total Berat</CardTitle>
-                        <Scale class="h-4 w-4 text-indigo-500" />
+                        <CardTitle class="font-display text-xl tracking-wider text-secondary">Total Berat</CardTitle>
+                        <Scale class="h-6 w-6 text-secondary" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold text-indigo-950 dark:text-indigo-50">{{ formatWeight(stats.total_berat) }} <span class="text-sm font-normal text-indigo-600/80 dark:text-indigo-300/80">kg</span></div>
-                        <p class="text-xs text-indigo-600/80 dark:text-indigo-300/80 mt-1">Berat selesai</p>
+                        <div class="font-display text-4xl text-secondary mt-2">{{ formatWeight(stats.total_berat) }} <span class="text-xl">kg</span></div>
+                        <p class="font-mono text-xs font-bold text-secondary/80 mt-1">Berat selesai</p>
                     </CardContent>
                 </Card>
 
-                <Card class="bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/50">
+                <Card class="bg-success/10 border-2 border-success rounded-2xl shadow-[4px_4px_0_0_#16A34A] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Success Rate</CardTitle>
-                        <TrendingUp class="h-4 w-4 text-emerald-500" />
+                        <CardTitle class="font-display text-xl tracking-wider text-success">Success Rate</CardTitle>
+                        <TrendingUp class="h-6 w-6 text-success" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold text-emerald-950 dark:text-emerald-50">{{ formatNumber(successRate) }}%</div>
-                        <p class="text-xs text-emerald-600/80 dark:text-emerald-300/80 mt-1">{{ stats.selesai }}/{{ stats.total }} selesai</p>
+                        <div class="font-display text-4xl text-success mt-2">{{ formatNumber(successRate) }}%</div>
+                        <p class="font-mono text-xs font-bold text-success/80 mt-1">{{ stats.selesai }}/{{ stats.total }} selesai</p>
                     </CardContent>
                 </Card>
 
-                <Card class="bg-rose-50/50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-900/50">
+                <Card class="bg-danger/10 border-2 border-danger rounded-2xl shadow-[4px_4px_0_0_#DC2626] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Invalid</CardTitle>
-                        <AlertCircle class="h-4 w-4 text-rose-500" />
+                        <CardTitle class="font-display text-xl tracking-wider text-danger">Invalid</CardTitle>
+                        <AlertCircle class="h-6 w-6 text-danger" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold text-rose-950 dark:text-rose-50">{{ formatNumber(stats.invalid) }}</div>
-                        <p class="text-xs text-rose-600/80 dark:text-rose-300/80 mt-1">Records gagal</p>
+                        <div class="font-display text-4xl text-danger mt-2">{{ formatNumber(stats.invalid) }}</div>
+                        <p class="font-mono text-xs font-bold text-danger/80 mt-1">Records gagal</p>
                     </CardContent>
                 </Card>
             </div>
@@ -311,7 +311,7 @@ const getLocationLabel = (type) => {
                             <label class="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Operator</label>
                             <select v-model="filterForm.operator" @change="applyGlobalFilter" class="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
                                 <option value="">Semua Operator</option>
-                                <option v-for="op in filteredOperators" :key="op.id" :value="op.id">{{ op.name }} ({{ op.shift ? 'Shift '+op.shift : '-' }})</option>
+                                <option v-for="op in filteredOperators" :key="op.id" :value="op.id">{{ op.name }} ({{ op.shift ? (String(op.shift).toLowerCase().includes('shift') ? op.shift : 'Shift ' + op.shift) : '-' }})</option>
                             </select>
                         </div>
                         <div class="flex items-end">
@@ -345,27 +345,27 @@ const getLocationLabel = (type) => {
             <div>
                 <h2 class="text-lg font-semibold tracking-tight mb-4">Breakdown Per Modul</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    <Card v-for="(name, type) in moduleNames" :key="type" class="hover:bg-accent/50 transition-colors">
+                    <Card v-for="(name, type) in moduleNames" :key="type" class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] hover:translate-y-[-2px] transition-transform">
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                             <div>
-                                <p class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{{ getLocationLabel(type) }}</p>
-                                <CardTitle class="text-sm mt-1">{{ name }}</CardTitle>
+                                <p class="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ getLocationLabel(type) }}</p>
+                                <CardTitle class="font-display text-lg tracking-wider mt-1">{{ name }}</CardTitle>
                             </div>
-                            <Package class="w-4 h-4 text-muted-foreground" />
+                            <Package class="w-5 h-5 text-black" />
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs text-muted-foreground">Penimbangan</span>
-                                    <span class="text-sm font-semibold">{{ formatNumber(moduleStats[type]?.total || 0) }}</span>
+                                    <span class="font-mono text-xs font-bold text-muted-foreground">Penimbangan</span>
+                                    <span class="font-display text-xl text-black">{{ formatNumber(moduleStats[type]?.total || 0) }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs text-muted-foreground">Total Berat</span>
-                                    <span class="text-sm font-semibold">{{ formatWeight(moduleStats[type]?.total_berat || 0) }} kg</span>
+                                    <span class="font-mono text-xs font-bold text-muted-foreground">Total Berat</span>
+                                    <span class="font-display text-xl text-black">{{ formatWeight(moduleStats[type]?.total_berat || 0) }} kg</span>
                                 </div>
-                                <div class="pt-2 border-t">
-                                    <Link :href="route(getRoute(type))" class="flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline py-1">
-                                        Lihat Detail <ChevronRight class="w-3.5 h-3.5" />
+                                <div class="pt-2 border-t border-black/10">
+                                    <Link :href="route(getRoute(type))" class="flex items-center justify-center gap-1 font-display text-sm tracking-wider text-primary hover:underline py-1">
+                                        Lihat Detail <ChevronRight class="w-4 h-4" />
                                     </Link>
                                 </div>
                             </div>
@@ -378,8 +378,8 @@ const getLocationLabel = (type) => {
             <Card class="overflow-hidden bg-slate-50/80 border-slate-200 shadow-md dark:bg-slate-900/80 dark:border-slate-800">
                 <CardHeader class="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle class="text-base">Aktivitas Terakhir</CardTitle>
-                        <p class="text-xs text-muted-foreground mt-1">10 penimbangan terbaru dari semua modul</p>
+                        <CardTitle class="font-display text-xl tracking-wider">Aktivitas Terakhir</CardTitle>
+                        <p class="font-mono text-xs font-bold text-muted-foreground mt-1">10 penimbangan terbaru dari semua modul</p>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <Activity class="w-3.5 h-3.5 text-emerald-500" />
@@ -418,7 +418,7 @@ const getLocationLabel = (type) => {
                                 <TableCell class="font-medium">{{ p.produk?.nama_produk || '-' }}</TableCell>
                                 <TableCell>
                                     <div class="text-sm">{{ p.user?.name || '-' }}</div>
-                                    <div class="text-[10px] text-muted-foreground">Shift {{ p.user?.shift ?? '-' }}</div>
+                                    <div class="text-[10px] text-muted-foreground">{{ p.user?.shift ? (String(p.user.shift).toLowerCase().includes('shift') ? p.user.shift : 'Shift ' + p.user.shift) : '-' }}</div>
                                 </TableCell>
                                 <TableCell class="font-semibold whitespace-nowrap">
                                     {{ formatWeight(p.berat) }} <span class="text-[10px] font-normal text-muted-foreground">kg</span>
