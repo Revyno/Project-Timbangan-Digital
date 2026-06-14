@@ -162,10 +162,10 @@ const formatDateTime = (date) => {
                         <CardTitle class="font-display text-2xl tracking-wider">Kontrol Sesi Penimbangan</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="activePenimbangan" class="p-5 border-2 border-success bg-success/10 text-success rounded-xl">
+                        <div v-if="activePenimbangan" class="p-5 border-2 border-emerald-500 bg-emerald-500/10 text-emerald-600 rounded-xl">
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div>
-                                    <Badge class="bg-success text-white hover:bg-success/90 font-mono text-xs border border-black">Sesi Aktif</Badge>
+                                    <Badge class="bg-emerald-500 text-white hover:bg-emerald-600 font-mono text-xs border border-black">Sesi Aktif</Badge>
                                     <h4 class="font-display text-3xl tracking-wider mt-3">{{ activePenimbangan.produk?.nama_produk }}</h4>
                                     <div class="flex flex-wrap gap-4 mt-2">
                                         <div class="flex items-center gap-2">
@@ -227,14 +227,14 @@ const formatDateTime = (date) => {
                 </Card>
 
                 <!-- Quick Stats -->
-                <Card class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-success/10 hover:translate-y-[-2px] transition-transform">
+                <Card class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-emerald-500/10 hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="pb-2">
-                        <CardTitle class="font-mono text-[10px] font-bold text-success uppercase tracking-widest">Total Produksi (Shift Ini)</CardTitle>
+                        <CardTitle class="font-mono text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Total Produksi (Shift Ini)</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div class="flex items-baseline gap-2">
-                            <span class="font-display text-5xl tracking-wider text-success">{{ totalShift }}</span>
-                            <span class="font-mono text-xs font-bold text-success uppercase">Items</span>
+                            <span class="font-display text-5xl tracking-wider text-emerald-600">{{ totalShift }}</span>
+                            <span class="font-mono text-xs font-bold text-emerald-600 uppercase">Items</span>
                         </div>
                         <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-3 flex items-center gap-1">
                             <CheckCircle2 class="w-3 h-3 text-emerald-500" />
