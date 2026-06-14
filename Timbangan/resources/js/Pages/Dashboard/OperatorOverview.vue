@@ -159,36 +159,36 @@ const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
                     </CardContent>
                 </Card>
 
-                <Card class="bg-secondary/10 border-2 border-secondary rounded-2xl shadow-[4px_4px_0_0_#8B5CF6] hover:translate-y-[-2px] transition-transform">
+                <Card class="bg-violet-500/10 border-2 border-violet-500 rounded-2xl shadow-[4px_4px_0_0_#8B5CF6] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="font-display text-xl tracking-wider text-secondary">Total Berat</CardTitle>
-                        <Scale class="h-6 w-6 text-secondary" />
+                        <CardTitle class="font-display text-xl tracking-wider text-violet-600">Total Berat</CardTitle>
+                        <Scale class="h-6 w-6 text-violet-600" />
                     </CardHeader>
                     <CardContent>
-                        <div class="font-display text-4xl text-secondary mt-2">{{ formatWeight(stats.total_berat) }} <span class="text-xl">kg</span></div>
-                        <p class="font-mono text-xs font-bold text-secondary/80 mt-1">Berat status selesai</p>
+                        <div class="font-display text-4xl text-violet-600 mt-2">{{ formatWeight(stats.total_berat) }} <span class="text-xl">kg</span></div>
+                        <p class="font-mono text-xs font-bold text-violet-600/80 mt-1">Berat status selesai</p>
                     </CardContent>
                 </Card>
 
-                <Card class="bg-success/10 border-2 border-success rounded-2xl shadow-[4px_4px_0_0_#16A34A] hover:translate-y-[-2px] transition-transform">
+                <Card class="bg-emerald-500/10 border-2 border-emerald-500 rounded-2xl shadow-[4px_4px_0_0_#16A34A] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="font-display text-xl tracking-wider text-success">Success Rate</CardTitle>
-                        <TrendingUp class="h-6 w-6 text-success" />
+                        <CardTitle class="font-display text-xl tracking-wider text-emerald-600">Success Rate</CardTitle>
+                        <TrendingUp class="h-6 w-6 text-emerald-600" />
                     </CardHeader>
                     <CardContent>
-                        <div class="font-display text-4xl text-success mt-2">{{ formatNumber(successRate) }}%</div>
-                        <p class="font-mono text-xs font-bold text-success/80 mt-1">{{ stats.selesai }}/{{ stats.total }} selesai</p>
+                        <div class="font-display text-4xl text-emerald-600 mt-2">{{ formatNumber(successRate) }}%</div>
+                        <p class="font-mono text-xs font-bold text-emerald-600/80 mt-1">{{ stats.selesai }}/{{ stats.total }} selesai</p>
                     </CardContent>
                 </Card>
 
-                <Card class="bg-danger/10 border-2 border-danger rounded-2xl shadow-[4px_4px_0_0_#DC2626] hover:translate-y-[-2px] transition-transform">
+                <Card class="bg-red-500/10 border-2 border-red-500 rounded-2xl shadow-[4px_4px_0_0_#DC2626] hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="font-display text-xl tracking-wider text-danger">Invalid</CardTitle>
-                        <AlertCircle class="h-6 w-6 text-danger" />
+                        <CardTitle class="font-display text-xl tracking-wider text-red-600">Invalid</CardTitle>
+                        <AlertCircle class="h-6 w-6 text-red-600" />
                     </CardHeader>
                     <CardContent>
-                        <div class="font-display text-4xl text-danger mt-2">{{ formatNumber(stats.invalid) }}</div>
-                        <p class="font-mono text-xs font-bold text-danger/80 mt-1">Records gagal</p>
+                        <div class="font-display text-4xl text-red-600 mt-2">{{ formatNumber(stats.invalid) }}</div>
+                        <p class="font-mono text-xs font-bold text-red-600/80 mt-1">Records gagal</p>
                     </CardContent>
                 </Card>
             </div>

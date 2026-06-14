@@ -126,7 +126,7 @@ const isSingkong = computed(() => props.jenisOptions && props.jenisOptions.lengt
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Card class="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Total Penimbangan</CardTitle>
+                        <CardTitle class="text-xs font-bold uppercase tracking-widest text-blue-800 dark:text-blue-300">Total Penimbangan</CardTitle>
                         <Package class="w-4 h-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
@@ -137,7 +137,7 @@ const isSingkong = computed(() => props.jenisOptions && props.jenisOptions.lengt
 
                 <Card class="bg-indigo-50/50 border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/50">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Total Berat</CardTitle>
+                        <CardTitle class="text-xs font-bold uppercase tracking-widest text-indigo-800 dark:text-indigo-300">Total Berat</CardTitle>
                         <Scale class="w-4 h-4 text-indigo-500" />
                     </CardHeader>
                     <CardContent>
@@ -148,7 +148,7 @@ const isSingkong = computed(() => props.jenisOptions && props.jenisOptions.lengt
 
                 <Card class="bg-slate-50/80 border-slate-200 shadow-md dark:bg-slate-900/80 dark:border-slate-800">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Periode Filter</CardTitle>
+                        <CardTitle class="text-xs font-bold uppercase tracking-widest text-slate-800 dark:text-slate-300">Periode Filter</CardTitle>
                         <Calendar class="w-4 h-4 text-slate-500" />
                     </CardHeader>
                     <CardContent>
