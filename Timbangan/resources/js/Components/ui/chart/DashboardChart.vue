@@ -44,6 +44,10 @@ const chartData = computed(() => {
   };
 });
 
+const chartDataKey = computed(() => {
+  return props.data.map(d => `${d.name}-${d.total}-${d.berat}`).join('|');
+});
+
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -131,6 +135,7 @@ const chartOptions = {
 <template>
   <div class="w-full h-[300px] md:h-[400px]">
     <Bar
+      :key="chartDataKey"
       :data="chartData"
       :options="chartOptions"
     />

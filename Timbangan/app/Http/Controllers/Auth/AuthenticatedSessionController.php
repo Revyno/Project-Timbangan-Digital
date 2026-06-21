@@ -55,6 +55,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        \App\Models\LoginLog::create([
+            'user_id' => $user->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'login_at' => now(),
+        ]);
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

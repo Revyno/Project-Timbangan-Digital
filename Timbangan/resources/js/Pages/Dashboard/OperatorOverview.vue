@@ -72,7 +72,7 @@ onMounted(() => {
                         timer: 3000,
                     });
 
-                    router.reload({ only: ['stats', 'moduleStats', 'recentPenimbangans'] });
+                    router.reload({ only: ['stats', 'moduleStats', 'recentPenimbangans', 'chartData'] });
 
                     setTimeout(() => { liveIndicator.value = false; }, 3000);
                 }

@@ -482,50 +482,6 @@
                 }
             }
         },
-        "/api/v1/fg-psn/settings": {
-            "get": {
-                "tags": [
-                    "FG PSN"
-                ],
-                "summary": "Get pengaturan sesi aktif timbangan FG PSN",
-                "description": "Dipanggil oleh Arduino/ESP8266 untuk mendapatkan informasi sesi aktif operator FG PSN.",
-                "operationId": "7dfbfe34cad227fad3204420e5179ff5",
-                "parameters": [
-                    {
-                        "name": "token",
-                        "in": "query",
-                        "description": "Token unik perangkat timbangan",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "example": "DEV-TOKEN-FG-PSN-001"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Sukses",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SettingsResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Token tidak valid",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/fg-psn/weight": {
             "post": {
                 "tags": [
@@ -658,48 +614,6 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PingResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Token tidak valid",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/fg-surabaya/settings": {
-            "get": {
-                "tags": [
-                    "FG Surabaya"
-                ],
-                "summary": "Get pengaturan sesi aktif timbangan FG Surabaya",
-                "operationId": "f9b508384932d91ce39ed77f9d291d47",
-                "parameters": [
-                    {
-                        "name": "token",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "example": "DEV-TOKEN-FG-SBY-001"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Sukses",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SettingsResponse"
                                 }
                             }
                         }
@@ -1069,79 +983,6 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PingResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Token tidak valid",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/incoming-singkong/settings": {
-            "get": {
-                "tags": [
-                    "Incoming Singkong"
-                ],
-                "summary": "Get pengaturan sesi aktif timbangan Incoming Singkong",
-                "description": "Mendapatkan informasi sesi aktif untuk penimbangan singkong masuk, termasuk info supplier dan no surat.",
-                "operationId": "61a7422582822a92c0a20e8002000e2d",
-                "parameters": [
-                    {
-                        "name": "token",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "example": "DEV-TOKEN-SINGKONG-001"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Sukses",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "enum": [
-                                                "ready",
-                                                "idle"
-                                            ],
-                                            "example": "ready"
-                                        },
-                                        "kode_produksi": {
-                                            "type": "string",
-                                            "example": "KP-SINGKONG-001"
-                                        },
-                                        "nama_produk": {
-                                            "type": "string",
-                                            "example": "Singkong Basah"
-                                        },
-                                        "operator": {
-                                            "type": "string",
-                                            "example": "Budi"
-                                        },
-                                        "no_surat": {
-                                            "type": "string",
-                                            "example": "SJ-001/2024"
-                                        },
-                                        "nama_supplier": {
-                                            "type": "string",
-                                            "example": "PT. Singkong Jaya"
-                                        }
-                                    },
-                                    "type": "object"
                                 }
                             }
                         }
@@ -1619,6 +1460,15 @@
                     "expired": {
                         "type": "string",
                         "example": "2025-12-31"
+                    },
+                    "total_penimbangan_sesi": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "total_berat_sesi": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 7500.5
                     }
                 },
                 "type": "object"
@@ -1662,6 +1512,23 @@
                     "server_time": {
                         "type": "string",
                         "example": "2024-01-15 08:30:00"
+                    },
+                    "total_penimbangan_sesi": {
+                        "description": "Jumlah penimbangan pada sesi saat ini",
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "total_berat_sesi": {
+                        "description": "Total berat pada sesi saat ini",
+                        "type": "number",
+                        "format": "float",
+                        "example": 7500.5
+                    },
+                    "berat_sebelumnya": {
+                        "description": "Berat penimbangan terakhir",
+                        "type": "number",
+                        "format": "float",
+                        "example": 1500
                     }
                 },
                 "type": "object"

@@ -346,11 +346,45 @@ class IotController extends Controller
 
         if ($device) {
             $device->update(['last_online' => now()]);
-            return response()->json([
-                'status' => 'success',
+
+            $response = [
+                'status' => 'success', // Kept for backward compatibility
                 'message' => 'Timbangan Active',
-                'device' => $device->device_name
-            ]);
+                'device' => $device->device_name,
+                'server_time' => now()->toDateTimeString(),
+                'total_penimbangan_sesi' => 0,
+                'total_berat_sesi' => 0,
+                'berat_sebelumnya' => 0,
+            ];
+
+            $activeOperator = ShiftService::getActiveOperator();
+            $session = null;
+
+            if ($activeOperator) {
+                $session = cache()->get("session_operator_{$activeOperator->id}");
+            }
+
+            if ($session && $activeOperator) {
+                $query = Penimbangan::where('user_id', $activeOperator->id)
+                    ->where('kode_produksi', $session['kode_produksi'])
+                    ->where('status', 'selesai')
+                    ->whereDate('created_at', today());
+
+                $response['total_penimbangan_sesi'] = $query->count();
+                $response['total_berat_sesi'] = (float) $query->sum('berat');
+
+                $lastRecord = Penimbangan::where('user_id', $activeOperator->id)
+                    ->where('kode_produksi', $session['kode_produksi'])
+                    ->where('status', 'selesai')
+                    ->latest('id')
+                    ->first();
+
+                if ($lastRecord) {
+                    $response['berat_sebelumnya'] = (float) $lastRecord->berat;
+                }
+            }
+
+            return response()->json($response);
         }
 
         return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);

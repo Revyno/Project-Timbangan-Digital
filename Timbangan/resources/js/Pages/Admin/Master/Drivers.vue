@@ -93,15 +93,15 @@ const printQr = (driver) => {
     <AuthenticatedLayout>
         <div class="space-y-6">
             <div>
-                <h2 class="text-2xl font-bold tracking-tight text-foreground">Master Data Drivers</h2>
-                <p class="text-sm text-muted-foreground mt-1">Kelola data sopir dan generate QR Code untuk identifikasi otomatis.</p>
+                <h2 class="font-display text-2xl tracking-wider text-foreground">Master Data Drivers</h2>
+                <p class="font-mono text-xs font-bold text-muted-foreground mt-1">Kelola data sopir dan generate QR Code untuk identifikasi otomatis.</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Form Add -->
-                <Card class="bg-emerald-50/60 border-emerald-200 shadow-sm dark:bg-emerald-950/40 dark:border-emerald-800">
+                <Card class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-emerald-50/60 dark:bg-emerald-950/40 hover:translate-y-[-2px] transition-transform">
                     <CardHeader>
-                        <CardTitle class="text-lg flex items-center gap-2">
+                        <CardTitle class="font-display text-xl tracking-wider flex items-center gap-2">
                             <Plus class="w-4 h-4 text-primary" />
                             Tambah Driver
                         </CardTitle>
@@ -148,9 +148,9 @@ const printQr = (driver) => {
                 </Card>
 
                 <!-- List Table -->
-                <Card class="lg:col-span-2 bg-emerald-50/60 border-emerald-200 shadow-sm dark:bg-emerald-950/40 dark:border-emerald-800">
+                <Card class="lg:col-span-2 border-2 border-black rounded-xl shadow-[4px_4px_0_0_#000000] bg-emerald-50/60 dark:bg-emerald-950/40">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-4">
-                        <CardTitle class="text-lg">Daftar Sopir</CardTitle>
+                        <CardTitle class="font-display text-xl tracking-wider">Daftar Sopir</CardTitle>
                         <div class="relative w-64">
                             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input v-model="search" placeholder="Cari sopir..." class="pl-10" />

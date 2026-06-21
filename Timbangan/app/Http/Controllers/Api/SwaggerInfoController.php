@@ -71,7 +71,9 @@ use App\Http\Controllers\Controller;
  *     @OA\Property(property="kode_produksi", type="string", example="KP-2024-001"),
  *     @OA\Property(property="nama_produk", type="string", example="Mie Goreng 85g"),
  *     @OA\Property(property="operator", type="string", example="Budi Santoso"),
- *     @OA\Property(property="expired", type="string", example="2025-12-31")
+ *     @OA\Property(property="expired", type="string", example="2025-12-31"),
+ *     @OA\Property(property="total_penimbangan_sesi", type="integer", example=5),
+ *     @OA\Property(property="total_berat_sesi", type="number", format="float", example=7500.5)
  * )
  *
  * @OA\Schema(
@@ -93,7 +95,10 @@ use App\Http\Controllers\Controller;
  *     schema="PingResponse",
  *     type="object",
  *     @OA\Property(property="status", type="string", example="ok"),
- *     @OA\Property(property="server_time", type="string", example="2024-01-15 08:30:00")
+ *     @OA\Property(property="server_time", type="string", example="2024-01-15 08:30:00"),
+ *     @OA\Property(property="total_penimbangan_sesi", type="integer", example=5, description="Jumlah penimbangan pada sesi saat ini"),
+ *     @OA\Property(property="total_berat_sesi", type="number", format="float", example=7500.5, description="Total berat pada sesi saat ini"),
+ *     @OA\Property(property="berat_sebelumnya", type="number", format="float", example=1500.0, description="Berat penimbangan terakhir")
  * )
  *
  * @OA\Schema(

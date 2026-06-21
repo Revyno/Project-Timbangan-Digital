@@ -57,6 +57,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::post('/master/suppliers', [MasterDataController::class, 'storeSupplier'])->name('admin.master.suppliers.store');
     Route::get('/master/drivers', [MasterDataController::class, 'drivers'])->name('admin.master.drivers');
     Route::post('/master/drivers', [MasterDataController::class, 'storeDriver'])->name('admin.master.drivers.store');
+    
+    // System Logs
+    Route::get('/master/login-logs', [MasterDataController::class, 'loginLogs'])->name('admin.master.login-logs');
 });
 
 // ============================================================
