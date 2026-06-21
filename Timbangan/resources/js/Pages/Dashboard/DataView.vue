@@ -3,6 +3,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle
+} from '@/Components/ui/card';
+import {
     Table,
     TableBody,
     TableCell,
@@ -110,8 +116,8 @@ const isSingkong = computed(() => props.jenisOptions && props.jenisOptions.lengt
             <!-- ── Page Header ── -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight text-foreground">{{ title }}</h1>
-                    <p class="mt-1 text-sm text-muted-foreground">{{ subtitle }}</p>
+                    <h1 class="font-display text-2xl tracking-wider text-foreground">{{ title }}</h1>
+                    <p class="mt-1 font-mono text-xs font-bold text-muted-foreground">{{ subtitle }}</p>
                 </div>
                 <Button
                     as="a"
@@ -124,31 +130,31 @@ const isSingkong = computed(() => props.jenisOptions && props.jenisOptions.lengt
 
             <!-- ── Stats Cards ── -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Card class="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50">
+                <Card class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-blue-50/50 dark:bg-blue-950/20 hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-xs font-bold uppercase tracking-widest text-blue-800 dark:text-blue-300">Total Penimbangan</CardTitle>
+                        <CardTitle class="font-mono text-[10px] font-bold uppercase tracking-widest text-blue-800 dark:text-blue-300">Total Penimbangan</CardTitle>
                         <Package class="w-4 h-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-3xl font-bold text-blue-950 dark:text-blue-50">{{ stats.total }}</div>
+                        <div class="font-display text-3xl tracking-wider text-blue-950 dark:text-blue-50">{{ stats.total }}</div>
                         <p class="text-xs text-blue-600/80 dark:text-blue-300/80 mt-1">Records dalam periode ini</p>
                     </CardContent>
                 </Card>
 
-                <Card class="bg-indigo-50/50 border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/50">
+                <Card class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-indigo-50/50 dark:bg-indigo-950/20 hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-xs font-bold uppercase tracking-widest text-indigo-800 dark:text-indigo-300">Total Berat</CardTitle>
+                        <CardTitle class="font-mono text-[10px] font-bold uppercase tracking-widest text-indigo-800 dark:text-indigo-300">Total Berat</CardTitle>
                         <Scale class="w-4 h-4 text-indigo-500" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-3xl font-bold text-indigo-950 dark:text-indigo-50">{{ formatWeight(stats.total_berat) }} <span class="text-sm font-normal text-indigo-600/80 dark:text-indigo-300/80">kg</span></div>
+                        <div class="font-display text-3xl tracking-wider text-indigo-950 dark:text-indigo-50">{{ formatWeight(stats.total_berat) }} <span class="text-sm font-normal text-indigo-600/80 dark:text-indigo-300/80">kg</span></div>
                         <p class="text-xs text-indigo-600/80 dark:text-indigo-300/80 mt-1">Akumulasi berat selesai</p>
                     </CardContent>
                 </Card>
 
-                <Card class="bg-slate-50/80 border-slate-200 shadow-md dark:bg-slate-900/80 dark:border-slate-800">
+                <Card class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-slate-50/80 dark:bg-slate-900/80 hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-xs font-bold uppercase tracking-widest text-slate-800 dark:text-slate-300">Periode Filter</CardTitle>
+                        <CardTitle class="font-mono text-[10px] font-bold uppercase tracking-widest text-slate-800 dark:text-slate-300">Periode Filter</CardTitle>
                         <Calendar class="w-4 h-4 text-slate-500" />
                     </CardHeader>
                     <CardContent>
@@ -172,7 +178,7 @@ const isSingkong = computed(() => props.jenisOptions && props.jenisOptions.lengt
             </div>
 
             <!-- ── Filter Panel ── -->
-            <Card class="bg-slate-50/80 border-slate-200 shadow-md dark:bg-slate-900/80 dark:border-slate-800">
+            <Card class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-slate-50/80 dark:bg-slate-900/80">
                 <button
                     @click="showFilters = !showFilters"
                     class="w-full flex items-center justify-between px-6 py-4 hover:bg-accent hover:text-accent-foreground transition-colors"
@@ -259,10 +265,10 @@ const isSingkong = computed(() => props.jenisOptions && props.jenisOptions.lengt
             </Card>
 
             <!-- ── Data Table ── -->
-            <Card class="overflow-hidden bg-slate-50/80 border-slate-200 shadow-md dark:bg-slate-900/80 dark:border-slate-800">
+            <Card class="overflow-hidden border-2 border-black rounded-xl shadow-[4px_4px_0_0_#000000] bg-surface dark:bg-slate-900">
                 <div class="px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h2 class="text-base font-bold text-foreground">Tabel Data</h2>
+                        <h2 class="font-display text-xl tracking-wider text-foreground">Tabel Data</h2>
                         <p class="text-xs text-muted-foreground mt-0.5">
                             Menampilkan {{ penimbangans.from || 0 }}–{{ penimbangans.to || 0 }} dari {{ penimbangans.total }} data
                         </p>

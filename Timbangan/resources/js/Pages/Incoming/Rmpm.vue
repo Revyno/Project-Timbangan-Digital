@@ -225,40 +225,40 @@ const formatDateTime = (date) => {
         <div class="space-y-6">
             <!-- Header -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card class="bg-rose-50/60 border-rose-200 shadow-sm dark:bg-rose-950/40 dark:border-rose-800">
+                <Card class="border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-indigo-50 dark:bg-indigo-950/40 hover:translate-y-[-2px] transition-transform">
                     <CardHeader class="flex flex-row items-center gap-4 space-y-0 pb-3">
                         <div class="p-2 bg-primary/10 text-primary rounded-lg">
                             <Package class="w-5 h-5" />
                         </div>
                         <div>
-                            <p class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Operator RMPM</p>
-                            <CardTitle class="text-xl font-bold">{{ auth.user.name }}</CardTitle>
+                            <p class="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Operator RMPM</p>
+                            <CardTitle class="font-display text-2xl tracking-wider">{{ auth.user.name }}</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div class="text-sm border rounded-lg p-3 bg-background space-y-1">
                             <div class="flex justify-between">
-                                <span class="text-muted-foreground">Shift:</span>
-                                <span class="font-bold">{{ auth.user.shift }}</span>
+                                <span class="font-mono text-xs font-bold text-muted-foreground">Shift Saat Ini:</span>
+                                <span class="font-display tracking-wider">{{ auth.user.shift ? (String(auth.user.shift).toLowerCase().includes('shift') ? auth.user.shift : 'Shift ' + auth.user.shift) : '-' }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-muted-foreground">Total Sesi:</span>
-                                <span class="font-bold">{{ totalShift }}</span>
+                                <span class="font-mono text-xs font-bold text-muted-foreground">Total Sesi:</span>
+                                <span class="font-display tracking-wider">{{ totalShift }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-muted-foreground">Total Berat:</span>
-                                <span class="font-bold text-primary">{{ new Intl.NumberFormat('id-ID').format(totalBerat) }} kg</span>
+                                <span class="font-mono text-xs font-bold text-muted-foreground">Total Berat:</span>
+                                <span class="font-display tracking-wider text-primary">{{ new Intl.NumberFormat('id-ID').format(totalBerat) }} kg</span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card class="md:col-span-2 bg-rose-50/60 border-rose-200 shadow-sm dark:bg-rose-950/40 dark:border-rose-800">
+                <Card class="md:col-span-2 border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000000] bg-blue-50 dark:bg-blue-950/40 hover:translate-y-[-2px] transition-transform">
                     <div v-if="activeSession" class="p-6 space-y-4">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4">
                             <div>
-                                <Badge class="bg-primary text-primary-foreground hover:bg-primary/95 mb-2">SESI AKTIF</Badge>
-                                <h3 class="text-xl sm:text-2xl font-bold text-foreground">{{ activeSession.nama_barang }}</h3>
+                                <Badge class="bg-emerald-500 text-white hover:bg-emerald-600 font-mono text-xs border border-black">Sesi Aktif</Badge>
+                                <h3 class="font-display text-3xl tracking-wider mt-3">{{ activeSession.nama_barang }}</h3>
                                 <p class="text-sm text-muted-foreground">{{ activeSession.nama_supplier }} | No Surat: {{ activeSession.no_surat }}</p>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -299,7 +299,7 @@ const formatDateTime = (date) => {
 
                     <div v-else class="p-6">
                         <div class="flex items-center justify-between mb-6">
-                            <CardTitle class="text-lg font-bold text-foreground">Mulai Sesi Baru</CardTitle>
+                            <CardTitle class="font-display text-2xl tracking-wider">Mulai Sesi Baru</CardTitle>
                             <Button @click="identifyDriver" type="button">
                                 <QrCode class="w-4 h-4 mr-2" /> Scan QR Driver
                             </Button>
@@ -417,9 +417,9 @@ const formatDateTime = (date) => {
             </div>
 
             <!-- History -->
-            <Card class="overflow-hidden bg-rose-50/60 border-rose-200 shadow-sm dark:bg-rose-950/40 dark:border-rose-800">
+            <Card class="overflow-hidden border-2 border-black rounded-xl shadow-[4px_4px_0_0_#000000] bg-surface dark:bg-slate-900">
                 <div class="p-6 border-b border-border">
-                    <CardTitle class="text-xl font-bold text-foreground">Riwayat Penimbangan RMPM</CardTitle>
+                    <CardTitle class="font-display text-2xl tracking-wider">Riwayat Penimbangan RMPM</CardTitle>
                 </div>
                 <div class="overflow-x-auto">
                     <Table>

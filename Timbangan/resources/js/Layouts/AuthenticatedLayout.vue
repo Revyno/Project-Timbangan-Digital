@@ -41,9 +41,18 @@ const clearNotifications = () => {
 const isPasuruanOpen = ref(true);
 const isSurabayaOpen = ref(true);
 
+const safeRoute = (name) => {
+    try { return route(name); } catch (e) { return '/admin/master/login-logs'; }
+};
+
+const safeActive = (name) => {
+    try { return route().current(name); } catch (e) { return false; }
+};
+
 const masterDataLinks = [
-    { name: 'Suppliers', href: route('admin.master.suppliers'), icon: Building2, active: route().current('admin.master.suppliers') },
-    { name: 'Drivers', href: route('admin.master.drivers'), icon: UserCheck, active: route().current('admin.master.drivers') },
+    { name: 'Suppliers', href: safeRoute('admin.master.suppliers'), icon: Building2, active: safeActive('admin.master.suppliers') },
+    { name: 'Drivers', href: safeRoute('admin.master.drivers'), icon: UserCheck, active: safeActive('admin.master.drivers') },
+    { name: 'Logs Login', href: safeRoute('admin.master.login-logs'), icon: ClipboardList, active: safeActive('admin.master.login-logs') },
 ];
 
 onMounted(() => {
@@ -177,24 +186,27 @@ const logout = () => {
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full',
                 desktopSidebarOpen ? 'sm:translate-x-0' : 'sm:-translate-x-full'
             ]" 
-            class="fixed top-0 left-0 z-50 w-64 h-screen pt-20 sm:pt-0 transition-transform duration-300 bg-card border-r border-border shadow-xl sm:shadow-none" 
+            class="fixed top-0 left-0 z-50 w-64 h-screen pt-20 sm:pt-0 transition-transform duration-300 bg-card border-r border-border shadow-xl sm:shadow-none flex flex-col" 
             aria-label="Sidebar"
         >
-            <div class="h-full px-4 pb-4 overflow-y-auto">
-                <!-- Logo Sidebar -->
-                <div class="flex items-center justify-center h-[65px] border-b border-border mb-6 py-2">
+            <!-- Fixed Logo Area -->
+            <div class="flex-shrink-0 px-4">
+                <div class="flex items-center justify-center h-[65px] border-b border-border mb-4 py-2">
                     <div class="flex items-center justify-center w-full max-w-[180px]">
                         <img src="/images/logo.webp" alt="Ladang Lima" class="h-10 sm:h-8 w-auto">
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between mb-6 sm:hidden">
+                <div class="flex items-center justify-between mb-4 sm:hidden">
                     <span class="text-xs font-black text-muted-foreground uppercase tracking-widest">Menu Navigasi</span>
                     <button @click="sidebarOpen = false" class="p-2 hover:bg-accent rounded-full">
                         <X class="w-5 h-5 text-muted-foreground" />
                     </button>
                 </div>
+            </div>
 
+            <!-- Scrollable Menu Area -->
+            <div class="flex-1 px-4 pb-4 overflow-y-auto">
                 <ul class="space-y-1.5 font-medium">
                     <li>
                         <Link :href="route('dashboard')">
@@ -303,7 +315,7 @@ const logout = () => {
                         </Link>
                     </li>
 
-                    <!-- Master Data Section (Admin Only) -->
+                    <!-- Master Data Section (Admin Only) - includes Logs Login -->
                     <template v-if="auth.user.role === 'admin'">
                         <li class="pt-6 pb-1 px-3">
                             <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Master Data</span>

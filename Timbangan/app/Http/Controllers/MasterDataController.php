@@ -60,4 +60,15 @@ class MasterDataController extends Controller
 
         return back()->with('success', 'Driver berhasil ditambahkan.');
     }
+
+    public function loginLogs()
+    {
+        $loginLogs = \App\Models\LoginLog::with('user:id,name,tipe')
+            ->latest()
+            ->paginate(20);
+
+        return \Inertia\Inertia::render('Admin/Master/LoginLogs', [
+            'loginLogs' => $loginLogs
+        ]);
+    }
 }

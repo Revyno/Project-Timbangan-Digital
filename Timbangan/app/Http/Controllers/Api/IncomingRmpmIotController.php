@@ -70,6 +70,14 @@ class IncomingRmpmIotController extends Controller
 
         $operator = $activeOperator;
 
+        $query = IncomingRmpm::where('user_id', $operator->id)
+            ->where('kode_batch', $session['kode_batch'] ?? $session['no_surat'])
+            ->where('status', 'selesai')
+            ->whereDate('created_at', today());
+
+        $totalPenimbangan = $query->count();
+        $totalBerat = (float) $query->sum('berat');
+
         return response()->json([
             'status' => 'ready',
             'kode_produksi' => $session['kode_batch'] ?? $session['no_surat'],
@@ -78,6 +86,8 @@ class IncomingRmpmIotController extends Controller
             'expired' => $session['expired_date'] ?? '-',
             'no_surat' => $session['no_surat'],
             'nama_supplier' => $session['nama_supplier'],
+            'total_penimbangan_sesi' => $totalPenimbangan,
+            'total_berat_sesi' => $totalBerat,
         ]);
     }
 
@@ -208,7 +218,49 @@ class IncomingRmpmIotController extends Controller
 
         if ($device) {
             $device->update(['last_online' => now()]);
-            return response()->json(['status' => 'ok', 'server_time' => now()->toDateTimeString()]);
+
+            $response = [
+                'status' => 'ok',
+                'server_time' => now()->toDateTimeString(),
+                'total_penimbangan_sesi' => 0,
+                'total_berat_sesi' => 0,
+                'berat_sebelumnya' => 0,
+            ];
+
+            $operators = User::where('role', 'operator')->where('session_locked', false)->get();
+            $session = null;
+            $activeOperator = null;
+
+            foreach ($operators as $op) {
+                $sess = cache()->get("session_rmpm_{$op->id}");
+                if ($sess) {
+                    $activeOperator = $op;
+                    $session = $sess;
+                    break;
+                }
+            }
+
+            if ($session && $activeOperator) {
+                $query = IncomingRmpm::where('user_id', $activeOperator->id)
+                    ->where('kode_batch', $session['kode_batch'])
+                    ->where('status', 'selesai')
+                    ->whereDate('created_at', today());
+
+                $response['total_penimbangan_sesi'] = $query->count();
+                $response['total_berat_sesi'] = (float) $query->sum('berat');
+
+                $lastRecord = IncomingRmpm::where('user_id', $activeOperator->id)
+                    ->where('kode_batch', $session['kode_batch'])
+                    ->where('status', 'selesai')
+                    ->latest('id')
+                    ->first();
+
+                if ($lastRecord) {
+                    $response['berat_sebelumnya'] = (float) $lastRecord->berat;
+                }
+            }
+
+            return response()->json($response);
         }
 
         return response()->json(['status' => 'error', 'message' => 'Unknown device'], 401);

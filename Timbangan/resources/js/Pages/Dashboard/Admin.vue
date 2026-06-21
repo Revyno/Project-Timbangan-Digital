@@ -446,7 +446,6 @@ const getLocationLabel = (type) => {
                     <p class="text-muted-foreground text-sm mt-1">Data penimbangan akan muncul di sini secara otomatis.</p>
                 </div>
             </Card>
-
         </div>
     </AuthenticatedLayout>
 </template>

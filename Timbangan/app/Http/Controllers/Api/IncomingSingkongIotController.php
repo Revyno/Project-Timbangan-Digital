@@ -11,28 +11,7 @@ use Illuminate\Http\Request;
 
 class IncomingSingkongIotController extends Controller
 {
-    /**
-     * @OA\Get(
-     *     path="/api/v1/incoming-singkong/settings",
-     *     tags={"Incoming Singkong"},
-     *     summary="Get pengaturan sesi aktif timbangan Incoming Singkong",
-     *     description="Mendapatkan informasi sesi aktif untuk penimbangan singkong masuk, termasuk info supplier dan no surat.",
-     *     @OA\Parameter(name="token", in="query", required=true, @OA\Schema(type="string", example="DEV-TOKEN-SINGKONG-001")),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Sukses",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status", type="string", enum={"ready", "idle"}, example="ready"),
-     *             @OA\Property(property="kode_produksi", type="string", example="KP-SINGKONG-001"),
-     *             @OA\Property(property="nama_produk", type="string", example="Singkong Basah"),
-     *             @OA\Property(property="operator", type="string", example="Budi"),
-     *             @OA\Property(property="no_surat", type="string", example="SJ-001/2024"),
-     *             @OA\Property(property="nama_supplier", type="string", example="PT. Singkong Jaya")
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Token tidak valid", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     */
+   
     public function getSettings(Request $request)
     {
         $token = $request->query('token');
@@ -78,6 +57,14 @@ class IncomingSingkongIotController extends Controller
 
         $operator = $activeOperator;
 
+        $query = IncomingSingkong::where('user_id', $operator->id)
+            ->where('kode_produksi', $session['kode_produksi'])
+            ->where('status', 'selesai')
+            ->whereDate('created_at', today());
+
+        $totalPenimbangan = $query->count();
+        $totalBerat = (float) $query->sum('berat');
+
         return response()->json([
             'status' => 'ready',
             'kode_produksi' => $session['kode_produksi'],
@@ -86,6 +73,8 @@ class IncomingSingkongIotController extends Controller
             'expired' => '-',
             'no_surat' => $session['no_surat'],
             'nama_supplier' => $session['nama_supplier'],
+            'total_penimbangan_sesi' => $totalPenimbangan,
+            'total_berat_sesi' => $totalBerat,
         ]);
     }
 
@@ -212,7 +201,49 @@ class IncomingSingkongIotController extends Controller
 
         if ($device) {
             $device->update(['last_online' => now()]);
-            return response()->json(['status' => 'ok', 'server_time' => now()->toDateTimeString()]);
+            
+            $response = [
+                'status' => 'ok',
+                'server_time' => now()->toDateTimeString(),
+                'total_penimbangan_sesi' => 0,
+                'total_berat_sesi' => 0,
+                'berat_sebelumnya' => 0,
+            ];
+
+            $operators = User::where('role', 'operator')->where('session_locked', false)->get();
+            $session = null;
+            $activeOperator = null;
+
+            foreach ($operators as $op) {
+                $sess = cache()->get("session_singkong_{$op->id}");
+                if ($sess) {
+                    $activeOperator = $op;
+                    $session = $sess;
+                    break;
+                }
+            }
+
+            if ($session && $activeOperator) {
+                $query = IncomingSingkong::where('user_id', $activeOperator->id)
+                    ->where('kode_produksi', $session['kode_produksi'])
+                    ->where('status', 'selesai')
+                    ->whereDate('created_at', today());
+
+                $response['total_penimbangan_sesi'] = $query->count();
+                $response['total_berat_sesi'] = (float) $query->sum('berat');
+
+                $lastRecord = IncomingSingkong::where('user_id', $activeOperator->id)
+                    ->where('kode_produksi', $session['kode_produksi'])
+                    ->where('status', 'selesai')
+                    ->latest('id')
+                    ->first();
+
+                if ($lastRecord) {
+                    $response['berat_sebelumnya'] = (float) $lastRecord->berat;
+                }
+            }
+
+            return response()->json($response);
         }
 
         return response()->json(['status' => 'error', 'message' => 'Unknown device'], 401);

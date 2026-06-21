@@ -12,16 +12,7 @@ use Illuminate\Http\Request;
 
 class CsNoodleSbyIotController extends Controller
 {
-    /**
-     * @OA\Get(
-     *     path="/api/v1/cs-noodle-sby/settings",
-     *     tags={"CS Noodle Surabaya"},
-     *     summary="Get pengaturan sesi aktif timbangan CS Noodle Surabaya",
-     *     @OA\Parameter(name="token", in="query", required=true, @OA\Schema(type="string", example="DEV-TOKEN-CS-NOODLE-001")),
-     *     @OA\Response(response=200, description="Sukses", @OA\JsonContent(ref="#/components/schemas/SettingsResponse")),
-     *     @OA\Response(response=401, description="Token tidak valid", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     */
+
     public function getSettings(Request $request)
     {
         $token = $request->query('token');
@@ -61,12 +52,22 @@ class CsNoodleSbyIotController extends Controller
 
         $produk = Produk::find($session['produk_id']);
 
+        $query = Penimbangan::where('user_id', $operator->id)
+            ->where('kode_produksi', $session['kode_produksi'])
+            ->where('status', 'selesai')
+            ->whereDate('created_at', today());
+
+        $totalPenimbangan = $query->count();
+        $totalBerat = (float) $query->sum('berat');
+
         return response()->json([
             'status' => 'ready',
             'kode_produksi' => $session['kode_produksi'],
             'nama_produk' => $produk ? $produk->nama_produk : 'Unknown',
             'operator' => $operator->name,
             'expired' => $session['tanggal_expired'] ?? '-',
+            'total_penimbangan_sesi' => $totalPenimbangan,
+            'total_berat_sesi' => $totalBerat,
         ]);
     }
 
@@ -193,7 +194,49 @@ class CsNoodleSbyIotController extends Controller
 
         if ($device) {
             $device->update(['last_online' => now()]);
-            return response()->json(['status' => 'ok', 'server_time' => now()->toDateTimeString()]);
+
+            $response = [
+                'status' => 'ok',
+                'server_time' => now()->toDateTimeString(),
+                'total_penimbangan_sesi' => 0,
+                'total_berat_sesi' => 0,
+                'berat_sebelumnya' => 0,
+            ];
+
+            $operators = User::where('role', 'operator')->where('session_locked', false)->get();
+            $session = null;
+            $activeOperator = null;
+
+            foreach ($operators as $op) {
+                $sess = cache()->get("session_cs_noodle_{$op->id}");
+                if ($sess) {
+                    $activeOperator = $op;
+                    $session = $sess;
+                    break;
+                }
+            }
+
+            if ($session && $activeOperator) {
+                $query = Penimbangan::where('user_id', $activeOperator->id)
+                    ->where('kode_produksi', $session['kode_produksi'])
+                    ->where('status', 'selesai')
+                    ->whereDate('created_at', today());
+
+                $response['total_penimbangan_sesi'] = $query->count();
+                $response['total_berat_sesi'] = (float) $query->sum('berat');
+
+                $lastRecord = Penimbangan::where('user_id', $activeOperator->id)
+                    ->where('kode_produksi', $session['kode_produksi'])
+                    ->where('status', 'selesai')
+                    ->latest('id')
+                    ->first();
+
+                if ($lastRecord) {
+                    $response['berat_sebelumnya'] = (float) $lastRecord->berat;
+                }
+            }
+
+            return response()->json($response);
         }
 
         return response()->json(['status' => 'error', 'message' => 'Tidak Ada Koneksi'], 401);
