@@ -113,6 +113,21 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ============================================================
+        // 5B. OPERATOR — Formulasi Pasuruan
+        // ============================================================
+        User::create([
+            'name' => 'Operator Formulasi',
+            'email' => 'formulasi@test.com',
+            'password' => Hash::make('password'),
+            'role' => 'operator',
+            'tipe' => 'formulasi_pasuruan',
+            'shift' => 'Shift 1',
+            'shift_start' => '06:00',
+            'shift_end' => '14:00',
+            'shift_type' => 'normal',
+        ]);
+
+        // ============================================================
         // 6. OPERATOR — FG Surabaya (Formulasi Surabaya)
         // ============================================================
         User::create([
@@ -244,6 +259,14 @@ class DatabaseSeeder extends Seeder
             'device_code' => 'DEV-SBY-001',
             'device_name' => 'Wemos D1 R2 - FG Surabaya',
             'device_token' => 'FG-SBY-001',
+            'is_active' => true,
+        ]);
+
+        // Formulasi Pasuruan Device
+        Device::create([
+            'device_code' => 'DEV-FORM-001',
+            'device_name' => 'Wemos D1 R2 - Formulasi Pasuruan',
+            'device_token' => 'FORM-PASURUAN-001',
             'is_active' => true,
         ]);
 

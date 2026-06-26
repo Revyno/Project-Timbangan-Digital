@@ -15,48 +15,6 @@
         }
     ],
     "paths": {
-        "/api/v1/cs-fg-sby/settings": {
-            "get": {
-                "tags": [
-                    "CS FG Surabaya"
-                ],
-                "summary": "Get pengaturan sesi aktif timbangan CS FG Surabaya",
-                "operationId": "a87ccd5f4c2ef60bc662c79561a7cdc7",
-                "parameters": [
-                    {
-                        "name": "token",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "example": "DEV-TOKEN-CS-FG-SBY-001"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Sukses",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SettingsResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Token tidak valid",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/cs-fg-sby/weight": {
             "post": {
                 "tags": [
@@ -187,48 +145,6 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PingResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Token tidak valid",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/cs-noodle-sby/settings": {
-            "get": {
-                "tags": [
-                    "CS Noodle Surabaya"
-                ],
-                "summary": "Get pengaturan sesi aktif timbangan CS Noodle Surabaya",
-                "operationId": "3d2fc75dbf4b415ae243497c19c647fb",
-                "parameters": [
-                    {
-                        "name": "token",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "example": "DEV-TOKEN-CS-NOODLE-001"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Sukses",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SettingsResponse"
                                 }
                             }
                         }
@@ -767,6 +683,196 @@
                     },
                     "401": {
                         "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/formulasi/settings": {
+            "get": {
+                "tags": [
+                    "Formulasi Pasuruan"
+                ],
+                "summary": "Get pengaturan sesi aktif timbangan Formulasi Pasuruan",
+                "operationId": "769cc646e33d48fdd3d031cfbb5687ed",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "description": "Token unik perangkat timbangan",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "FORM-PASURUAN-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SettingsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/formulasi/weight": {
+            "post": {
+                "tags": [
+                    "Formulasi Pasuruan"
+                ],
+                "summary": "Kirim data berat timbangan Formulasi Pasuruan",
+                "operationId": "5a531fe58997cfde8b751ddedad3222f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "weight"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "FORM-PASURUAN-001"
+                                    },
+                                    "weight": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 10.25
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WeightSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/formulasi/ping": {
+            "get": {
+                "tags": [
+                    "Formulasi Pasuruan"
+                ],
+                "summary": "Ping perangkat timbangan Formulasi Pasuruan (GET)",
+                "operationId": "edad1942ffd79520854ecaf1c5800b29",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "FORM-PASURUAN-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Formulasi Pasuruan"
+                ],
+                "summary": "Ping perangkat timbangan Formulasi Pasuruan",
+                "operationId": "dd904e841163dcd991d12dcd4f44acd0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1580,6 +1686,10 @@
         {
             "name": "Driver",
             "description": "Identifikasi driver via QR Code"
+        },
+        {
+            "name": "Formulasi Pasuruan",
+            "description": "Formulasi Pasuruan"
         }
     ]
 }

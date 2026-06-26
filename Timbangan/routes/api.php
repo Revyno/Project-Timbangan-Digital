@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CsNoodleSbyIotController;
 use App\Http\Controllers\Api\CsFgSbyIotController;
 use App\Http\Controllers\Api\IncomingSingkongIotController;
 use App\Http\Controllers\Api\IncomingRmpmIotController;
+use App\Http\Controllers\Api\FormulasiIotController;
 use App\Http\Controllers\Api\DriverController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,13 @@ use Illuminate\Support\Facades\Route;
 // ===========================================================================
 // API v1 — Route Baru (Rekomendasi untuk penggunaan baru)
 // ===========================================================================
+
+// ── Formulasi Pasuruan ───────────────────────────────────────────────────────
+Route::prefix('v1/formulasi')->group(function () {
+    Route::get('/settings', [FormulasiIotController::class, 'getSettings'])->name('v1.formulasi.settings');
+    Route::post('/weight', [FormulasiIotController::class, 'receiveWeight'])->name('v1.formulasi.weight');
+    Route::match(['get', 'post'], '/ping', [FormulasiIotController::class, 'ping'])->name('v1.formulasi.ping');
+});
 
 // ── FG Pasuruan (Formulasi) ─────────────────────────────────────────────────
 Route::prefix('v1/fg-pasuruan')->group(function () {
