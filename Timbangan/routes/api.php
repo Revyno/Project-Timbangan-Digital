@@ -115,6 +115,14 @@ Route::prefix('iot')->group(function () {
 // Driver identification (legacy)
 Route::post('/driver/identify', [DriverController::class, 'identify']);
 
+// Formulasi Pasuruan (legacy)
+Route::prefix('iot/formulasi')->group(function () {
+    Route::get('/settings', [FormulasiIotController::class, 'getSettings']);
+    Route::post('/weight', [FormulasiIotController::class, 'receiveWeight']);
+    Route::post('/ping', [FormulasiIotController::class, 'ping']);
+    Route::get('/ping', [FormulasiIotController::class, 'ping']);
+});
+
 // FG PSN (legacy)
 Route::prefix('iot/fg-psn')->group(function () {
     Route::get('/settings', [FgPsnIotController::class, 'getSettings']);
