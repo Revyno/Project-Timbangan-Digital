@@ -18,16 +18,7 @@ import {
 } from '@/Components/ui/table';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationFirst,
-    PaginationItem,
-    PaginationLast,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/Components/ui/pagination';
+import AppPagination from '@/Components/AppPagination.vue';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { 
@@ -448,36 +439,7 @@ const formatDateTime = (date) => {
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="history.total > history.per_page" class="px-6 py-4 border-t border-border flex justify-center">
-                    <Pagination 
-                        v-slot="{ page }"
-                        :total="history.total" 
-                        :items-per-page="history.per_page"
-                        :sibling-count="1" 
-                        show-edges 
-                        :page="history.current_page"
-                        @update:page="handlePageChange"
-                    >
-                        <PaginationContent v-slot="{ items }">
-                            <PaginationFirst />
-                            <PaginationPrevious />
-
-                            <template v-for="(item, index) in items" :key="index">
-                                <PaginationItem
-                                    v-if="item.type === 'page'"
-                                    :value="item.value"
-                                    :is-active="item.value === page"
-                                >
-                                    {{ item.value }}
-                                </PaginationItem>
-                                <PaginationEllipsis v-else />
-                            </template>
-
-                            <PaginationNext />
-                            <PaginationLast />
-                        </PaginationContent>
-                    </Pagination>
-                </div>
+                <AppPagination :paginator="history" @change="handlePageChange" />
             </Card>
         </div>
 

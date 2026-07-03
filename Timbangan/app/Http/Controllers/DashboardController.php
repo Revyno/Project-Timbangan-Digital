@@ -61,6 +61,7 @@ class DashboardController extends Controller
 
         $moduleNames = [
             'fg' => 'Pasuruan FG',
+            'formulasi_pasuruan' => 'Formulasi Pasuruan',
             'fg_psn' => 'Pasuruan PSN',
             'fg_surabaya' => 'Surabaya Formulasi',
             'cs_noodle_sby' => 'CS Noodle Surabaya',
@@ -149,6 +150,7 @@ class DashboardController extends Controller
         // Map internal types to human readable names
         $moduleNames = [
             'fg' => 'Pasuruan FG',
+            'formulasi_pasuruan' => 'Formulasi Pasuruan',
             'fg_psn' => 'Pasuruan PSN',
             'fg_surabaya' => 'Surabaya Formulasi',
             'cs_noodle_sby' => 'CS Noodle Surabaya',

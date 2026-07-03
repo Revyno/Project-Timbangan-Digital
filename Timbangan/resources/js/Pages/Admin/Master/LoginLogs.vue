@@ -1,12 +1,11 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { Card, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Badge } from '@/Components/ui/badge';
 import { Users, ClipboardList } from 'lucide-vue-next';
-import { Button } from '@/Components/ui/button';
-import { Link } from '@inertiajs/vue3';
+import AppPagination from '@/Components/AppPagination.vue';
 
 const props = defineProps({
     loginLogs: {
@@ -15,16 +14,8 @@ const props = defineProps({
     }
 });
 
-const getPageArray = (currentPage, lastPage) => {
-    let pages = [];
-    for (let i = 1; i <= lastPage; i++) {
-        if (i === 1 || i === lastPage || (i >= currentPage - 1 && i <= currentPage + 1)) {
-            pages.push(i);
-        } else if (pages[pages.length - 1] !== '...') {
-            pages.push('...');
-        }
-    }
-    return pages;
+const handlePageChange = (page) => {
+    router.get(props.loginLogs.path, { page }, { preserveState: true, preserveScroll: true });
 };
 </script>
 
@@ -101,44 +92,7 @@ const getPageArray = (currentPage, lastPage) => {
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="loginLogs.last_page > 1" class="border-t p-4 flex items-center justify-center sm:justify-between bg-muted/20">
-                    <div class="hidden sm:block text-xs font-mono font-bold text-muted-foreground">
-                        Menampilkan {{ loginLogs.from }}–{{ loginLogs.to }} dari {{ loginLogs.total }} data
-                    </div>
-                    <div class="flex gap-1">
-                        <Link
-                            v-if="loginLogs.prev_page_url"
-                            :href="loginLogs.prev_page_url"
-                            class="px-3 py-1.5 text-xs font-bold border-2 border-black rounded-md shadow-[2px_2px_0_0_#000000] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[1px_1px_0_0_#000000] transition-all bg-white"
-                        >
-                            Prev
-                        </Link>
-                        
-                        <template v-for="page in getPageArray(loginLogs.current_page, loginLogs.last_page)" :key="page">
-                            <span v-if="page === '...'" class="px-2 py-1.5 text-xs font-bold">...</span>
-                            <Link
-                                v-else
-                                :href="loginLogs.path + '?page=' + page"
-                                :class="[ 
-                                    'px-3 py-1.5 text-xs font-bold border-2 border-black rounded-md transition-all',
-                                    page === loginLogs.current_page 
-                                        ? 'bg-primary text-primary-foreground shadow-[2px_2px_0_0_#000000]' 
-                                        : 'bg-white hover:translate-y-[1px] hover:translate-x-[1px] shadow-[2px_2px_0_0_#000000] hover:shadow-[1px_1px_0_0_#000000]'
-                                ]"
-                            >
-                                {{ page }}
-                            </Link>
-                        </template>
-
-                        <Link
-                            v-if="loginLogs.next_page_url"
-                            :href="loginLogs.next_page_url"
-                            class="px-3 py-1.5 text-xs font-bold border-2 border-black rounded-md shadow-[2px_2px_0_0_#000000] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[1px_1px_0_0_#000000] transition-all bg-white"
-                        >
-                            Next
-                        </Link>
-                    </div>
-                </div>
+                <AppPagination :paginator="loginLogs" @change="handlePageChange" />
             </Card>
         </div>
     </AuthenticatedLayout>
