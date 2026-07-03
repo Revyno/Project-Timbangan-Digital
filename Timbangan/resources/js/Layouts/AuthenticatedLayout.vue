@@ -55,21 +55,28 @@ const masterDataLinks = [
     { name: 'Logs Login', href: safeRoute('admin.master.login-logs'), icon: ClipboardList, active: safeActive('admin.master.login-logs') },
 ];
 
+// Throttle reload supaya burst data dari beberapa modul tidak menembak server berkali-kali
+let layoutReloadTimer = null;
+const queueLayoutReload = () => {
+    if (layoutReloadTimer) return;
+    layoutReloadTimer = setTimeout(() => {
+        layoutReloadTimer = null;
+        router.reload({ only: ['penimbangans', 'stats', 'totalShift', 'totalBerat', 'activePenimbangan'], preserveScroll: true });
+    }, 1000);
+};
+
 onMounted(() => {
     if (window.Echo) {
         const userRole = auth.user.role;
         const userType = auth.user.tipe;
-        
-        const channels = userRole === 'admin' 
-            ? ['fg_psn', 'incoming_singkong', 'incoming_rmpm', 'fg_surabaya', 'cs_noodle_sby', 'cs_fg_sby']
+
+        const channels = userRole === 'admin'
+            ? ['fg', 'fg_psn', 'formulasi_pasuruan', 'incoming_singkong', 'incoming_rmpm', 'fg_surabaya', 'cs_noodle_sby', 'cs_fg_sby']
             : [userType];
 
         channels.forEach(channel => {
-            console.log('Listening to IoT channel: iot-weights.' + channel);
             window.Echo.channel('iot-weights.' + channel)
                 .listen('.WeightReceived', (e) => {
-                    console.log('Weight received via WebSocket on ' + channel + ':', e);
-                    
                     notificationDot.value = true;
 
                     notifications.value.unshift({
@@ -78,8 +85,7 @@ onMounted(() => {
                         message: `Berat: ${e.weight} kg (${e.product})`,
                     });
 
-                    // In Inertia, we can reload the page or just data
-                    router.reload({ only: ['penimbangans', 'stats', 'totalShift', 'totalBerat', 'activePenimbangan'] });
+                    queueLayoutReload();
                 });
         });
     }

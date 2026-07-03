@@ -18,16 +18,7 @@ import {
 } from '@/Components/ui/table';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationFirst,
-    PaginationItem,
-    PaginationLast,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/Components/ui/pagination';
+import AppPagination from '@/Components/AppPagination.vue';
 import {
     Scale,
     Calendar,
@@ -370,41 +361,7 @@ const isSingkong = computed(() => props.jenisOptions && props.jenisOptions.lengt
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="penimbangans.last_page > 1" class="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-border gap-4">
-                    <p class="text-sm text-muted-foreground">
-                        Menampilkan <span class="font-bold">{{ penimbangans.from }}</span>
-                        – <span class="font-bold">{{ penimbangans.to }}</span>
-                        dari <span class="font-bold">{{ penimbangans.total }}</span> data
-                    </p>
-                    <Pagination
-                        v-slot="{ page }"
-                        :total="penimbangans.total"
-                        :items-per-page="penimbangans.per_page"
-                        :sibling-count="1"
-                        show-edges
-                        :page="penimbangans.current_page"
-                        @update:page="handlePageChange"
-                    >
-                        <PaginationContent v-slot="{ items }" class="flex items-center gap-1">
-                            <PaginationFirst />
-                            <PaginationPrevious />
-
-                            <template v-for="(item, index) in items" :key="index">
-                                <PaginationItem
-                                    v-if="item.type === 'page'"
-                                    :value="item.value"
-                                    :is-active="item.value === page"
-                                >
-                                    {{ item.value }}
-                                </PaginationItem>
-                                <PaginationEllipsis v-else />
-                            </template>
-
-                            <PaginationNext />
-                            <PaginationLast />
-                        </PaginationContent>
-                    </Pagination>
-                </div>
+                <AppPagination :paginator="penimbangans" @change="handlePageChange" />
             </Card>
 
         </div>

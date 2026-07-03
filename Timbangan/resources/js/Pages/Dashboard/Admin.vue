@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
     Card,
@@ -34,11 +34,13 @@ import {
     Wifi,
     Package,
     ChevronUp,
+    ChevronDown,
 } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import { formatWeight } from '@/utils/format.js';
 import { computed } from 'vue';
 import DashboardChart from '@/Components/ui/chart/DashboardChart.vue';
+import { useRealtimeReload } from '@/composables/useRealtimeReload.js';
 
 const props = defineProps({
     stats: Object,
@@ -91,58 +93,53 @@ const resetGlobalFilter = () => {
     router.get(window.location.pathname, filterForm.value, { preserveState: true });
 };
 
-// ── Real-time listener ──
-onMounted(() => {
-    if (window.Echo) {
-        window.Echo.channel('iot-weights')
-            .listen('.WeightReceived', (e) => {
-                liveIndicator.value = true;
-                lastReceived.value = {
-                    weight: e.weight || e.berat,
-                    operator: e.operator,
-                    module: e.module,
-                    ip: e.ip_address,
-                    time: new Date().toLocaleTimeString('id-ID'),
-                };
+// ── Real-time listener (WebSocket + fallback polling REST) ──
+// Grafik Penimbangan, Breakdown Per Modul, stats & Aktivitas Terakhir
+// di-reload otomatis setiap ada data masuk dari API modul manapun.
+const { connected } = useRealtimeReload({
+    channel: 'iot-weights',
+    only: ['stats', 'moduleStats', 'recentPenimbangans', 'chartData'],
+    onEvent: (e) => {
+        liveIndicator.value = true;
+        lastReceived.value = {
+            weight: e.weight || e.berat,
+            operator: e.operator,
+            module: e.module,
+            ip: e.ip_address,
+            time: new Date().toLocaleTimeString('id-ID'),
+        };
 
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: `Data berat ${formatWeight(e.weight || e.berat)} kg diterima`,
-                    text: `Operator: ${e.operator} | IP: ${e.ip_address}`,
-                    showConfirmButton: false,
-                    timer: 4000,
-                });
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: `Data berat ${formatWeight(e.weight || e.berat)} kg diterima`,
+            text: `Operator: ${e.operator} | IP: ${e.ip_address}`,
+            showConfirmButton: false,
+            timer: 4000,
+        });
 
-                // Reload stats & recent data
-                router.reload({ only: ['stats', 'moduleStats', 'recentPenimbangans', 'chartData'] });
-
-                setTimeout(() => { liveIndicator.value = false; }, 3000);
-            });
-    }
+        setTimeout(() => { liveIndicator.value = false; }, 3000);
+    },
 });
 
-onUnmounted(() => {
-    if (window.Echo) {
-        window.Echo.leave('iot-weights');
-    }
-});
-
-const successRate = props.stats.total > 0 ? (props.stats.selesai / props.stats.total) * 100 : 0;
+const successRate = computed(() => props.stats.total > 0 ? (props.stats.selesai / props.stats.total) * 100 : 0);
 
 const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
 
+const routeMap = {
+    'fg': 'admin.fg',
+    'fg_psn': 'admin.fg-psn',
+    'fg_surabaya': 'admin.fg-surabaya',
+    'cs_noodle_sby': 'admin.cs-noodle-sby',
+    'cs_fg_sby': 'admin.cs-fg-sby',
+    'incoming_singkong': 'admin.incoming.singkong',
+    'incoming_rmpm': 'admin.incoming.rmpm',
+};
+
+const hasDetailRoute = (type) => !!routeMap[type];
+
 const getRoute = (type) => {
-    const routeMap = {
-        'fg': 'admin.fg',
-        'fg_psn': 'admin.fg-psn',
-        'fg_surabaya': 'admin.fg-surabaya',
-        'cs_noodle_sby': 'admin.cs-noodle-sby',
-        'cs_fg_sby': 'admin.cs-fg-sby',
-        'incoming_singkong': 'admin.incoming.singkong',
-        'incoming_rmpm': 'admin.incoming.rmpm',
-    };
     return routeMap[type] || 'dashboard';
 };
 
@@ -150,6 +147,7 @@ const getModuleColor = (type) => {
     const colors = {
         'fg': 'bg-blue-50 text-blue-600',
         'fg_psn': 'bg-indigo-50 text-indigo-600',
+        'formulasi_pasuruan': 'bg-sky-50 text-sky-600',
         'fg_surabaya': 'bg-violet-50 text-violet-600',
         'cs_noodle_sby': 'bg-cyan-50 text-cyan-600',
         'cs_fg_sby': 'bg-teal-50 text-teal-600',
@@ -164,7 +162,7 @@ const getModuleIcon = (type) => {
 };
 
 const getLocationLabel = (type) => {
-    if (['fg', 'fg_psn', 'incoming_singkong', 'incoming_rmpm'].includes(type)) return 'Pasuruan';
+    if (['fg', 'fg_psn', 'formulasi_pasuruan', 'incoming_singkong', 'incoming_rmpm'].includes(type)) return 'Pasuruan';
     return 'Surabaya';
 };
 </script>
@@ -185,10 +183,10 @@ const getLocationLabel = (type) => {
                     <!-- Live Indicator -->
                     <div class="flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-foreground rounded-md border">
                         <span class="relative flex h-2 w-2">
-                            <span :class="liveIndicator ? 'animate-ping bg-emerald-500' : 'bg-muted-foreground'" class="absolute inline-flex h-full w-full rounded-full opacity-75"></span>
-                            <span :class="liveIndicator ? 'bg-emerald-500' : 'bg-muted-foreground'" class="relative inline-flex rounded-full h-2 w-2"></span>
+                            <span :class="liveIndicator ? 'animate-ping bg-emerald-500' : (connected ? 'bg-emerald-500' : 'bg-amber-500')" class="absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+                            <span :class="liveIndicator ? 'bg-emerald-500' : (connected ? 'bg-emerald-500' : 'bg-amber-500')" class="relative inline-flex rounded-full h-2 w-2"></span>
                         </span>
-                        <span class="text-xs font-semibold uppercase tracking-wider">Live</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider">{{ connected ? 'Live' : 'Polling' }}</span>
                     </div>
                     <Button as="a" :href="route('penimbangan.export', filterForm)">
                         <FileDown class="w-4 h-4 mr-2" /> Export CSV
@@ -290,6 +288,7 @@ const getLocationLabel = (type) => {
                                 <optgroup label="Pasuruan">
                                     <option value="fg">Formulasi</option>
                                     <option value="fg_psn">Finished Goods</option>
+                                    <option value="formulasi_pasuruan">Formulasi Pasuruan</option>
                                     <option value="incoming_singkong">Incoming Singkong</option>
                                     <option value="incoming_rmpm">Incoming RMPM</option>
                                 </optgroup>
@@ -363,7 +362,7 @@ const getLocationLabel = (type) => {
                                     <span class="font-mono text-xs font-bold text-muted-foreground">Total Berat</span>
                                     <span class="font-display text-xl text-black">{{ formatWeight(moduleStats[type]?.total_berat || 0) }} kg</span>
                                 </div>
-                                <div class="pt-2 border-t border-black/10">
+                                <div v-if="hasDetailRoute(type)" class="pt-2 border-t border-black/10">
                                     <Link :href="route(getRoute(type))" class="flex items-center justify-center gap-1 font-display text-sm tracking-wider text-primary hover:underline py-1">
                                         Lihat Detail <ChevronRight class="w-4 h-4" />
                                     </Link>
@@ -382,8 +381,10 @@ const getLocationLabel = (type) => {
                         <p class="font-mono text-xs font-bold text-muted-foreground mt-1">10 penimbangan terbaru dari semua modul</p>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <Activity class="w-3.5 h-3.5 text-emerald-500" />
-                        <span class="text-xs font-medium text-emerald-600">Real-Time</span>
+                        <Activity :class="connected ? 'text-emerald-500' : 'text-amber-500'" class="w-3.5 h-3.5" />
+                        <span :class="connected ? 'text-emerald-600' : 'text-amber-600'" class="text-xs font-medium">
+                            {{ connected ? 'Real-Time (WebSocket)' : 'Auto-Refresh (Polling)' }}
+                        </span>
                     </div>
                 </CardHeader>
                 <div class="overflow-x-auto border-t">

@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { ref, onMounted, onUnmounted } from 'vue';
-import { Head, usePage, router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { Head, usePage } from '@inertiajs/vue3';
 import {
     Card,
     CardContent,
@@ -33,6 +33,7 @@ import Swal from 'sweetalert2';
 import { Link } from '@inertiajs/vue3';
 import DashboardChart from '@/Components/ui/chart/DashboardChart.vue';
 import { formatWeight } from '@/utils/format.js';
+import { useRealtimeReload } from '@/composables/useRealtimeReload.js';
 
 const props = defineProps({
     stats: Object,
@@ -48,45 +49,36 @@ const { auth } = usePage().props;
 const liveIndicator = ref(false);
 const lastReceived = ref(null);
 
-// ── Real-time listener ──
-onMounted(() => {
-    if (window.Echo) {
-        window.Echo.channel('iot-weights')
-            .listen('.WeightReceived', (e) => {
-                // Only show if this event is for the current operator
-                if (e.operator === auth.user.name) {
-                    liveIndicator.value = true;
-                    lastReceived.value = {
-                        weight: e.weight || e.berat,
-                        ip: e.ip_address,
-                        time: new Date().toLocaleTimeString('id-ID'),
-                    };
+// ── Real-time listener (WebSocket + fallback polling REST) ──
+const { connected } = useRealtimeReload({
+    channel: 'iot-weights',
+    only: ['stats', 'moduleStats', 'recentPenimbangans', 'chartData'],
+    onEvent: (e) => {
+        // Hanya proses jika event ini milik operator yang sedang login
+        if (e.operator !== auth.user.name) return false;
 
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: `Berat ${formatWeight(e.weight || e.berat)} kg diterima`,
-                        text: `IP: ${e.ip_address}`,
-                        showConfirmButton: false,
-                        timer: 3000,
-                    });
+        liveIndicator.value = true;
+        lastReceived.value = {
+            weight: e.weight || e.berat,
+            ip: e.ip_address,
+            time: new Date().toLocaleTimeString('id-ID'),
+        };
 
-                    router.reload({ only: ['stats', 'moduleStats', 'recentPenimbangans', 'chartData'] });
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: `Berat ${formatWeight(e.weight || e.berat)} kg diterima`,
+            text: `IP: ${e.ip_address}`,
+            showConfirmButton: false,
+            timer: 3000,
+        });
 
-                    setTimeout(() => { liveIndicator.value = false; }, 3000);
-                }
-            });
-    }
+        setTimeout(() => { liveIndicator.value = false; }, 3000);
+    },
 });
 
-onUnmounted(() => {
-    if (window.Echo) {
-        window.Echo.leave('iot-weights');
-    }
-});
-
-const successRate = props.stats.total > 0 ? (props.stats.selesai / props.stats.total) * 100 : 0;
+const successRate = computed(() => props.stats.total > 0 ? (props.stats.selesai / props.stats.total) * 100 : 0);
 
 const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
 </script>
@@ -106,10 +98,10 @@ const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-foreground rounded-md border">
                         <span class="relative flex h-2 w-2">
-                            <span :class="liveIndicator ? 'animate-ping bg-emerald-500' : 'bg-muted-foreground'" class="absolute inline-flex h-full w-full rounded-full opacity-75"></span>
-                            <span :class="liveIndicator ? 'bg-emerald-500' : 'bg-muted-foreground'" class="relative inline-flex rounded-full h-2 w-2"></span>
+                            <span :class="liveIndicator ? 'animate-ping bg-emerald-500' : (connected ? 'bg-emerald-500' : 'bg-amber-500')" class="absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+                            <span :class="liveIndicator ? 'bg-emerald-500' : (connected ? 'bg-emerald-500' : 'bg-amber-500')" class="relative inline-flex rounded-full h-2 w-2"></span>
                         </span>
-                        <span class="text-xs font-semibold uppercase tracking-wider">Live</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider">{{ connected ? 'Live' : 'Polling' }}</span>
                     </div>
                     <Badge variant="secondary" class="gap-1.5">
                         <User class="w-3.5 h-3.5" /> {{ auth.user.shift ? (String(auth.user.shift).toLowerCase().includes('shift') ? auth.user.shift : 'Shift ' + auth.user.shift) : '-' }}
@@ -245,8 +237,10 @@ const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
                         <p class="font-mono text-xs font-bold text-muted-foreground mt-1">Data terbaru akan muncul otomatis tanpa refresh.</p>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <Activity class="w-3.5 h-3.5 text-emerald-500" />
-                        <span class="text-xs font-medium text-emerald-600">Real-Time</span>
+                        <Activity :class="connected ? 'text-emerald-500' : 'text-amber-500'" class="w-3.5 h-3.5" />
+                        <span :class="connected ? 'text-emerald-600' : 'text-amber-600'" class="text-xs font-medium">
+                            {{ connected ? 'Real-Time (WebSocket)' : 'Auto-Refresh (Polling)' }}
+                        </span>
                     </div>
                 </CardHeader>
                 <div class="overflow-x-auto">

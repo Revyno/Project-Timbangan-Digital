@@ -18,17 +18,8 @@ import {
 } from '@/Components/ui/table';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
+import AppPagination from '@/Components/AppPagination.vue';
 import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationFirst,
-    PaginationItem,
-    PaginationLast,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/Components/ui/pagination';
-import { 
     User, 
     Settings2, 
     RotateCcw, 
@@ -289,36 +280,7 @@ const formatDateTime = (date) => {
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="penimbangans.total > penimbangans.per_page" class="px-6 py-4 border-t border-border flex justify-center">
-                    <Pagination 
-                        v-slot="{ page }"
-                        :total="penimbangans.total" 
-                        :items-per-page="penimbangans.per_page"
-                        :sibling-count="1" 
-                        show-edges 
-                        :page="penimbangans.current_page"
-                        @update:page="handlePageChange"
-                    >
-                        <PaginationContent v-slot="{ items }">
-                            <PaginationFirst />
-                            <PaginationPrevious />
-
-                            <template v-for="(item, index) in items" :key="index">
-                                <PaginationItem
-                                    v-if="item.type === 'page'"
-                                    :value="item.value"
-                                    :is-active="item.value === page"
-                                >
-                                    {{ item.value }}
-                                </PaginationItem>
-                                <PaginationEllipsis v-else />
-                            </template>
-
-                            <PaginationNext />
-                            <PaginationLast />
-                        </PaginationContent>
-                    </Pagination>
-                </div>
+                <AppPagination :paginator="penimbangans" @change="handlePageChange" />
             </Card>
         </div>
     </AuthenticatedLayout>
