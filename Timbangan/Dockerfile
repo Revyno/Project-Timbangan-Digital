@@ -9,6 +9,26 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
+# Stage 0 — Dependency Composer (dipakai untuk menyediakan paket Ziggy)
+#
+#   Ziggy (tightenco/ziggy) di-import langsung dari `vendor/` oleh
+#   resources/js/app.js, jadi paket ini harus tersedia SEBELUM `npm run
+#   build` — meskipun stage assets sendiri tidak butuh PHP.
+# -----------------------------------------------------------------------------
+FROM composer:2 AS vendor
+
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+RUN composer install \
+        --no-dev \
+        --no-scripts \
+        --no-autoloader \
+        --prefer-dist \
+        --no-interaction \
+        --ignore-platform-reqs
+
+# -----------------------------------------------------------------------------
 # Stage 1 — Build asset frontend
 # -----------------------------------------------------------------------------
 FROM node:20-alpine AS assets
@@ -35,6 +55,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+COPY --from=vendor /app/vendor/tightenco/ziggy ./vendor/tightenco/ziggy
 RUN npm run build
 
 
