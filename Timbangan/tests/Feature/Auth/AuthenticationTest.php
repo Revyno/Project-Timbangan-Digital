@@ -10,18 +10,21 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    // Catatan: pada aplikasi ini halaman login berada di route "/" (name: login),
+    // bukan "/login", dan proses login memakai POST "/".
+
     public function test_login_screen_can_be_rendered(): void
     {
-        $response = $this->get('/login');
+        $response = $this->get(route('login'));
 
         $response->assertStatus(200);
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->operator()->create();
 
-        $response = $this->post('/login', [
+        $response = $this->post('/', [
             'email' => $user->email,
             'password' => 'password',
         ]);
@@ -32,9 +35,9 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->operator()->create();
 
-        $this->post('/login', [
+        $this->post('/', [
             'email' => $user->email,
             'password' => 'wrong-password',
         ]);
@@ -44,7 +47,7 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_logout(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->operator()->create();
 
         $response = $this->actingAs($user)->post('/logout');
 

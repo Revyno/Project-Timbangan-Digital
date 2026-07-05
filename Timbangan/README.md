@@ -113,5 +113,265 @@ Sistem akan memproses data berdasarkan sesi operator yang sedang aktif dan melak
 
 ---
 
+## 🚢 Deploy Produksi (VPS Ubuntu + Docker + Git)
+
+Deployment produksi memakai **Docker Compose** dengan 6 service: `app` (PHP-FPM),
+`nginx` (web server), `mysql`, `reverb` (WebSocket), `queue` (worker), dan
+`scheduler`. Semua asset frontend di-build di dalam image, jadi VPS **tidak** perlu
+PHP, Node, atau Composer terpasang — cukup Docker.
+
+### 1. Siapkan VPS (sekali saja)
+
+```bash
+# Login ke VPS
+ssh user@IP_VPS
+
+# Update sistem
+sudo apt update && sudo apt upgrade -y
+
+# Install Docker + plugin Compose (script resmi Docker)
+curl -fsSL https://get.docker.com | sudo sh
+
+# Agar bisa menjalankan docker tanpa sudo (login ulang setelah ini)
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Verifikasi
+docker --version
+docker compose version
+```
+
+### 2. Ambil kode & konfigurasi environment
+
+```bash
+# Clone repo (butuh git terpasang: sudo apt install -y git)
+git clone <repository-url>
+cd Project-Timbangan-Digital/Timbangan
+
+# Salin template environment produksi lalu edit
+cp .env.production.example .env
+nano .env
+```
+
+Yang **wajib** diisi/diganti di `.env`:
+
+| Variabel | Isi dengan |
+|---|---|
+| `APP_URL` | `https://domain-anda.com` (atau `http://IP_VPS` bila belum ada domain) |
+| `DB_PASSWORD`, `DB_ROOT_PASSWORD` | password kuat & acak |
+| `REVERB_APP_KEY`, `REVERB_APP_SECRET`, `REVERB_APP_ID` | nilai acak (jangan pakai default) |
+| `VITE_REVERB_HOST` | domain (Skenario A) **atau** IP VPS (Skenario B) — lihat komentar di file |
+| `VITE_REVERB_PORT` / `VITE_REVERB_SCHEME` | `443`/`https` (domain+SSL) atau `80`/`http` (IP saja) |
+
+> ⚠️ **Penting:** `VITE_REVERB_*` di-*bake* ke dalam bundle JavaScript **saat build image**.
+> Kalau nilainya berubah, image **harus di-build ulang** (`docker compose build`), tidak
+> cukup restart.
+
+### 3. Build & jalankan
+
+```bash
+# 1. Build image (frontend + backend)
+docker compose build
+
+# 2. Generate APP_KEY, lalu tempel hasilnya ke baris APP_KEY= di .env
+docker compose run --rm --entrypoint php app artisan key:generate --show
+nano .env        # APP_KEY=base64:.....
+
+# 3. Jalankan seluruh stack (migrasi & cache berjalan otomatis)
+docker compose up -d
+```
+
+> Karena `.env` disuntikkan sebagai environment variable (`env_file`), bukan file di
+> dalam container, gunakan `key:generate --show` lalu salin manual ke `.env` —
+> bukan `key:generate` biasa (yang mencoba menulis file).
+
+Container `app` otomatis menjalankan `migrate --force` + cache konfigurasi saat start
+(lihat `docker/entrypoint.sh`). Untuk mengisi data awal (opsional):
+
+```bash
+docker compose exec app php artisan db:seed --force
+```
+
+Cek status & log:
+
+```bash
+docker compose ps
+docker compose logs -f app
+docker compose logs -f reverb
+```
+
+Buka `http://IP_VPS` (atau domain Anda) di browser.
+
+### 4. Update / redeploy (setiap ada perubahan kode)
+
+```bash
+cd Project-Timbangan-Digital/Timbangan
+git pull
+docker compose up -d --build        # rebuild image + migrasi otomatis
+docker compose exec app php artisan optimize   # (opsional) refresh cache
+```
+
+> Karena OPcache aktif dengan `validate_timestamps=0`, kode baru baru berlaku setelah
+> image di-build ulang / container `app` di-restart (sudah otomatis oleh perintah di atas).
+
+---
+
+## 🗄️ Database (MySQL)
+
+**MySQL sudah termasuk di dalam stack Docker** (service `mysql`, image `mysql:8.0`) —
+**tidak perlu meng-install MySQL secara manual di VPS**. Saat `docker compose up -d`
+dijalankan pertama kali, container MySQL otomatis:
+
+1. Membuat database sesuai `DB_DATABASE`.
+2. Membuat user sesuai `DB_USERNAME` / `DB_PASSWORD`.
+3. Menyimpan data secara permanen di Docker volume `mysql_data`
+   (data **tetap aman** walau container di-restart / rebuild).
+
+Container `app` menunggu MySQL siap (`healthcheck`) lalu **menjalankan migrasi
+otomatis** (`php artisan migrate --force`). Jadi tidak ada langkah `migrate` manual.
+
+Kredensial diambil dari `.env` (lihat `.env.production.example`):
+
+| Variabel `.env` | Dipakai untuk |
+|---|---|
+| `DB_HOST=mysql` | Nama service Docker (jangan diubah untuk setup ini) |
+| `DB_DATABASE` | Nama database yang dibuat otomatis |
+| `DB_USERNAME` / `DB_PASSWORD` | User aplikasi (dipakai Laravel) |
+| `DB_ROOT_PASSWORD` | Password root MySQL (untuk admin/healthcheck) |
+
+> ⚠️ `DB_USERNAME` **tidak boleh** `root` (MySQL tidak mengizinkan membuat ulang user
+> root). Pakai nama lain, mis. `timbangan`.
+
+### Operasi database yang sering dipakai
+
+```bash
+# Masuk ke shell MySQL di dalam container
+docker compose exec mysql mysql -u root -p"$DB_ROOT_PASSWORD" timbangan
+
+# Backup / dump database ke file di host
+docker compose exec mysql mysqldump -u root -p"$DB_ROOT_PASSWORD" timbangan > backup_$(date +%F).sql
+
+# Restore dari file backup
+cat backup_2026-01-01.sql | docker compose exec -T mysql mysql -u root -p"$DB_ROOT_PASSWORD" timbangan
+
+# Jalankan seeder (isi data awal, opsional)
+docker compose exec app php artisan db:seed --force
+
+# Cek status migrasi
+docker compose exec app php artisan migrate:status
+```
+
+> Port MySQL (3306) **tidak** diekspos ke internet demi keamanan (lihat komentar di
+> `docker-compose.yml`). Untuk akses dari luar, aktifkan `ports: "127.0.0.1:3306:3306"`
+> lalu sambung lewat SSH tunnel — jangan buka ke publik.
+
+---
+
+## 🔐 Konfigurasi Firewall (UFW) di Ubuntu Server
+
+VPS **harus** dilindungi firewall. Hanya buka port yang diperlukan: SSH (22), HTTP (80),
+dan HTTPS (443). Port database (3306) & Reverb (8080) **tidak** diekspos ke publik —
+mereka hanya lewat jaringan internal Docker.
+
+```bash
+# Kebijakan dasar: tolak semua masuk, izinkan semua keluar
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# WAJIB izinkan SSH LEBIH DULU agar tidak terkunci dari VPS
+sudo ufw allow OpenSSH          # setara: sudo ufw allow 22/tcp
+
+# Web
+sudo ufw allow 80/tcp           # HTTP
+sudo ufw allow 443/tcp          # HTTPS (bila pakai SSL)
+
+# Aktifkan firewall
+sudo ufw enable
+
+# Cek hasil
+sudo ufw status verbose
+```
+
+Hasil yang diharapkan (`sudo ufw status`):
+
+```
+To                         Action      From
+--                         ------      ----
+22/tcp (OpenSSH)           ALLOW       Anywhere
+80/tcp                     ALLOW       Anywhere
+443/tcp                    ALLOW       Anywhere
+```
+
+> ⚠️ **Catatan Docker + UFW:** Docker mem-publish port dengan menulis aturan iptables
+> langsung, sehingga **melewati** UFW. Selama Anda hanya mem-publish port `80`/`443`
+> (seperti di `docker-compose.yml`), ini aman. **Jangan** menambahkan `ports:` untuk
+> `mysql` atau `reverb` ke `0.0.0.0`. Jika suatu saat perlu akses DB dari luar,
+> bind ke localhost saja: `- "127.0.0.1:3306:3306"`, lalu akses via SSH tunnel.
+
+### (Opsional) HTTPS/SSL
+
+Untuk domain dengan sertifikat gratis Let's Encrypt, cara termudah adalah memasang
+**Nginx atau Caddy sebagai reverse-proxy di host** (di depan container), lalu proxy ke
+`http://127.0.0.1:80`. Contoh dengan Caddy (`/etc/caddy/Caddyfile`):
+
+```
+timbangan.example.com {
+    reverse_proxy 127.0.0.1:80
+}
+```
+
+Caddy mengurus sertifikat & perpanjangan otomatis. WebSocket (`/app`) ikut ter-proxy
+tanpa konfigurasi tambahan. Setelah SSL aktif, pastikan di `.env`:
+`VITE_REVERB_SCHEME=https`, `VITE_REVERB_PORT=443`, lalu `docker compose up -d --build`.
+
+---
+
+## 🧪 Testing (PHPUnit)
+
+Test suite mencakup: endpoint API IoT (FG Pasuruan, Formulasi, FG PSN), identifikasi
+driver, health-check, autentikasi & pencatatan login, kontrol akses dashboard
+per-peran, serta unit test (`ShiftService`, model `User`, model `Penimbangan`).
+Semua test memakai database **SQLite in-memory** (lihat `phpunit.xml`) sehingga
+cepat dan tidak menyentuh database asli.
+
+### Menjalankan test secara lokal
+
+```bash
+php artisan test
+# atau
+./vendor/bin/phpunit --testdox
+```
+
+> Butuh ekstensi PHP `pdo_sqlite` aktif. Bila belum aktif di CLI, jalankan:
+> `php -d extension=pdo_sqlite -d extension=sqlite3 vendor/bin/phpunit`
+
+### Menjalankan test via Docker
+
+Image `test` (stage `test` di `Dockerfile`) sudah menyertakan dev-dependencies
+(PHPUnit) + driver SQLite. Service `test` berada di profile `test` sehingga
+**tidak** ikut `docker compose up`:
+
+```bash
+docker compose --profile test build test
+docker compose --profile test run --rm test
+```
+
+Perintah ini menjalankan `php artisan test` di dalam container dan keluar dengan
+kode non-nol bila ada test yang gagal — cocok dijadikan gerbang CI sebelum deploy.
+
+---
+
+## 🧯 Troubleshooting Singkat
+
+| Gejala | Kemungkinan penyebab / solusi |
+|---|---|
+| Dashboard tidak real-time, indikator "Polling" | Container `reverb` mati (`docker compose logs reverb`) atau `VITE_REVERB_*` salah → build ulang |
+| WebSocket gagal connect di browser (console error) | `VITE_REVERB_HOST/PORT/SCHEME` tidak cocok dengan cara akses (domain/IP, http/https) — samakan lalu `--build` |
+| `502 Bad Gateway` | Container `app` belum siap / crash saat migrasi → cek `docker compose logs app` |
+| Asset (CSS/JS) tidak muncul | Image belum di-build ulang setelah perubahan → `docker compose up -d --build` |
+| Perubahan `.env` tidak berpengaruh | Untuk `VITE_*` harus build ulang; untuk lainnya cukup `docker compose up -d` |
+
+---
+
 ## 📄 Lisensi
 Sistem ini dikembangkan untuk penggunaan internal **Ladang Lima**.
