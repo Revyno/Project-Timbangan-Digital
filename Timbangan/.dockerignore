@@ -1,0 +1,41 @@
+# Dependencies (di-install ulang di dalam image)
+/node_modules
+/vendor
+
+# Build artefak (di-generate ulang saat build image)
+/public/build
+/public/hot
+/public/storage
+
+# Environment & secrets — JANGAN ikut ke image
+.env
+.env.*
+!.env.production.example
+
+# Storage runtime (di-mount sebagai volume)
+/storage/app/public/*
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+
+# Git & tooling
+.git
+.gitignore
+.gitattributes
+.github
+.idea
+.vscode
+.fleet
+.nova
+.zed
+
+# Arsip & file sementara dari repo
+*.zip
+test_cache*.php
+/docker-compose.override.yml
+
+# Dokumentasi build
+node_modules/.cache
+npm-debug.log
+yarn-error.log

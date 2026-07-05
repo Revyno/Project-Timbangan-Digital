@@ -1,51 +1,141 @@
-version: '3.8'
+# =============================================================================
+# Timbangan Digital — Stack Produksi (VPS Ubuntu)
+#
+#   app       : PHP-FPM (Laravel) + menjalankan migrasi & cache saat start
+#   nginx     : Web server (port 80) — serve /public, proxy PHP & WebSocket
+#   mysql     : Database (tidak di-expose ke host — hanya jaringan internal)
+#   reverb    : WebSocket server (Laravel Reverb) untuk data real-time
+#   queue     : Queue worker (jobs: broadcast, dsb.)
+#   scheduler : Penjadwal (php artisan schedule:work)
+#
+# Semua nilai ${...} dibaca dari file .env di direktori ini.
+# =============================================================================
+
+# Konfigurasi build dipakai bersama oleh service app & nginx (DRY).
+x-build: &app-build
+  context: .
+  dockerfile: Dockerfile
+  args:
+    VITE_APP_NAME: ${APP_NAME:-Timbangan-Digital}
+    VITE_REVERB_APP_KEY: ${REVERB_APP_KEY}
+    VITE_REVERB_HOST: ${VITE_REVERB_HOST}
+    VITE_REVERB_PORT: ${VITE_REVERB_PORT:-443}
+    VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME:-https}
 
 services:
 
- mysql:
-    image: mysql:9.1
-    container_name: timbangan-digital
-    restart: always
+  app:
+    build:
+      <<: *app-build
+      target: app
+    image: timbangan-app
+    restart: unless-stopped
+    env_file: .env
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: timbangan
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      CONTAINER_ROLE: app
+    volumes:
+      - storage_data:/var/www/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - timbangan
+
+  nginx:
+    build:
+      <<: *app-build
+      target: nginx
+    image: timbangan-nginx
+    restart: unless-stopped
     ports:
-      - "3308:3306"
+      - "80:80"
+      # - "443:443"   # aktifkan bila memakai TLS di dalam container (lihat README)
+    depends_on:
+      - app
+      - reverb
+    networks:
+      - timbangan
+
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-change_this_root_password}
+      MYSQL_DATABASE: ${DB_DATABASE:-timbangan}
+      MYSQL_USER: ${DB_USERNAME:-timbangan}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-change_this_password}
     volumes:
       - mysql_data:/var/lib/mysql
-    mem_limit: 500M
+    # Port DB TIDAK di-expose ke host demi keamanan. Aktifkan hanya bila
+    # perlu akses dari luar (mis. dump), lalu tutup lagi.
+    # ports:
+    #   - "127.0.0.1:3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD:-change_this_root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - timbangan
+
+  reverb:
+    image: timbangan-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      CONTAINER_ROLE: reverb
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    depends_on:
+      - app
+    networks:
+      - timbangan
+
+  queue:
+    image: timbangan-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      CONTAINER_ROLE: queue
+    command: php artisan queue:work --tries=3 --sleep=3 --max-time=3600 --timeout=90
+    volumes:
+      - storage_data:/var/www/storage
+    depends_on:
+      - app
+    networks:
+      - timbangan
+
+  scheduler:
+    image: timbangan-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      CONTAINER_ROLE: scheduler
+    command: php artisan schedule:work
+    volumes:
+      - storage_data:/var/www/storage
+    depends_on:
+      - app
+    networks:
+      - timbangan
+
+  # Test runner — hanya berjalan bila diminta (profile "test"), tidak ikut
+  # `docker compose up`. Memakai DB sqlite :memory (phpunit.xml), tanpa MySQL.
+  #   docker compose --profile test build test
+  #   docker compose --profile test run --rm test
+  test:
+    build:
+      <<: *app-build
+      target: test
+    image: timbangan-test
+    profiles: ["test"]
+    networks:
+      - timbangan
 
 volumes:
   mysql_data:
-#   app:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile
-#     image: timbangan-app
-#     container_name: timbangan_app
-#     restart: unless-stopped
-#     working_dir: /var/www
-#     volumes:
-#       - ./:/var/www
-#     networks:
-#       - timbangan-network
+  storage_data:
 
-#   nginx:
-#     image: nginx:Inertia
-#     container_name: timbangan_nginx
-#     restart: unless-stopped
-#     ports:
-#       - "8080:80"
-#     volumes:
-#       - ./:/var/www
-#       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-#     depends_on:
-#       - app
-#     networks:
-#       - timbangan-network
-
-# networks:
-#   timbangan-network:
-#     driver: bridge
+networks:
+  timbangan:
+    driver: bridge

@@ -42,4 +42,32 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Admin user.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn () => [
+            'role' => 'admin',
+            'tipe' => 'fg',
+        ]);
+    }
+
+    /**
+     * Operator dengan shift yang mencakup waktu sekarang (00:00–23:59) dan
+     * sesi tidak terkunci — sehingga ShiftService::getActiveOperator() memilihnya.
+     */
+    public function operator(string $tipe = 'fg'): static
+    {
+        return $this->state(fn () => [
+            'role'           => 'operator',
+            'tipe'           => $tipe,
+            'shift'          => '1',
+            'shift_start'    => '00:00:00',
+            'shift_end'      => '23:59:59',
+            'shift_type'     => 'normal',
+            'session_locked' => false,
+        ]);
+    }
 }
