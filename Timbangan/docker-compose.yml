@@ -33,6 +33,10 @@ services:
     env_file: .env
     environment:
       CONTAINER_ROLE: app
+      # Seeding otomatis saat start. Default "auto" = seed hanya bila DB kosong
+      # (fresh install) sehingga restart/redeploy TIDAK menghapus data.
+      # Nilai lain: "always" (paksa seed tiap start, mereset data) / "never".
+      DB_SEED: ${DB_SEED:-auto}
     volumes:
       - storage_data:/var/www/storage
     depends_on:

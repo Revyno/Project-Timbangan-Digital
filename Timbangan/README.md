@@ -185,8 +185,18 @@ docker compose up -d
 > dalam container, gunakan `key:generate --show` lalu salin manual ke `.env` —
 > bukan `key:generate` biasa (yang mencoba menulis file).
 
-Container `app` otomatis menjalankan `migrate --force` + cache konfigurasi saat start
-(lihat `docker/entrypoint.sh`). Untuk mengisi data awal (opsional):
+Container `app` otomatis menjalankan `migrate --force` + **seeding** + cache
+konfigurasi saat start (lihat `docker/entrypoint.sh`).
+
+Seeding dikontrol oleh env `DB_SEED` (default `auto`):
+
+| `DB_SEED` | Perilaku saat container `app` start |
+|---|---|
+| `auto` (default) | Seed **hanya bila database masih kosong** (fresh install). Aman — restart/redeploy tidak menghapus data. |
+| `always` | Paksa `db:seed` tiap start. ⚠️ `DatabaseSeeder` melakukan `truncate`, jadi ini **menghapus & mengisi ulang** data. |
+| `never` | Tidak pernah seed otomatis. |
+
+Seed manual kapan saja (mis. bila `DB_SEED=never`):
 
 ```bash
 docker compose exec app php artisan db:seed --force
