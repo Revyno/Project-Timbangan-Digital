@@ -23,4 +23,12 @@ export default defineConfig({
             '@': path.resolve(__dirname, './resources/js'),
         },
     },
+    // Bind dev server & HMR ke localhost (bukan [::1]) agar handshake WebSocket
+    // HMR tidak gagal di Windows (mismatch localhost vs ::1).
+    server: {
+        host: 'localhost',
+        hmr: {
+            host: 'localhost',
+        },
+    },
 });

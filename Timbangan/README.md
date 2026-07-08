@@ -113,6 +113,45 @@ Sistem akan memproses data berdasarkan sesi operator yang sedang aktif dan melak
 
 ---
 
+## 🖥️ HMI Kiosk & Store-and-Forward (Local → Online)
+
+Tampilan operator gaya **kiosk full-screen** (acuan untuk konversi ke HMI fisik),
+dengan 2 template: **Bahan Baku** (`/kiosk/bahan-baku`) dan **Formulasi**
+(`/kiosk/formulasi`). Keduanya: grid pilih bahan/produk, kotak berat besar, tombol
+**PRINT / Tare / Zero / Unit**, dan daftar "Timbangan ke-".
+
+### Alur data (anti "server meledak")
+
+```
+Timbangan → berat LIVE (ephemeral, tidak disimpan) → angka bergerak di HMI
+HMI → PRINT → server LOKAL simpan 1 baris (hmi_weighings, pending)
+     → Job ForwardWeighingsBatch (BATCH, WithoutOverlapping, tahan online mati)
+     → server ONLINE upsert by uuid (idempoten) → broadcast Reverb ke dashboard
+```
+
+Kunci optimasinya: **hanya PRINT** yang menyentuh DB & jaringan; berat live tidak
+pernah disimpan/di-forward. Banyak PRINT digabung jadi sedikit HTTP call, dan
+broadcast dibuat **ter-queue** (`WeightReceived` kini `ShouldBroadcast`, bukan
+`ShouldBroadcastNow`).
+
+### Peran server (`APP_ROLE` — lihat `config/hmi.php`)
+
+| `APP_ROLE` | Peran | Env yang relevan |
+|---|---|---|
+| `online` (default) | Cloud/VPS. Terima sync → broadcast. Cocok juga **all-in-one** (PRINT langsung disimpan + broadcast, tanpa forward). | `ONLINE_SYNC_TOKEN` (harus sama dgn server lokal) |
+| `local` | Edge di pabrik. PRINT → DB lokal → forward BATCH ke online. | `ONLINE_SYNC_URL`, `ONLINE_SYNC_TOKEN`, `SYNC_BATCH_SIZE` |
+
+> ⚠️ **Wajib ada queue worker berjalan.** Karena broadcast sekarang ter-queue,
+> tanpa worker dashboard tidak update. Service docker `queue` sudah menjalankan
+> `php artisan queue:work`. Di dev lokal, jalankan sendiri:
+> `php artisan queue:work`. Server `local` juga butuh service `scheduler`
+> (`schedule:work`) sebagai jaring pengaman forward tiap menit.
+
+Endpoint sync antar-server: `POST /api/v1/sync/weighings` (header `X-Sync-Token`,
+hanya aktif saat `APP_ROLE=online`).
+
+---
+
 ## 🚢 Deploy Produksi (VPS Ubuntu + Docker + Git)
 
 Deployment produksi memakai **Docker Compose** dengan 6 service: `app` (PHP-FPM),
