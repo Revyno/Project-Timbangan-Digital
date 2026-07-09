@@ -116,8 +116,8 @@ Sistem akan memproses data berdasarkan sesi operator yang sedang aktif dan melak
 ## 🖥️ HMI Kiosk & Store-and-Forward (Local → Online)
 
 Tampilan operator gaya **kiosk full-screen** (acuan untuk konversi ke HMI fisik),
-dengan 2 template: **Bahan Baku** (`/kiosk/bahan-baku`) dan **Formulasi**
-(`/kiosk/formulasi`). Keduanya: grid pilih bahan/produk, kotak berat besar, tombol
+dengan 2 template: **Bahan Baku** (`/hmi-display/bahan-baku`) dan **Formulasi**
+(`/hmi-display/formulasi`). Keduanya: grid pilih bahan/produk, kotak berat besar, tombol
 **PRINT / Tare / Zero / Unit**, dan daftar "Timbangan ke-".
 
 ### Alur data (anti "server meledak")
@@ -407,6 +407,81 @@ docker compose --profile test run --rm test
 
 Perintah ini menjalankan `php artisan test` di dalam container dan keluar dengan
 kode non-nol bila ada test yang gagal — cocok dijadikan gerbang CI sebelum deploy.
+
+---
+
+## 📊 Monitoring (Prometheus + Grafana)
+
+Stack monitoring **opsional** untuk memantau kesehatan server & database secara
+real-time: CPU, RAM, disk, jaringan host (VPS), metrik per-container, serta
+metrik MySQL. Semua service berada di **profile `monitoring`** sehingga **tidak**
+ikut `docker compose up` biasa.
+
+| Komponen | Fungsi | Image |
+|---|---|---|
+| **Prometheus** | Mengumpulkan & menyimpan metrik (retensi 15 hari) | `prom/prometheus` |
+| **Grafana** | Dashboard visual + alert | `grafana/grafana` |
+| **node-exporter** | CPU / RAM / disk / network **host** | `prom/node-exporter` |
+| **cAdvisor** | Metrik **per-container** (app, mysql, reverb, queue, …) | `cadvisor` |
+| **mysqld-exporter** | Metrik **database MySQL** | `prom/mysqld-exporter` |
+
+### 1. Siapkan variabel `.env`
+
+Tambahkan (sudah ada di `.env.production.example`):
+
+```env
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=ganti_password_grafana
+DB_MONITOR_USER=exporter
+DB_MONITOR_PASSWORD=exporter_password
+```
+
+### 2. Buat user monitoring MySQL
+
+- **DB baru (volume kosong):** otomatis dibuat oleh
+  `docker/mysql/init/01-monitoring-user.sql` saat container MySQL pertama kali start.
+- **DB yang sudah berjalan:** buat manual (samakan password dengan `DB_MONITOR_PASSWORD`):
+
+  ```bash
+  docker compose exec mysql mysql -uroot -p
+  ```
+  ```sql
+  CREATE USER IF NOT EXISTS 'exporter'@'%' IDENTIFIED BY 'exporter_password' WITH MAX_USER_CONNECTIONS 3;
+  GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'%';
+  FLUSH PRIVILEGES;
+  ```
+
+### 3. Nyalakan stack monitoring
+
+```bash
+docker compose --profile monitoring up -d
+```
+
+- **Grafana:** `http://<IP-VPS>:3000` — login pakai `GRAFANA_ADMIN_*`.
+  Datasource Prometheus & dashboard **“Timbangan Digital — Overview”** sudah
+  ter-provision otomatis.
+- **Prometheus:** hanya di-bind ke `127.0.0.1:9090` (akses via SSH tunnel:
+  `ssh -L 9090:localhost:9090 user@vps`). Cek target di **Status → Targets**.
+
+### 4. Dashboard tambahan (opsional)
+
+Import dari Grafana.com (menu **+ → Import → ID**):
+
+| ID | Dashboard |
+|---|---|
+| `1860` | Node Exporter Full (host lengkap) |
+| `14057` | MySQL / mysqld-exporter |
+| `14282` | cAdvisor (container) |
+
+> **Firewall:** buka port `3000` (Grafana) hanya untuk IP tepercaya, mis.
+> `sudo ufw allow from <IP-kamu> to any port 3000`. Jangan expose Prometheus ke publik.
+
+### Matikan monitoring
+
+```bash
+docker compose --profile monitoring down          # hentikan (data metrik tetap)
+docker compose --profile monitoring down -v       # + hapus data metrik/dashboard
+```
 
 ---
 

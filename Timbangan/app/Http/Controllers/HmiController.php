@@ -18,12 +18,12 @@ use Inertia\Inertia;
  * Kiosk HMI untuk operator — 2 template acuan: Bahan Baku & Formulasi.
  *
  * Alur:
- *   - GET  /kiosk/{menu}          -> render halaman kiosk (Inertia).
- *   - POST /kiosk/{menu}/live     -> berat live (ephemeral, broadcast saja).
- *   - POST /kiosk/{menu}/print    -> simpan 1 baris + (role local) antre forward
+ *   - GET  /hmi-display/{menu}          -> render halaman hmi-display (Inertia).
+ *   - POST /hmi-display/{menu}/live     -> berat live (ephemeral, broadcast saja).
+ *   - POST /hmi-display/{menu}/print    -> simpan 1 baris + (role local) antre forward
  *                                    atau (role online) langsung broadcast.
  */
-class HmiKioskController extends Controller
+class HmiController extends Controller
 {
     /** Halaman Bahan Baku (Incoming). */
     public function bahanBaku(Request $request)

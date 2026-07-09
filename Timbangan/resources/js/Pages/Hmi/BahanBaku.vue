@@ -57,7 +57,7 @@ const print = async () => {
     }
     printing.value = true;
     try {
-        const { data } = await axios.post(route('kiosk.print', { menu: props.menu }), {
+        const { data } = await axios.post(route('hmi-display.print', { menu: props.menu }), {
             nama_item: selectedMaterial.value,
             berat: Number(weight.value),
             unit: unit.value,

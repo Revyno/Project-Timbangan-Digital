@@ -9,7 +9,7 @@ use App\Http\Controllers\CsFgSbyController;
 use App\Http\Controllers\IncomingSingkongController;
 use App\Http\Controllers\IncomingRmpmController;
 use App\Http\Controllers\MasterDataController;
-use App\Http\Controllers\HmiKioskController;
+use App\Http\Controllers\HmiController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -111,17 +111,17 @@ Route::middleware(['auth', 'verified', 'role:operator'])->prefix('operator')->gr
 });
 
 // ============================================================
-// KIOSK HMI — /kiosk prefix (Operator, full-screen)
+// HMI DISPLAY — /hmi-display prefix (Operator, full-screen)
 // 2 template acuan: Bahan Baku & Formulasi. PRINT -> simpan + (forward/broadcast).
 // ============================================================
-Route::middleware(['auth', 'verified', 'role:operator'])->prefix('kiosk')->group(function () {
-    Route::get('/bahan-baku', [HmiKioskController::class, 'bahanBaku'])->name('kiosk.bahan-baku');
-    Route::get('/formulasi', [HmiKioskController::class, 'formulasi'])->name('kiosk.formulasi');
+Route::middleware(['auth', 'verified', 'role:operator'])->prefix('hmi-display')->group(function () {
+    Route::get('/bahan-baku', [HmiController::class, 'bahanBaku'])->name('hmi-display.bahan-baku');
+    Route::get('/formulasi', [HmiController::class, 'formulasi'])->name('hmi-display.formulasi');
 
-    Route::post('/{menu}/live', [HmiKioskController::class, 'live'])
-        ->whereIn('menu', ['bahan-baku', 'formulasi'])->name('kiosk.live');
-    Route::post('/{menu}/print', [HmiKioskController::class, 'print'])
-        ->whereIn('menu', ['bahan-baku', 'formulasi'])->name('kiosk.print');
+    Route::post('/{menu}/live', [HmiController::class, 'live'])
+        ->whereIn('menu', ['bahan-baku', 'formulasi'])->name('hmi-display.live');
+    Route::post('/{menu}/print', [HmiController::class, 'print'])
+        ->whereIn('menu', ['bahan-baku', 'formulasi'])->name('hmi-display.print');
 });
 
 // ============================================================

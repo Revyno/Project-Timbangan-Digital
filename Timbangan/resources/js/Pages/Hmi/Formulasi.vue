@@ -63,7 +63,7 @@ const print = async () => {
     }
     printing.value = true;
     try {
-        const { data } = await axios.post(route('kiosk.print', { menu: props.menu }), {
+        const { data } = await axios.post(route('hmi-display.print', { menu: props.menu }), {
             produk: selectedProductName.value,
             nama_item: selectedMaterial.value,
             berat: Number(weight.value),
@@ -121,7 +121,6 @@ const print = async () => {
                     >
                         {{ simulating ? '■ Stop Simulasi' : '▶ Simulasi Berat' }}
                     </button>
-                    <span class="text-xs text-slate-400">Hanya PRINT yang dikirim ke server.</span>
                 </div>
             </SessionHeader>
 

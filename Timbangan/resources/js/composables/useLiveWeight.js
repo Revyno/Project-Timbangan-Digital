@@ -2,7 +2,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 
 /**
  * Berat "live" untuk HMI. Mendengarkan channel LAN-only `scale.{deviceKey}`
- * (di-feed oleh POST /kiosk/{menu}/live -> event ScaleReading). Berat live TIDAK
+ * (di-feed oleh POST /hmi-display/{menu}/live -> event ScaleReading). Berat live TIDAK
  * disimpan ke DB; hanya angka di layar yang bergerak.
  *
  * Menyediakan juga simulator sisi-klien (startSim/stopSim) agar halaman bisa

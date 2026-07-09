@@ -71,6 +71,8 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:-change_this_password}
     volumes:
       - mysql_data:/var/lib/mysql
+      # Script init (mis. user monitoring) — HANYA jalan saat DB fresh/kosong.
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
     # Port DB TIDAK di-expose ke host demi keamanan. Aktifkan hanya bila
     # perlu akses dari luar (mis. dump), lalu tutup lagi.
     # ports:
@@ -136,9 +138,97 @@ services:
     networks:
       - timbangan
 
+  # ===========================================================================
+  # MONITORING STACK — Prometheus + Grafana + exporters.
+  # Tidak ikut `docker compose up` biasa. Jalankan bersama stack utama dengan:
+  #     docker compose --profile monitoring up -d
+  # Akses:  Grafana http://<host>:3000   |   Prometheus http://<host>:9090
+  # ===========================================================================
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"   # hanya localhost; akses via SSH tunnel bila perlu
+    networks:
+      - timbangan
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - timbangan
+
+  # Metrik HOST: CPU, RAM, disk, network VPS.
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    command:
+      - --path.rootfs=/host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    networks:
+      - timbangan
+
+  # Metrik per-CONTAINER: CPU/RAM/IO tiap service (app, mysql, reverb, dll.).
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - timbangan
+
+  # Metrik DATABASE MySQL. Butuh user 'exporter' (lihat docker/mysql/init).
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.15.1
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    command:
+      - --mysqld.address=mysql:3306
+      - --mysqld.username=${DB_MONITOR_USER:-exporter}
+    environment:
+      MYSQLD_EXPORTER_PASSWORD: ${DB_MONITOR_PASSWORD:-exporter_password}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - timbangan
+
 volumes:
   mysql_data:
   storage_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   timbangan:

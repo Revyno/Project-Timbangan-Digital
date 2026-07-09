@@ -27,20 +27,20 @@ class KioskPrintTest extends TestCase
 
     public function test_operator_can_open_kiosk_pages(): void
     {
-        $this->actingAs($this->operator)->get('/kiosk/bahan-baku')->assertOk();
-        $this->actingAs($this->operator)->get('/kiosk/formulasi')->assertOk();
+        $this->actingAs($this->operator)->get('/hmi-display/bahan-baku')->assertOk();
+        $this->actingAs($this->operator)->get('/hmi-display/formulasi')->assertOk();
     }
 
     public function test_guest_is_redirected_from_kiosk(): void
     {
-        $this->get('/kiosk/bahan-baku')->assertRedirect(route('login'));
+        $this->get('/hmi-display/bahan-baku')->assertRedirect(route('login'));
     }
 
     public function test_admin_may_also_open_kiosk_via_role_bypass(): void
     {
         // RoleMiddleware memberi admin bypass ke semua route role-restricted.
         $admin = User::factory()->admin()->create();
-        $this->actingAs($admin)->get('/kiosk/bahan-baku')->assertOk();
+        $this->actingAs($admin)->get('/hmi-display/bahan-baku')->assertOk();
     }
 
     public function test_print_creates_pending_row_on_local_role(): void
@@ -49,7 +49,7 @@ class KioskPrintTest extends TestCase
         config(['hmi.role' => 'local', 'hmi.online.base_url' => '', 'hmi.online.token' => '']);
 
         $this->actingAs($this->operator)
-            ->postJson(route('kiosk.print', ['menu' => 'bahan-baku']), [
+            ->postJson(route('hmi-display.print',['menu' => 'bahan-baku']), [
                 'nama_item' => 'Garam',
                 'berat'     => 50.70,
                 'unit'      => 'kg',
@@ -74,7 +74,7 @@ class KioskPrintTest extends TestCase
         Event::fake([WeightReceived::class]);
 
         $this->actingAs($this->operator)
-            ->postJson(route('kiosk.print', ['menu' => 'formulasi']), [
+            ->postJson(route('hmi-display.print',['menu' => 'formulasi']), [
                 'produk'    => 'Cookies Blackmond',
                 'nama_item' => 'Garam',
                 'berat'     => 250.02,
@@ -95,7 +95,7 @@ class KioskPrintTest extends TestCase
     public function test_live_weight_is_not_persisted(): void
     {
         $this->actingAs($this->operator)
-            ->postJson(route('kiosk.live', ['menu' => 'bahan-baku']), [
+            ->postJson(route('hmi-display.live',['menu' => 'bahan-baku']), [
                 'device' => 'op-1',
                 'weight' => 12.34,
                 'unit'   => 'kg',
@@ -108,14 +108,14 @@ class KioskPrintTest extends TestCase
     public function test_print_requires_nama_item(): void
     {
         $this->actingAs($this->operator)
-            ->postJson(route('kiosk.print', ['menu' => 'bahan-baku']), ['berat' => 10])
+            ->postJson(route('hmi-display.print',['menu' => 'bahan-baku']), ['berat' => 10])
             ->assertStatus(422);
     }
 
     public function test_unknown_menu_is_rejected(): void
     {
         $this->actingAs($this->operator)
-            ->postJson('/kiosk/tidak-ada/print', ['nama_item' => 'X', 'berat' => 1])
+            ->postJson('/hmi-display/tidak-ada/print', ['nama_item' => 'X', 'berat' => 1])
             ->assertNotFound();
     }
 }
