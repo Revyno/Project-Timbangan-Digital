@@ -64,5 +64,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'role' => \App\Http\Middleware\RoleMiddleware::class,
         'shift' => \App\Http\Middleware\CheckShiftAccess::class,
+        'sync.token' => \App\Http\Middleware\VerifySyncToken::class,
     ];
 }

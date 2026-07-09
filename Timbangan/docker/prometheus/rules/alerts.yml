@@ -1,0 +1,42 @@
+# =============================================================================
+# Contoh aturan alert Prometheus untuk stack Timbangan Digital.
+# Aktif otomatis (dipindai lewat rule_files di prometheus.yml).
+# Untuk mengirim notifikasi, hubungkan Alertmanager (belum disertakan di sini).
+# =============================================================================
+
+groups:
+  - name: host
+    rules:
+      - alert: CpuTinggi
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU host tinggi (> 85%) selama 5 menit"
+
+      - alert: MemoriTinggi
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pemakaian RAM host > 90% selama 5 menit"
+
+      - alert: DiskHampirPenuh
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk {{ $labels.mountpoint }} terpakai > 85%"
+
+  - name: database
+    rules:
+      - alert: MysqlMati
+        expr: mysql_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MySQL tidak dapat dijangkau oleh exporter"

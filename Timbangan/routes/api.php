@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\IncomingSingkongIotController;
 use App\Http\Controllers\Api\IncomingRmpmIotController;
 use App\Http\Controllers\Api\FormulasiIotController;
 use App\Http\Controllers\Api\DriverController;
+use App\Http\Controllers\Api\SyncController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -82,6 +83,13 @@ Route::prefix('v1/incoming-rmpm')->group(function () {
     Route::get('/settings', [IncomingRmpmIotController::class, 'getSettings'])->name('v1.incoming-rmpm.settings');
     Route::post('/weight', [IncomingRmpmIotController::class, 'receiveWeight'])->name('v1.incoming-rmpm.weight');
     Route::match(['get', 'post'], '/ping', [IncomingRmpmIotController::class, 'ping'])->name('v1.incoming-rmpm.ping');
+});
+
+// ── Sync Ingest (server ONLINE) ──────────────────────────────────────────────
+// Menerima BATCH timbangan dari server lokal (edge). Dilindungi header
+// X-Sync-Token (middleware sync.token) + hanya aktif saat APP_ROLE=online.
+Route::prefix('v1/sync')->middleware('sync.token')->group(function () {
+    Route::post('/weighings', [SyncController::class, 'store'])->name('v1.sync.weighings');
 });
 
 // ── Driver Identification ─────────────────────────────────────────────────────

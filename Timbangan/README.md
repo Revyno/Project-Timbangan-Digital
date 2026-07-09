@@ -113,6 +113,45 @@ Sistem akan memproses data berdasarkan sesi operator yang sedang aktif dan melak
 
 ---
 
+## 🖥️ HMI Kiosk & Store-and-Forward (Local → Online)
+
+Tampilan operator gaya **kiosk full-screen** (acuan untuk konversi ke HMI fisik),
+dengan 2 template: **Bahan Baku** (`/hmi-display/bahan-baku`) dan **Formulasi**
+(`/hmi-display/formulasi`). Keduanya: grid pilih bahan/produk, kotak berat besar, tombol
+**PRINT / Tare / Zero / Unit**, dan daftar "Timbangan ke-".
+
+### Alur data (anti "server meledak")
+
+```
+Timbangan → berat LIVE (ephemeral, tidak disimpan) → angka bergerak di HMI
+HMI → PRINT → server LOKAL simpan 1 baris (hmi_weighings, pending)
+     → Job ForwardWeighingsBatch (BATCH, WithoutOverlapping, tahan online mati)
+     → server ONLINE upsert by uuid (idempoten) → broadcast Reverb ke dashboard
+```
+
+Kunci optimasinya: **hanya PRINT** yang menyentuh DB & jaringan; berat live tidak
+pernah disimpan/di-forward. Banyak PRINT digabung jadi sedikit HTTP call, dan
+broadcast dibuat **ter-queue** (`WeightReceived` kini `ShouldBroadcast`, bukan
+`ShouldBroadcastNow`).
+
+### Peran server (`APP_ROLE` — lihat `config/hmi.php`)
+
+| `APP_ROLE` | Peran | Env yang relevan |
+|---|---|---|
+| `online` (default) | Cloud/VPS. Terima sync → broadcast. Cocok juga **all-in-one** (PRINT langsung disimpan + broadcast, tanpa forward). | `ONLINE_SYNC_TOKEN` (harus sama dgn server lokal) |
+| `local` | Edge di pabrik. PRINT → DB lokal → forward BATCH ke online. | `ONLINE_SYNC_URL`, `ONLINE_SYNC_TOKEN`, `SYNC_BATCH_SIZE` |
+
+> ⚠️ **Wajib ada queue worker berjalan.** Karena broadcast sekarang ter-queue,
+> tanpa worker dashboard tidak update. Service docker `queue` sudah menjalankan
+> `php artisan queue:work`. Di dev lokal, jalankan sendiri:
+> `php artisan queue:work`. Server `local` juga butuh service `scheduler`
+> (`schedule:work`) sebagai jaring pengaman forward tiap menit.
+
+Endpoint sync antar-server: `POST /api/v1/sync/weighings` (header `X-Sync-Token`,
+hanya aktif saat `APP_ROLE=online`).
+
+---
+
 ## 🚢 Deploy Produksi (VPS Ubuntu + Docker + Git)
 
 Deployment produksi memakai **Docker Compose** dengan 6 service: `app` (PHP-FPM),
@@ -185,8 +224,18 @@ docker compose up -d
 > dalam container, gunakan `key:generate --show` lalu salin manual ke `.env` —
 > bukan `key:generate` biasa (yang mencoba menulis file).
 
-Container `app` otomatis menjalankan `migrate --force` + cache konfigurasi saat start
-(lihat `docker/entrypoint.sh`). Untuk mengisi data awal (opsional):
+Container `app` otomatis menjalankan `migrate --force` + **seeding** + cache
+konfigurasi saat start (lihat `docker/entrypoint.sh`).
+
+Seeding dikontrol oleh env `DB_SEED` (default `auto`):
+
+| `DB_SEED` | Perilaku saat container `app` start |
+|---|---|
+| `auto` (default) | Seed **hanya bila database masih kosong** (fresh install). Aman — restart/redeploy tidak menghapus data. |
+| `always` | Paksa `db:seed` tiap start. ⚠️ `DatabaseSeeder` melakukan `truncate`, jadi ini **menghapus & mengisi ulang** data. |
+| `never` | Tidak pernah seed otomatis. |
+
+Seed manual kapan saja (mis. bila `DB_SEED=never`):
 
 ```bash
 docker compose exec app php artisan db:seed --force
@@ -358,6 +407,81 @@ docker compose --profile test run --rm test
 
 Perintah ini menjalankan `php artisan test` di dalam container dan keluar dengan
 kode non-nol bila ada test yang gagal — cocok dijadikan gerbang CI sebelum deploy.
+
+---
+
+## 📊 Monitoring (Prometheus + Grafana)
+
+Stack monitoring **opsional** untuk memantau kesehatan server & database secara
+real-time: CPU, RAM, disk, jaringan host (VPS), metrik per-container, serta
+metrik MySQL. Semua service berada di **profile `monitoring`** sehingga **tidak**
+ikut `docker compose up` biasa.
+
+| Komponen | Fungsi | Image |
+|---|---|---|
+| **Prometheus** | Mengumpulkan & menyimpan metrik (retensi 15 hari) | `prom/prometheus` |
+| **Grafana** | Dashboard visual + alert | `grafana/grafana` |
+| **node-exporter** | CPU / RAM / disk / network **host** | `prom/node-exporter` |
+| **cAdvisor** | Metrik **per-container** (app, mysql, reverb, queue, …) | `cadvisor` |
+| **mysqld-exporter** | Metrik **database MySQL** | `prom/mysqld-exporter` |
+
+### 1. Siapkan variabel `.env`
+
+Tambahkan (sudah ada di `.env.production.example`):
+
+```env
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=ganti_password_grafana
+DB_MONITOR_USER=exporter
+DB_MONITOR_PASSWORD=exporter_password
+```
+
+### 2. Buat user monitoring MySQL
+
+- **DB baru (volume kosong):** otomatis dibuat oleh
+  `docker/mysql/init/01-monitoring-user.sql` saat container MySQL pertama kali start.
+- **DB yang sudah berjalan:** buat manual (samakan password dengan `DB_MONITOR_PASSWORD`):
+
+  ```bash
+  docker compose exec mysql mysql -uroot -p
+  ```
+  ```sql
+  CREATE USER IF NOT EXISTS 'exporter'@'%' IDENTIFIED BY 'exporter_password' WITH MAX_USER_CONNECTIONS 3;
+  GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'%';
+  FLUSH PRIVILEGES;
+  ```
+
+### 3. Nyalakan stack monitoring
+
+```bash
+docker compose --profile monitoring up -d
+```
+
+- **Grafana:** `http://<IP-VPS>:3000` — login pakai `GRAFANA_ADMIN_*`.
+  Datasource Prometheus & dashboard **“Timbangan Digital — Overview”** sudah
+  ter-provision otomatis.
+- **Prometheus:** hanya di-bind ke `127.0.0.1:9090` (akses via SSH tunnel:
+  `ssh -L 9090:localhost:9090 user@vps`). Cek target di **Status → Targets**.
+
+### 4. Dashboard tambahan (opsional)
+
+Import dari Grafana.com (menu **+ → Import → ID**):
+
+| ID | Dashboard |
+|---|---|
+| `1860` | Node Exporter Full (host lengkap) |
+| `14057` | MySQL / mysqld-exporter |
+| `14282` | cAdvisor (container) |
+
+> **Firewall:** buka port `3000` (Grafana) hanya untuk IP tepercaya, mis.
+> `sudo ufw allow from <IP-kamu> to any port 3000`. Jangan expose Prometheus ke publik.
+
+### Matikan monitoring
+
+```bash
+docker compose --profile monitoring down          # hentikan (data metrik tetap)
+docker compose --profile monitoring down -v       # + hapus data metrik/dashboard
+```
 
 ---
 
