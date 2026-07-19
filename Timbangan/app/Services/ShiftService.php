@@ -54,7 +54,19 @@ class ShiftService
     {
         $now = now()->format('H:i:s');
 
-        // Operators whose shift covers 'now' and is not locked
+        // Prioritas Utama: operator yang sudah memulai sesi manual (cache aktif).
+        // Sesi manual adalah bukti operator sedang bekerja, valid di luar jam shift.
+        $unlocked = User::where('role', 'operator')
+            ->where('session_locked', false)
+            ->get();
+
+        foreach ($unlocked as $op) {
+            if (cache()->has("session_operator_{$op->id}")) {
+                return $op;
+            }
+        }
+
+        // Fallback (legacy): operator yang jam shift-nya mencakup 'now' dan tidak terkunci
         return User::where('role', 'operator')
             ->where('session_locked', false)
             ->where(function($query) use ($now) {

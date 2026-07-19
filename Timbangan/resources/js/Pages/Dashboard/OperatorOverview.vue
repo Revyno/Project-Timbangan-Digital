@@ -29,7 +29,7 @@ import {
     Clock,
     User,
 } from 'lucide-vue-next';
-import Swal from 'sweetalert2';
+import { pushToast } from '@/composables/useToast.js';
 import { Link } from '@inertiajs/vue3';
 import DashboardChart from '@/Components/ui/chart/DashboardChart.vue';
 import { formatWeight } from '@/utils/format.js';
@@ -64,14 +64,16 @@ const { connected } = useRealtimeReload({
             time: new Date().toLocaleTimeString('id-ID'),
         };
 
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
+        pushToast({
+            variant: 'success',
             title: `Berat ${formatWeight(e.weight || e.berat)} kg diterima`,
-            text: `IP: ${e.ip_address}`,
-            showConfirmButton: false,
-            timer: 3000,
+            text: `IP: ${e.ip_address || '-'}`,
+            meta: [
+                { label: 'Berat', value: `${formatWeight(e.weight || e.berat)} kg` },
+                { label: 'IP', value: e.ip_address || '-' },
+                { label: 'Waktu', value: lastReceived.value.time },
+            ],
+            duration: 5000,
         });
 
         setTimeout(() => { liveIndicator.value = false; }, 3000);
