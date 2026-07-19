@@ -4,7 +4,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>{{ config('app.name', 'Timbangan Digital') }}</title>
+
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="/images/logo.png">
+        <link rel="shortcut icon" type="image/png" href="/images/logo.png">
 
         <!-- Fonts: preconnect + preload for LCP -->
         <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
@@ -13,8 +17,8 @@
 
         <!-- PWA Meta Tags -->
         <link rel="manifest" href="/manifest.json">
-        <meta name="theme-color" content="#1d4ed8">
-        <link rel="apple-touch-icon" href="/images/logo.webp">
+        <meta name="theme-color" content="#5c4a42">
+        <link rel="apple-touch-icon" href="/images/logo.png">
         <!-- Scripts -->
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
@@ -23,12 +27,12 @@
     <body class="font-sans antialiased">
         @inertia
 
-        <script>
+        <!-- <script>
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('/sw.js');
                 });
             }
-        </script>
+        </script> -->
     </body>
 </html>

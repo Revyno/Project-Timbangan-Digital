@@ -36,11 +36,11 @@ import {
     ChevronUp,
     ChevronDown,
 } from 'lucide-vue-next';
-import Swal from 'sweetalert2';
 import { formatWeight } from '@/utils/format.js';
 import { computed } from 'vue';
 import DashboardChart from '@/Components/ui/chart/DashboardChart.vue';
 import { useRealtimeReload } from '@/composables/useRealtimeReload.js';
+import { pushToast } from '@/composables/useToast.js';
 
 const props = defineProps({
     stats: Object,
@@ -109,14 +109,18 @@ const { connected } = useRealtimeReload({
             time: new Date().toLocaleTimeString('id-ID'),
         };
 
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
+        pushToast({
+            variant: 'success',
             title: `Data berat ${formatWeight(e.weight || e.berat)} kg diterima`,
-            text: `Operator: ${e.operator} | IP: ${e.ip_address}`,
-            showConfirmButton: false,
-            timer: 4000,
+            text: `${e.operator || 'Operator'} • ${e.module || 'Modul'}`,
+            meta: [
+                { label: 'Berat', value: `${formatWeight(e.weight || e.berat)} kg` },
+                { label: 'Operator', value: e.operator || '-' },
+                { label: 'Modul', value: e.module || '-' },
+                { label: 'IP', value: e.ip_address || '-' },
+                { label: 'Waktu', value: lastReceived.value.time },
+            ],
+            duration: 5000,
         });
 
         setTimeout(() => { liveIndicator.value = false; }, 3000);

@@ -17,6 +17,7 @@ import {
 } from 'lucide-vue-next';
 import { Button } from '@/Components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/Components/ui/alert';
+import ToastStack from '@/Components/ToastStack.vue';
 import Swal from 'sweetalert2';
 
 const { auth } = usePage().props;
@@ -359,5 +360,8 @@ const logout = () => {
         <main :class="[desktopSidebarOpen ? 'sm:ml-64' : 'sm:ml-0']" class="p-6 mt-14 transition-all">
             <slot />
         </main>
+
+        <!-- Toast notifikasi global (data timbangan masuk) -->
+        <ToastStack />
     </div>
 </template>
