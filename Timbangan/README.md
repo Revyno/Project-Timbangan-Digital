@@ -89,27 +89,274 @@ Sistem Monitoring Timbangan Digital Real-Time menggunakan Laravel, Inertia.js, V
 
 ## 📡 Integrasi IoT (Arduino/ESP8266)
 
-Setiap modul memiliki prefix URL tersendiri untuk integrasi perangkat IoT:
-- **FG Pasuruan**: `/api/iot`
-- **FG Surabaya**: `/api/iot/fg-surabaya`
-- **CS Noodle Sby**: `/api/iot/cs-noodle-sby`
-- **Incoming Singkong**: `/api/iot/incoming-singkong`
-- **Incoming RMPM**: `/api/iot/incoming-rmpm`
+Setiap modul timbangan punya prefix URL sendiri. Route **v1** adalah rekomendasi
+untuk perangkat baru; route **legacy** (`/api/iot/...`) tetap dipertahankan agar
+perangkat yang sudah terpasang di lapangan tidak terputus (lihat `routes/api.php`).
 
-**Endpoint Utama**:
-- `GET /settings`: Mendapatkan konteks produk & operator aktif.
-- `POST /weight`: Mengirimkan data berat hasil timbangan.
-- `POST /ping`: Heartbeat perangkat.
+| Modul | Prefix v1 | Prefix legacy | Controller |
+|---|---|---|---|
+| FG Pasuruan | `/api/v1/fg-pasuruan` | `/api/iot` | `IotController` |
+| Formulasi Pasuruan | `/api/v1/formulasi` | `/api/iot/formulasi` | `FormulasiIotController` |
+| FG PSN | `/api/v1/fg-psn` | `/api/iot/fg-psn` | `FgPsnIotController` |
+| FG Surabaya | `/api/v1/fg-surabaya` | `/api/iot/fg-surabaya` | `FgSurabayaIotController` |
+| CS Noodle Surabaya | `/api/v1/cs-noodle-sby` | `/api/iot/cs-noodle-sby` | `CsNoodleSbyIotController` |
+| CS FG Surabaya | `/api/v1/cs-fg-sby` | `/api/iot/cs-fg-sby` | `CsFgSbyIotController` |
+| Incoming Singkong | `/api/v1/incoming-singkong` | `/api/iot/incoming-singkong` | `IncomingSingkongIotController` |
+| Incoming RMPM | `/api/v1/incoming-rmpm` | `/api/iot/incoming-rmpm` | `IncomingRmpmIotController` |
 
-**Contoh Payload Weight**:
+**Endpoint yang tersedia di setiap prefix:**
+
+| Method | Path | Token dikirim lewat | Fungsi |
+|---|---|---|---|
+| `GET` | `{prefix}/settings` | **query string** `?token=` | Konteks produk & operator aktif |
+| `POST` | `{prefix}/weight` | **body** `token=` | Kirim hasil timbangan |
+| `GET`/`POST` | `{prefix}/ping` | body **atau** query `token=` | Heartbeat perangkat (update `last_online`) |
+| `POST` | `/api/v1/fg-pasuruan/device/update-product` | body `token=` | Ganti produk aktif device (khusus FG Pasuruan) |
+
+**Contoh payload `POST {prefix}/weight`:**
+
 ```json
 {
-  "token": "device_secret_token",
-  "weight": 10.5,
-  "unit": "kg"
+  "token": "FG-PASURUAN-001",
+  "weight": 10.5
 }
 ```
-Sistem akan memproses data berdasarkan sesi operator yang sedang aktif dan melakukan broadcast via Reverb ke dashboard Vue secara real-time.
+
+Sistem memproses data berdasarkan sesi operator yang sedang aktif, lalu broadcast
+via Reverb ke dashboard Vue secara real-time.
+
+---
+
+## 🔑 Token API
+
+Sistem ini memakai **dua jenis token** yang berbeda fungsi dan tempat
+penyimpanannya. Tidak ada Sanctum/Bearer token untuk API IoT — otentikasi
+perangkat murni memakai `device_token` yang dicocokkan ke tabel `devices`.
+
+| Jenis | Dipakai oleh | Dikirim sebagai | Sumber nilai | Divalidasi di |
+|---|---|---|---|---|
+| **Device Token** | Timbangan Arduino/ESP → server | field `token` (body form / query string) | kolom `devices.device_token` | tiap `*IotController` |
+| **Sync Token** | Server `local` → server `online` | header `X-Sync-Token` | env `ONLINE_SYNC_TOKEN` (`config/hmi.php`) | middleware `sync.token` (`VerifySyncToken`) |
+
+---
+
+### 1. Device Token (perangkat IoT → server)
+
+Token dicocokkan langsung ke kolom **unik** `devices.device_token`. Bila token
+tidak ditemukan, server menjawab `401 {"status":"error","message":"Unauthorized"}`.
+
+#### Token bawaan (hasil `php artisan db:seed` — lihat `database/seeders/DatabaseSeeder.php`)
+
+| Modul | `device_code` | **`device_token`** | Nama device | Sketch Arduino |
+|---|---|---|---|---|
+| FG Pasuruan | `DEV-PAS-001` | `FG-PASURUAN-001` | Wemos D1 R2 - Finishing 1 | `Arduino/Pasuruan/Finished_Goods/` |
+| Formulasi Pasuruan | `DEV-FORM-001` | `FORM-PASURUAN-001` | Wemos D1 R2 - Formulasi Pasuruan | `Arduino/Pasuruan/Formulasi/` |
+| FG PSN | `DEV-PSN-001` | `FG-PSN-001` | Wemos D1 R2 - FG PSN | — |
+| FG Surabaya | `DEV-SBY-001` | `FG-SBY-001` | Wemos D1 R2 - FG Surabaya | `Arduino/Surabaya/Formulasi/` |
+| Incoming Singkong | `DEV-PAS-INC-001` | `INC-SINGKONG-001` | Wemos D1 R2 - Incoming Singkong | `Arduino/Pasuruan/Incoming_Singkong/` |
+| Incoming RMPM | `DEV-PAS-INC-002` | `INC-RMPM-001` | Wemos D1 R2 - Incoming RMPM | `Arduino/Pasuruan/Incoming_RMPM/` |
+
+#### Token modul Surabaya (BELUM ada di seeder — wajib dibuat manual)
+
+Controller & route CS Noodle / CS FG Sby sudah aktif, tetapi barisnya belum
+di-seed. Nilai di bawah adalah yang dipakai sketch Arduino & Postman collection:
+
+| Modul | `device_token` (sketch Arduino) | `device_token` (Postman collection) | Sketch |
+|---|---|---|---|
+| CS Noodle Surabaya | `CS-NOODLE-001` | `CS-NOODLE-SBY-001` | `Arduino/Surabaya/CS_Noodle/` |
+| CS FG Surabaya | `CS-FG-SBY-001` | `CS-FG-SBY-001` | `Arduino/Surabaya/CS_FG_Sby/` |
+
+> ⚠️ Dua nilai CS Noodle di atas **berbeda**. Pilih **satu**, lalu samakan di tiga
+> tempat: baris tabel `devices`, `#define DEVICE_TOKEN` di sketch, dan variabel
+> Postman. Selama barisnya belum ada di tabel `devices`, endpoint CS Noodle dan
+> CS FG Sby akan selalu menjawab `401 Unauthorized`.
+
+Buat manual lewat SQL:
+
+```sql
+INSERT INTO devices (device_code, device_name, device_token, is_active, created_at, updated_at)
+VALUES
+  ('DEV-SBY-CSN-001', 'Wemos D1 R2 - CS Noodle Sby', 'CS-NOODLE-SBY-001', 1, NOW(), NOW()),
+  ('DEV-SBY-CSF-001', 'Wemos D1 R2 - CS FG Sby',     'CS-FG-SBY-001',     1, NOW(), NOW());
+```
+
+Atau lewat tinker (token acak 64 karakter — lebih aman untuk produksi):
+
+```bash
+docker compose exec app php artisan tinker
+```
+
+```php
+\App\Models\Device::create([
+    'device_code'  => 'DEV-SBY-CSN-001',
+    'device_name'  => 'Wemos D1 R2 - CS Noodle Sby',
+    'device_token' => \Illuminate\Support\Str::random(64),
+    'is_active'    => true,
+]);
+```
+
+#### Contoh pemakaian (curl)
+
+Ambil setting — token di **query string**:
+
+```bash
+curl "http://localhost:8000/api/v1/fg-pasuruan/settings?token=FG-PASURUAN-001"
+```
+
+Kirim berat — FG Pasuruan & seluruh route legacy `/api/iot/*` memakai field `berat`:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/fg-pasuruan/weight -d "token=FG-PASURUAN-001" -d "berat=25.5" -d "kode_produksi=KP-2026-001"
+```
+
+Kirim berat — tujuh modul lainnya memakai field `weight`:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/formulasi/weight -d "token=FORM-PASURUAN-001" -d "weight=10.25"
+```
+
+Heartbeat:
+
+```bash
+curl "http://localhost:8000/api/v1/fg-psn/ping?token=FG-PSN-001"
+```
+
+> ⚠️ **Nama field berat berbeda antar modul.** `IotController` (FG Pasuruan +
+> semua route legacy `/api/iot/*`) memvalidasi **`berat`**, sedangkan tujuh
+> controller lain membaca **`weight`**. Salah nama field → `400 Berat tidak valid`.
+
+---
+
+### 2. Sync Token — `X-Sync-Token` (server lokal → server online)
+
+Dipakai endpoint ingest **`POST /api/v1/sync/weighings`** saat server lokal
+mem-forward batch hasil PRINT dari HMI ke server online.
+
+| Hal | Nilai |
+|---|---|
+| Env | `ONLINE_SYNC_TOKEN` (di **kedua** server, nilainya harus sama persis) |
+| Config | `config('hmi.online.token')` |
+| Header | `X-Sync-Token: <token>` |
+| Middleware | `sync.token` → `App\Http\Middleware\VerifySyncToken` |
+| Pengirim | `App\Jobs\ForwardWeighingsBatch` (server `APP_ROLE=local`) |
+
+Aturan penolakan:
+
+| Kondisi | Respons |
+|---|---|
+| `APP_ROLE` bukan `online` | `403` — "Server ini tidak menerima sync" |
+| `ONLINE_SYNC_TOKEN` kosong **atau** header tidak cocok | `401` — "Token sync tidak valid" |
+
+Perbandingan memakai `hash_equals()` (aman dari timing attack). Karena token
+kosong otomatis ditolak, server `online` **wajib** mengisi `ONLINE_SYNC_TOKEN`.
+
+Generate token acak lalu salin ke `.env` di kedua server:
+
+```bash
+docker compose exec app php artisan tinker --execute="echo Str::random(64);"
+```
+
+```env
+# .env server ONLINE
+APP_ROLE=online
+ONLINE_SYNC_TOKEN=<token-64-karakter>
+
+# .env server LOCAL (pabrik)
+APP_ROLE=local
+SITE_CODE=pasuruan
+ONLINE_SYNC_URL=https://timbangan.example.com
+ONLINE_SYNC_TOKEN=<token-64-karakter-yang-SAMA>
+```
+
+Uji manual:
+
+```bash
+curl -X POST https://timbangan.example.com/api/v1/sync/weighings -H "X-Sync-Token: <token-64-karakter>" -H "Content-Type: application/json" -d '{"weighings":[{"uuid":"3f4a0f1c-0000-4000-8000-000000000001","menu":"bahan-baku","nama_item":"Garam","berat":10.5,"tanggal":"2026-01-01 08:00:00","operator_name":"Budi"}]}'
+```
+
+> Ingest bersifat **idempoten** (upsert by `uuid`), jadi retry aman dan tidak
+> menghasilkan notifikasi ganda.
+
+---
+
+### 3. Endpoint TANPA token
+
+| Endpoint | Catatan |
+|---|---|
+| `GET /api/v1/status`, `GET /api/status` | Health check publik — hanya status, versi & waktu server |
+| `POST /api/v1/driver/identify`, `POST /api/driver/identify` | Hanya butuh `qr_code` di body; QR code driver itu sendiri yang jadi identitas |
+| `POST /hmi-display/{menu}/live`, `POST /hmi-display/{menu}/print` | Route **web**, dilindungi session login + `role:operator`, bukan token |
+
+---
+
+### 4. Ringkasan variabel token/kredensial di `.env`
+
+| Variabel | Wajib? | Keterangan |
+|---|---|---|
+| `ONLINE_SYNC_TOKEN` | Wajib bila `APP_ROLE=online` **atau** `local` | Token sync antar-server; kosong = semua request sync ditolak `401` |
+| `ONLINE_SYNC_URL` | Wajib bila `APP_ROLE=local` | Base URL server online tujuan forward |
+| `REVERB_APP_KEY` / `REVERB_APP_SECRET` / `REVERB_APP_ID` | Wajib | Kredensial WebSocket Reverb — jangan pakai nilai default |
+| `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` | Bila pakai profile `monitoring` | Login Grafana |
+| `DB_MONITOR_USER` / `DB_MONITOR_PASSWORD` | Bila pakai profile `monitoring` | User `mysqld-exporter` |
+
+> Device token **tidak** disimpan di `.env` — sumbernya tabel `devices` di database.
+
+---
+
+### 5. Mengelola & merotasi token
+
+- Device token disimpan di kolom **unik** `devices.device_token`
+  (migrasi `2026_04_20_230057_create_device__iots_table.php`).
+- `App\Http\Controllers\DeviceController` sudah punya `store()` dan
+  `regenerateToken()` yang membuat token `Str::random(64)`, **tetapi route-nya
+  belum didaftarkan** di `routes/web.php` dan view blade-nya belum ada. Jadi untuk
+  saat ini penambahan/rotasi token dilakukan lewat SQL atau `tinker`.
+
+```sql
+-- rotasi token satu device
+UPDATE devices SET device_token = '<token-baru>', updated_at = NOW()
+WHERE device_code = 'DEV-PAS-001';
+
+-- nonaktifkan device tanpa menghapus riwayat penimbangan
+UPDATE devices SET is_active = 0 WHERE device_code = 'DEV-PAS-001';
+```
+
+Setelah token dirotasi, **wajib** perbarui `#define DEVICE_TOKEN` di sketch
+Arduino modul terkait lalu re-flash perangkatnya.
+
+> 🔒 **Peringatan produksi.** Token bawaan seeder (`FG-PASURUAN-001`, dst.) mudah
+> ditebak dan sudah tertulis di repositori ini (seeder, sketch Arduino, Postman
+> collection) — nilai tersebut hanya untuk development. Di produksi: ganti semua
+> device token dengan nilai acak (`Str::random(64)`), isi `ONLINE_SYNC_TOKEN`
+> dengan nilai acak, dan pastikan API hanya diakses lewat HTTPS karena token
+> dikirim sebagai plaintext di body/query.
+>
+> Catatan tambahan: pada `GET /settings` dan `GET /ping` token dikirim di **query
+> string**, sehingga ikut tercatat di access log web server.
+
+---
+
+### 6. Testing dengan Postman
+
+`Timbangan-Postman-Collection.json` (di root repo) sudah berisi seluruh endpoint
+beserta variabel token. Import file tersebut lalu sesuaikan variabel koleksi:
+
+| Variabel Postman | Nilai default |
+|---|---|
+| `base_url` | `http://localhost:8000` |
+| `token_fg_pasuruan` | `FG-PASURUAN-001` |
+| `token_formulasi` | `FORM-PASURUAN-001` |
+| `token_fg_psn` | `FG-PSN-001` |
+| `token_fg_sby` | `FG-SBY-001` |
+| `token_singkong` | `INC-SINGKONG-001` |
+| `token_rmpm` | `INC-RMPM-001` |
+| `token_cs_noodle` | `CS-NOODLE-SBY-001` |
+| `token_cs_fg` | `CS-FG-SBY-001` |
+| `sync_token` | `your-sync-token-here` → isi dengan `ONLINE_SYNC_TOKEN` |
+| `qr_code_driver` | `DRV-xxxxxxxx` |
+
+Dokumentasi Swagger (anotasi `@OA\*` di tiap controller) tersedia di
+`/api/documentation` setelah menjalankan `php artisan l5-swagger:generate`.
 
 ---
 
