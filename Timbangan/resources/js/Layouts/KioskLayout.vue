@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import ToastStack from '@/Components/ToastStack.vue';
 
 defineProps({
     title: { type: String, default: '' },
@@ -35,5 +36,7 @@ const fmtDate = (d) => d.toLocaleDateString('id-ID', { day: '2-digit', month: '2
             </span>
             <span class="ml-auto font-mono text-xs text-slate-500">{{ fmtTime(now) }} · {{ fmtDate(now) }}</span>
         </footer>
+
+        <ToastStack />
     </div>
 </template>

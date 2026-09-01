@@ -59,4 +59,47 @@ Folder ini merupakan sistem **Web Dashboard** yang dibangun menggunakan *framewo
 7. Aplikasi sudah dapat diakses menggunakan web browser melalui URL yang diberikan oleh artisan serve (umumnya `http://127.0.0.1:8000`).
 
 ---
+
+## 3. Token API (Ringkasan)
+
+Perangkat IoT dan sinkronisasi antar-server memakai token. Dokumentasi lengkap
+(cara rotasi, contoh curl, aturan penolakan) ada di
+[`Timbangan/README.md` → 🔑 Token API](Timbangan/README.md#-token-api).
+
+### a. Device Token — perangkat timbangan → server
+
+Dikirim sebagai field `token` (body form untuk `POST`, query string untuk `GET`),
+dicocokkan ke kolom `devices.device_token`. Token salah/tidak terdaftar → `401 Unauthorized`.
+
+| Modul | Prefix endpoint (v1) | `device_token` bawaan seeder | Sketch Arduino |
+|---|---|---|---|
+| FG Pasuruan | `/api/v1/fg-pasuruan` | `FG-PASURUAN-001` | `Arduino/Pasuruan/Finished_Goods/` |
+| Formulasi Pasuruan | `/api/v1/formulasi` | `FORM-PASURUAN-001` | `Arduino/Pasuruan/Formulasi/` |
+| FG PSN | `/api/v1/fg-psn` | `FG-PSN-001` | — |
+| FG Surabaya | `/api/v1/fg-surabaya` | `FG-SBY-001` | `Arduino/Surabaya/Formulasi/` |
+| Incoming Singkong | `/api/v1/incoming-singkong` | `INC-SINGKONG-001` | `Arduino/Pasuruan/Incoming_Singkong/` |
+| Incoming RMPM | `/api/v1/incoming-rmpm` | `INC-RMPM-001` | `Arduino/Pasuruan/Incoming_RMPM/` |
+| CS Noodle Sby | `/api/v1/cs-noodle-sby` | *belum di-seed* — `CS-NOODLE-001` (sketch) / `CS-NOODLE-SBY-001` (Postman) | `Arduino/Surabaya/CS_Noodle/` |
+| CS FG Sby | `/api/v1/cs-fg-sby` | *belum di-seed* — `CS-FG-SBY-001` | `Arduino/Surabaya/CS_FG_Sby/` |
+
+Endpoint per modul: `GET {prefix}/settings`, `POST {prefix}/weight`,
+`GET|POST {prefix}/ping`. Route lama `/api/iot/...` tetap aktif untuk perangkat
+yang sudah terpasang.
+
+### b. Sync Token — server lokal → server online
+
+Header `X-Sync-Token` pada `POST /api/v1/sync/weighings`, nilainya dari env
+`ONLINE_SYNC_TOKEN` dan **harus sama persis** di server `local` maupun `online`.
+
+### c. Endpoint tanpa token
+
+`GET /api/v1/status` (health check) dan `POST /api/v1/driver/identify`
+(cukup `qr_code` di body).
+
+> 🔒 Token bawaan di atas hanya untuk **development** dan sudah tertulis di
+> repositori ini. Di produksi ganti semua device token dengan nilai acak
+> (`Str::random(64)`), isi `ONLINE_SYNC_TOKEN` dengan nilai acak, dan akses API
+> hanya lewat HTTPS.
+
+---
 *Dokumentasi ini ditujukan untuk mempermudah developer dan pengelola (Admin/IT) dalam memahami arsitektur dan mengatur jalannya sistem Penimbangan Terintegrasi.*

@@ -1,0 +1,716 @@
+{
+    "info": {
+        "name": "Timbangan Digital - Local API",
+        "description": "Collection endpoint API v1 untuk testing lokal Sistem Timbangan Digital Ladang Lima. Import ke Postman via: File > Import > pilih file ini.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_postman_id": "timbangan-digital-v1"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000",
+            "description": "URL server Laravel local (ganti port jika beda)"
+        },
+        {
+            "key": "token_fg_pasuruan",
+            "value": "FG-PASURUAN-001",
+            "description": "Device token FG Pasuruan (dari seeder)"
+        },
+        {
+            "key": "token_fg_psn",
+            "value": "FG-PSN-001",
+            "description": "Device token FG PSN"
+        },
+        {
+            "key": "token_fg_sby",
+            "value": "FG-SBY-001",
+            "description": "Device token FG Surabaya"
+        },
+        {
+            "key": "token_formulasi",
+            "value": "FORM-PASURUAN-001",
+            "description": "Device token Formulasi Pasuruan"
+        },
+        {
+            "key": "token_singkong",
+            "value": "INC-SINGKONG-001",
+            "description": "Device token Incoming Singkong"
+        },
+        {
+            "key": "token_rmpm",
+            "value": "INC-RMPM-001",
+            "description": "Device token Incoming RMPM"
+        },
+        {
+            "key": "token_cs_noodle",
+            "value": "CS-NOODLE-SBY-001",
+            "description": "Device token CS Noodle Sby (sesuaikan bila ada di seeder)"
+        },
+        {
+            "key": "token_cs_fg",
+            "value": "CS-FG-SBY-001",
+            "description": "Device token CS FG Sby"
+        },
+        {
+            "key": "sync_token",
+            "value": "your-sync-token-here",
+            "description": "Nilai dari ONLINE_SYNC_TOKEN di .env (untuk endpoint sync)"
+        },
+        {
+            "key": "qr_code_driver",
+            "value": "DRV-xxxxxxxx",
+            "description": "QR code driver dari registrasi (cek DB drivers.qr_code)"
+        }
+    ],
+    "item": [
+        {
+            "name": "0. Health Check",
+            "item": [
+                {
+                    "name": "GET /api/v1/status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/status",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "status"]
+                        },
+                        "description": "Health check server + versi API. Tanpa auth."
+                    }
+                },
+                {
+                    "name": "GET /api/status (legacy)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/status",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "status"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "1. FG Pasuruan",
+            "item": [
+                {
+                    "name": "GET /api/v1/fg-pasuruan/settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-pasuruan/settings?token={{token_fg_pasuruan}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-pasuruan", "settings"],
+                            "query": [
+                                { "key": "token", "value": "{{token_fg_pasuruan}}" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/fg-pasuruan/weight",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_fg_pasuruan}}", "type": "text" },
+                                { "key": "berat", "value": "25.5", "type": "text" },
+                                { "key": "kode_produksi", "value": "KP-2026-001", "type": "text" },
+                                { "key": "produk_id", "value": "1", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-pasuruan/weight",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-pasuruan", "weight"]
+                        },
+                        "description": "Kirim berat. Butuh operator FG aktif + sesi (cache session_operator_{id}) atau kode_produksi valid."
+                    }
+                },
+                {
+                    "name": "POST /api/v1/fg-pasuruan/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_fg_pasuruan}}", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-pasuruan/ping",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-pasuruan", "ping"]
+                        }
+                    }
+                },
+                {
+                    "name": "GET /api/v1/fg-pasuruan/ping",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-pasuruan/ping?token={{token_fg_pasuruan}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-pasuruan", "ping"],
+                            "query": [
+                                { "key": "token", "value": "{{token_fg_pasuruan}}" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/fg-pasuruan/device/update-product",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_fg_pasuruan}}", "type": "text" },
+                                { "key": "produk_id", "value": "1", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-pasuruan/device/update-product",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-pasuruan", "device", "update-product"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. Formulasi Pasuruan",
+            "item": [
+                {
+                    "name": "GET /api/v1/formulasi/settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/formulasi/settings?token={{token_formulasi}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "formulasi", "settings"],
+                            "query": [{ "key": "token", "value": "{{token_formulasi}}" }]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/formulasi/weight",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_formulasi}}", "type": "text" },
+                                { "key": "weight", "value": "10.25", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/formulasi/weight",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "formulasi", "weight"]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/formulasi/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_formulasi}}", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/formulasi/ping",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "formulasi", "ping"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. FG PSN",
+            "item": [
+                {
+                    "name": "GET /api/v1/fg-psn/settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-psn/settings?token={{token_fg_psn}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-psn", "settings"],
+                            "query": [{ "key": "token", "value": "{{token_fg_psn}}" }]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/fg-psn/weight",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_fg_psn}}", "type": "text" },
+                                { "key": "weight", "value": "50.75", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-psn/weight",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-psn", "weight"]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/fg-psn/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_fg_psn}}", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-psn/ping",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-psn", "ping"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "4. FG Surabaya",
+            "item": [
+                {
+                    "name": "GET /api/v1/fg-surabaya/settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-surabaya/settings?token={{token_fg_sby}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-surabaya", "settings"],
+                            "query": [{ "key": "token", "value": "{{token_fg_sby}}" }]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/fg-surabaya/weight",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_fg_sby}}", "type": "text" },
+                                { "key": "weight", "value": "10.25", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-surabaya/weight",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-surabaya", "weight"]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/fg-surabaya/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_fg_sby}}", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/fg-surabaya/ping",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "fg-surabaya", "ping"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "5. CS Noodle Sby",
+            "item": [
+                {
+                    "name": "GET /api/v1/cs-noodle-sby/settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/cs-noodle-sby/settings?token={{token_cs_noodle}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "cs-noodle-sby", "settings"],
+                            "query": [{ "key": "token", "value": "{{token_cs_noodle}}" }]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/cs-noodle-sby/weight",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_cs_noodle}}", "type": "text" },
+                                { "key": "weight", "value": "15.5", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/cs-noodle-sby/weight",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "cs-noodle-sby", "weight"]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/cs-noodle-sby/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_cs_noodle}}", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/cs-noodle-sby/ping",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "cs-noodle-sby", "ping"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "6. CS FG Sby",
+            "item": [
+                {
+                    "name": "GET /api/v1/cs-fg-sby/settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/cs-fg-sby/settings?token={{token_cs_fg}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "cs-fg-sby", "settings"],
+                            "query": [{ "key": "token", "value": "{{token_cs_fg}}" }]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/cs-fg-sby/weight",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_cs_fg}}", "type": "text" },
+                                { "key": "weight", "value": "20.0", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/cs-fg-sby/weight",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "cs-fg-sby", "weight"]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/cs-fg-sby/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_cs_fg}}", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/cs-fg-sby/ping",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "cs-fg-sby", "ping"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "7. Incoming Singkong",
+            "item": [
+                {
+                    "name": "GET /api/v1/incoming-singkong/settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/incoming-singkong/settings?token={{token_singkong}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "incoming-singkong", "settings"],
+                            "query": [{ "key": "token", "value": "{{token_singkong}}" }]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/incoming-singkong/weight",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_singkong}}", "type": "text" },
+                                { "key": "weight", "value": "1500.0", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/incoming-singkong/weight",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "incoming-singkong", "weight"]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/incoming-singkong/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_singkong}}", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/incoming-singkong/ping",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "incoming-singkong", "ping"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "8. Incoming RMPM",
+            "item": [
+                {
+                    "name": "GET /api/v1/incoming-rmpm/settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/incoming-rmpm/settings?token={{token_rmpm}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "incoming-rmpm", "settings"],
+                            "query": [{ "key": "token", "value": "{{token_rmpm}}" }]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/incoming-rmpm/weight",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_rmpm}}", "type": "text" },
+                                { "key": "weight", "value": "500.0", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/incoming-rmpm/weight",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "incoming-rmpm", "weight"]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/v1/incoming-rmpm/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_rmpm}}", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/incoming-rmpm/ping",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "incoming-rmpm", "ping"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "9. Driver",
+            "item": [
+                {
+                    "name": "POST /api/v1/driver/identify",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"qr_code\": \"{{qr_code_driver}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/driver/identify",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "driver", "identify"]
+                        },
+                        "description": "Cek qr_code driver di tabel drivers. Response 200 = ditemukan, 404 = tidak ada."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "10. Sync (Edge -> Online)",
+            "item": [
+                {
+                    "name": "POST /api/v1/sync/weighings",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "X-Sync-Token", "value": "{{sync_token}}" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"weighings\": [\n        {\n            \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n            \"menu\": \"bahan-baku\",\n            \"site\": \"pasuruan\",\n            \"operator_name\": \"Operator Test\",\n            \"karu_name\": \"Karu Test\",\n            \"shift\": \"A\",\n            \"tanggal\": \"2026-08-03\",\n            \"produk\": \"Garam Meja\",\n            \"nama_item\": \"Garam\",\n            \"kode_batch\": \"BATCH-2026-001\",\n            \"target\": 50.0,\n            \"berat\": 50.25,\n            \"unit\": \"kg\",\n            \"selisih\": 0.25,\n            \"timbangan_ke\": 1\n        }\n    ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/sync/weighings",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "sync", "weighings"]
+                        },
+                        "description": "Batch sync HmiWeighing dari edge ke online. Wajib header X-Sync-Token = nilai ONLINE_SYNC_TOKEN di .env. Idempoten by uuid."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "11. Legacy (Backward Compat)",
+            "item": [
+                {
+                    "name": "GET /api/iot/settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "url": {
+                            "raw": "{{base_url}}/api/iot/settings?token={{token_fg_pasuruan}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "iot", "settings"],
+                            "query": [{ "key": "token", "value": "{{token_fg_pasuruan}}" }]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/iot/weight",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_fg_pasuruan}}", "type": "text" },
+                                { "key": "berat", "value": "25.5", "type": "text" },
+                                { "key": "kode_produksi", "value": "KP-2026-001", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/iot/weight",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "iot", "weight"]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/iot/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Accept", "value": "application/json" }],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                { "key": "token", "value": "{{token_fg_pasuruan}}", "type": "text" }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/iot/ping",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "iot", "ping"]
+                        }
+                    }
+                },
+                {
+                    "name": "POST /api/driver/identify (legacy)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"qr_code\": \"{{qr_code_driver}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/driver/identify",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "driver", "identify"]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
